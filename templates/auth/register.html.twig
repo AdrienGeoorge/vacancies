@@ -13,14 +13,14 @@
             <div class="lg:w-3/6 xl:w-6/12 p-6 sm:px-8 lg:py-5 flex lg:flex-none items-center">
                 <div class="flex flex-col px-10">
                     <h1 class="mt-12 mb-5 text-xl font-poppins-semi-bold">
-                        Bienvenue sur <span class="text-amber-400">{{ app_name }}</span>
+                        Bienvenue sur <span class="text-teal-500">{{ app_name }}</span>
                     </h1>
                     <h1 class="text-3xl font-playfair">
                         Créez votre compte
                     </h1>
                     <div class="w-full flex-1 mt-5">
                         {% if not registrationForm.vars.valid %}
-                            <div class="relative block w-full py-4 px-6 mb-4 text-base leading-5 text-white bg-red-400 rounded-full opacity-100 font-regular">
+                            <div class="relative block w-full py-4 px-6 mb-4 text-base leading-5 text-white bg-red-400 rounded-2xl opacity-100 font-regular">
                                 <ul>
                                     {% for child in registrationForm.children %}
                                         {% for error in child.vars.errors %}
@@ -30,13 +30,11 @@
                                 </ul>
                             </div>
                         {% endif %}
-                        <div>{{ form_widget(registrationForm.firstname) }}</div>
-                        <div>{{ form_widget(registrationForm.lastname) }}</div>
                         <div>{{ form_widget(registrationForm.email) }}</div>
                         <div>{{ form_widget(registrationForm.plainPassword) }}</div>
                         <button
-                                class="mt-5 tracking-wide bg-indigo-500 text-gray-100 w-full py-4 rounded-full
-                                    flex items-center justify-center hover:bg-indigo-700
+                                class="mt-5 tracking-wide bg-teal-500 text-white w-full py-4 rounded-full
+                                    flex items-center justify-center hover:bg-teal-700
                                     transition-all duration-300 ease-in-out
                                     focus:shadow-outline focus:outline-none">
                             S'inscrire
@@ -51,7 +49,7 @@
                 </div>
             </div>
             <div class="flex-1 text-center hidden lg:flex">
-                <div class="w-full bg-contain bg-center bg-no-repeat mr-14"
+                <div class="w-full bg-contain bg-center bg-no-repeat mr-14 my-8"
                      style="background-image: url({{ asset('build/images/index.png') }});">
                 </div>
             </div>

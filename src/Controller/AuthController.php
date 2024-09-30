@@ -18,8 +18,8 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 #[Route('/', name: 'auth_')]
 class AuthController extends AbstractController
 {
-    private $tokenStorage;
-    private $requestStack;
+    private TokenStorageInterface $tokenStorage;
+    private RequestStack $requestStack;
 
     public function __construct(TokenStorageInterface $tokenStorage, RequestStack $requestStack)
     {

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{{ app_name }}{% endblock %}</title>
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+    {% block stylesheets %}
+        {{ encore_entry_link_tags('app') }}
+    {% endblock %}
+
+    {% block javascripts %}
+        {{ encore_entry_script_tags('app') }}
+    {% endblock %}
+</head>
+<body class="bg-body dark:bg-body-dark dark:text-white" hx-boost="true">
+{% block body %}
+    <div class="p-5 flex gap-4">
+        <div id="nav" class="w-3/12">
+            <h1 class="mb-5 text-2xl font-poppins-semi-bold text-amber-400">{{ app_name }}</h1>
+            <div class="text-3xl font-roboto-medium">Bonjour {{ app.user.firstname|capitalize }}.</div>
+        </div>
+        <div id="content-and-header" class="flex-1">
+            <div id="header"></div>
+            <div id="content" class="bg-box dark:bg-box-dark rounded-4xl p-2">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+</body>
+</html>

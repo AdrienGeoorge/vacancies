@@ -25,21 +25,13 @@ module.exports = {
       colors: {
         transparent: 'transparent',
         current: 'currentColor',
-        'login-body': {
+        body: {
           DEFAULT: colors.gray["100"],
           dark: '#212536'
-        },
-        'login-box': {
-          DEFAULT: '#fff',
-          dark: '#3b435cc2'
-        },
-        body: {
-          DEFAULT: '#fff',
-          dark: 'rgb(44,47,68)'
         },
         box: {
-          DEFAULT: colors.gray["100"],
-          dark: '#212536'
+          DEFAULT: '#fff',
+          dark: '#3b435cc2'
         },
         shadow: {
           DEFAULT: '#fff',

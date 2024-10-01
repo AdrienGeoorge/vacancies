@@ -12,8 +12,6 @@ class AppController extends AbstractController
     #[Route('/', name: 'home')]
     public function home(): Response
     {
-        if (!$this->getUser()) return $this->redirectToRoute('auth_login');
-
         return $this->render('home/index.html.twig');
     }
 }

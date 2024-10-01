@@ -25,17 +25,31 @@
 </head>
 <body class="bg-body dark:bg-body-dark dark:text-white" hx-boost="true">
 {% block body %}
-    <div class="p-5 flex gap-4">
-        <div id="nav" class="w-3/12">
-            <h1 class="mb-5 text-2xl font-poppins-semi-bold text-amber-400">{{ app_name }}</h1>
-            <div class="text-3xl font-roboto-medium">Bonjour {{ app.user.firstname|capitalize }}.</div>
+    <div id="nav"
+         class="w-full flex flex-col md:flex-row items-center gap-4 mb-5 py-5 px-7 bg-box dark:bg-box-dark">
+        <div class="gap-4 items-center hidden md:flex">
+            <img src="{{ asset('build/images/index.png') }}" alt="{{ app_name }}" width="50em">
+            <h1 class="text-2xl font-poppins-semi-bold text-teal-500">{{ app_name }}</h1>
         </div>
-        <div id="content-and-header" class="flex-1">
-            <div id="header"></div>
-            <div id="content" class="bg-box dark:bg-box-dark rounded-4xl p-2">
-                {% block content %}{% endblock %}
+        <div class="md:border-l flex-col md:flex-row flex-1 flex gap-3 items-center justify-between md:pl-5">
+            <div class="welcome-message">
+                <div class="text-xl font-roboto-medium">
+                    Bonjour, {{ app.user.firstname|capitalize ~ ' ' ~ app.user.lastname|upper }}!
+                </div>
+                <div class=" font-roboto-thin">Es-tu prêt pour un nouveau voyage?</div>
+            </div>
+            <div class="flex gap-3">
+                <a href="#" class="tracking-wide bg-sky-400 text-white w-40 py-3 rounded-full
+                                    flex items-center justify-center hover:bg-sky-600 transition-all duration-300
+                                    ease-in-out focus:shadow-outline focus:outline-none">Nouveau voyage</a>
+                <a href="{{ path('auth_logout') }}" class="tracking-wide bg-red-400 text-white w-40 py-3 rounded-full
+                                    flex items-center justify-center hover:bg-red-600 transition-all duration-300
+                                    ease-in-out focus:shadow-outline focus:outline-none">Déconnexion</a>
             </div>
         </div>
+    </div>
+    <div id="content" class="p-2">
+        {% block content %}{% endblock %}
     </div>
 {% endblock %}
 </body>

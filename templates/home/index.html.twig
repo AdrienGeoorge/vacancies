@@ -15,7 +15,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-3">
                 {% for trip in futureTrips %}
                     <div class="grid grid-cols-2 gap-3 bg-box dark:bg-box-dark p-3 rounded-3xl">
-                        <div class="bg-cover bg-center bg-no-repeat w-full h-full rounded-2xl"
+                        <div class="bg-cover bg-center bg-no-repeat w-full h-full rounded-2xl trip-image"
                              style="background-image: url({{ trip.image }})"></div>
                         <div class="flex flex-col justify-between gap-3">
                             <div class="rounded-2xl py-2.5 px-5 border border-body dark:border-body-dark">
@@ -28,7 +28,7 @@
                                     <div class="text-sm">Dates non définies</div>
                                 {% endif %}
                             </div>
-                            <a href="#" class="rounded-2xl py-2.5 px-5 bg-gray-700 text-white dark:bg-white dark:text-gray-700 w-fit m-auto">
+                            <a href="{{ path('trip_show', {'id': trip.id}) }}" class="rounded-2xl py-2.5 px-5 bg-gray-700 text-white dark:bg-white dark:text-gray-700 w-fit m-auto border-2 border-gray-500 dark:border-gray-300">
                                 Consulter
                             </a>
                         </div>
@@ -55,7 +55,7 @@
                                 <div class="font-roboto trip-name">{{ trip.name }}</div>
                                 <div class="text-sm">{{ trip.departureDate|date('j M. Y') ~ ' - ' ~ trip.returnDate|date('j M. Y') }}</div>
                             </div>
-                            <a href="#" class="rounded-2xl py-2.5 px-5 bg-gray-700 text-white dark:bg-white dark:text-gray-700 w-fit m-auto">
+                            <a href="#" class="rounded-2xl py-2.5 px-5 bg-gray-700 text-white dark:bg-white dark:text-gray-700 w-fit m-auto border-2 border-gray-500 dark:border-gray-300">
                                 Consulter
                             </a>
                         </div>

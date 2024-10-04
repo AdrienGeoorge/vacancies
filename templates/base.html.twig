@@ -26,22 +26,24 @@
 <body class="bg-body dark:bg-body-dark dark:text-white" hx-boost="true">
 {% block body %}
     <div id="nav"
-         class="w-full flex flex-col md:flex-row items-center gap-4 mb-5 py-5 px-7 bg-box dark:bg-box-dark">
-        <div class="gap-4 items-center hidden md:flex">
-            <img src="{{ asset('build/images/index.png') }}" alt="{{ app_name }}" width="50em">
+         class="w-full flex flex-col md:flex-row items-center gap-4 py-5 px-10">
+        <a href="{{ path('app_home') }}" class="gap-4 items-center hidden lg:flex bg-box dark:bg-box-dark rounded-full px-5 py-2">
+            <img src="{{ asset('build/images/index.png') }}" alt="{{ app_name }}" width="38em">
             <h1 class="text-2xl font-poppins-semi-bold text-teal-500">{{ app_name }}</h1>
-        </div>
-        <div class="md:border-l flex-col md:flex-row flex-1 flex gap-3 items-center justify-between md:pl-5">
-            <div class="welcome-message">
-                <div class="text-xl font-roboto-medium">
-                    Bonjour, {{ app.user.firstname|capitalize ~ ' ' ~ app.user.lastname|upper }}!
-                </div>
-                <div class=" font-roboto-thin">Es-tu prêt pour un nouveau voyage?</div>
-            </div>
-            <div class="flex gap-3">
-                <a href="#" class="tracking-wide bg-sky-400 text-white w-40 py-3 rounded-full
+        </a>
+        <div class="lg:border-l flex-col md:flex-row flex-1 flex gap-3 items-center justify-between lg:pl-5">
+            <div class="flex gap-3 bg-box dark:bg-box-dark rounded-full p-3">
+                <a href="{{ path('app_home') }}" class="tracking-wide w-40 py-3 rounded-full
+                                    {{ app.request.get('_route') == 'app_home' ? 'bg-gray-100 dark:bg-gray-800' }}
+                                    flex items-center justify-center hover:bg-gray-100 hover:dark:bg-gray-800">Mes voyages</a>
+                <a href="#" class="tracking-wide w-40 py-3 rounded-full
+                                    {{ app.request.get('_route') == 'stats' ? 'bg-gray-100 dark:bg-gray-800' }}
+                                    flex items-center justify-center hover:bg-gray-100 hover:dark:bg-gray-800">Mes statistiques</a>
+                <a href="{{ path('trip_new') }}" class="tracking-wide bg-sky-400 text-white w-40 py-3 rounded-full
                                     flex items-center justify-center hover:bg-sky-600 transition-all duration-300
                                     ease-in-out focus:shadow-outline focus:outline-none">Nouveau voyage</a>
+            </div>
+            <div class="flex gap-3 bg-box dark:bg-box-dark rounded-full p-3">
                 <a href="{{ path('auth_logout') }}" class="tracking-wide bg-red-400 text-white w-40 py-3 rounded-full
                                     flex items-center justify-center hover:bg-red-600 transition-all duration-300
                                     ease-in-out focus:shadow-outline focus:outline-none">Déconnexion</a>

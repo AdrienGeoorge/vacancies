@@ -30,7 +30,7 @@ class Trip
     private ?string $image = null;
 
     #[ORM\Column]
-    private ?int $travelers = null;
+    private ?int $travelers = 1;
 
     #[ORM\ManyToOne(inversedBy: 'trips')]
     #[ORM\JoinColumn(nullable: false)]

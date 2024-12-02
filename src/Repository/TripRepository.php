@@ -38,7 +38,8 @@ class TripRepository extends ServiceEntityRepository
 
         return $qb->andWhere($orX)
             ->setParameter('today', (new \DateTime())->format('Y-m-d'))
-            ->orderBy('t.departureDate', 'ASC')
+            ->orderBy("CASE WHEN t.departureDate IS NULL THEN 1 ELSE 0 END", 'ASC')
+            ->addOrderBy('t.departureDate', 'ASC')
             ->addOrderBy('t.id', 'DESC')
             ->getQuery()
             ->getResult();

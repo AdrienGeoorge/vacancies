@@ -52,6 +52,15 @@ button {
 .trip-image {
   image-rendering: pixelated;
 }
+.trip-image:before {
+  content: "";
+}
+
+.budget-pastille {
+  width: 10px;
+  height: 10px;
+  border-radius: 100%;
+}
 
 /*
 .box {

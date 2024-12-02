@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\TripRepository;
+use DateInterval;
+use DateTime;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -123,5 +125,31 @@ class Trip
         $this->traveler = $traveler;
 
         return $this;
+    }
+
+    public function countDaysBeforeOrAfter(): bool|array|string
+    {
+        $departureDate = $this->getDepartureDate();
+
+        if (!$departureDate) return false;
+
+        if ($departureDate > new DateTime()) {
+            $diff = (new \DateTime('now'))->diff($departureDate);
+            return [
+                'before' => false,
+                'days' => $diff->days
+            ];
+        }
+
+        $returnDate = $this->getReturnDate();
+        if ($returnDate && $this->getReturnDate() < new DateTime()) {
+            $diff = (new \DateTime('now'))->diff($returnDate);
+            return [
+                'before' => true,
+                'days' => $diff->days
+            ];
+        }
+
+        return 'ongoing';
     }
 }

@@ -22,6 +22,16 @@ button {
 
 .trip-image {
    image-rendering: pixelated;
+
+   &:before {
+      content: '';
+   }
+}
+
+.budget-pastille {
+   width: 10px;
+   height: 10px;
+   border-radius: 100%;
 }
 
 /*

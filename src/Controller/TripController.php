@@ -7,6 +7,7 @@ use App\Form\TripFormType;
 use App\Service\FileUploaderService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -58,6 +59,19 @@ class TripController extends AbstractController
 
         return $this->render('trip/show.html.twig', [
             'trip' => $trip
+        ]);
+    }
+
+    #[Route('/get-budget/{id}', name: 'get_budget', requirements: ['id' => '\d+'], options: ['expose' => true])]
+    public function getBudget(Trip $trip): Response
+    {
+        if ($trip->getTraveler() !== $this->getUser()) return new JsonResponse([], 500);
+
+//        TODO
+        return new JsonResponse([
+            'total' => 950,
+            'toPay' => 620,
+            'paid' => 330,
         ]);
     }
 }

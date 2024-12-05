@@ -5,6 +5,8 @@ namespace App\Entity;
 use App\Repository\TripRepository;
 use DateInterval;
 use DateTime;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -37,6 +39,14 @@ class Trip
     #[ORM\ManyToOne(inversedBy: 'trips')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $traveler = null;
+
+    #[ORM\OneToMany(targetEntity: Accommodation::class, mappedBy: 'trip', orphanRemoval: true)]
+    private Collection $accomodations;
+
+    public function __construct()
+    {
+        $this->accomodations = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -151,5 +161,35 @@ class Trip
         }
 
         return 'ongoing';
+    }
+
+    /**
+     * @return Collection<int, Accommodation>
+     */
+    public function getAccomodations(): Collection
+    {
+        return $this->accomodations;
+    }
+
+    public function addAccomodation(Accommodation $accomodation): static
+    {
+        if (!$this->accomodations->contains($accomodation)) {
+            $this->accomodations->add($accomodation);
+            $accomodation->setTrip($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAccomodation(Accommodation $accomodation): static
+    {
+        if ($this->accomodations->removeElement($accomodation)) {
+            // set the owning side to null (unless already changed)
+            if ($accomodation->getTrip() === $this) {
+                $accomodation->setTrip(null);
+            }
+        }
+
+        return $this;
     }
 }

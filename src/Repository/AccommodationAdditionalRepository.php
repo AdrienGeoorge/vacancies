@@ -2,27 +2,27 @@
 
 namespace App\Repository;
 
-use App\Entity\Accommodation;
+use App\Entity\AccommodationAdditional;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Accommodation>
+ * @extends ServiceEntityRepository<AccommodationAdditional>
  *
- * @method Accommodation|null find($id, $lockMode = null, $lockVersion = null)
- * @method Accommodation|null findOneBy(array $criteria, array $orderBy = null)
- * @method Accommodation[]    findAll()
- * @method Accommodation[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method AccommodationAdditional|null find($id, $lockMode = null, $lockVersion = null)
+ * @method AccommodationAdditional|null findOneBy(array $criteria, array $orderBy = null)
+ * @method AccommodationAdditional[]    findAll()
+ * @method AccommodationAdditional[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class AccommodationRepository extends ServiceEntityRepository
+class AccommodationAdditionalRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Accommodation::class);
+        parent::__construct($registry, AccommodationAdditional::class);
     }
 
     //    /**
-    //     * @return Accommodation[] Returns an array of Accommodation objects
+    //     * @return AccommodationAdditional[] Returns an array of AccommodationAdditional objects
     //     */
     //    public function findByExampleField($value): array
     //    {
@@ -36,7 +36,7 @@ class AccommodationRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?Accommodation
+    //    public function findOneBySomeField($value): ?AccommodationAdditional
     //    {
     //        return $this->createQueryBuilder('a')
     //            ->andWhere('a.exampleField = :val')

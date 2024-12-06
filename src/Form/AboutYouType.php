@@ -13,7 +13,7 @@ use Symfony\Component\Validator\Constraints\IsTrue;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
-class AboutYouFormType extends AbstractType
+class AboutYouType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {

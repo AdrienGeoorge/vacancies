@@ -1,0 +1,90 @@
+<?php
+
+namespace App\Service;
+
+use App\Entity\Trip;
+use DateTime;
+
+class TripService
+{
+    /**
+     * Compte le nombre de jours à attendre ou passés pour le voyage
+     * @param Trip $trip
+     * @return bool|array|string
+     */
+    public function countDaysBeforeOrAfter(Trip $trip): bool|array|string
+    {
+        $departureDate = $trip->getDepartureDate();
+
+        if (!$departureDate) return false;
+
+        if ($departureDate > new DateTime()) {
+            $diff = (new \DateTime('now'))->diff($departureDate);
+            return [
+                'before' => false,
+                'days' => $diff->days
+            ];
+        }
+
+        $returnDate = $trip->getReturnDate();
+        if ($returnDate && $returnDate < new DateTime()) {
+            $diff = (new \DateTime('now'))->diff($returnDate);
+            return [
+                'before' => true,
+                'days' => $diff->days
+            ];
+        }
+
+        return 'ongoing';
+    }
+
+    /**
+     * Retourne le montant total des réservations de logement non réservés
+     * @param Trip $trip
+     * @return float
+     */
+    public function getReservedAccommodationsPrice(Trip $trip): float
+    {
+        $price = 0;
+        foreach ($trip->getAccommodations() as $accommodation) {
+            if ($accommodation->isBooked()) {
+                $price += $accommodation->getPrice();
+                foreach ($accommodation->getAdditionalExpansive() as $item) $price += $item->getPrice();
+            }
+        }
+
+        return $price;
+    }
+
+    /**
+     * Retourne le montant total des réservations de logement non réservés
+     * @param Trip $trip
+     * @return float
+     */
+    public function getNonReservedAccommodationsPrice(Trip $trip): float
+    {
+        $price = 0;
+        foreach ($trip->getAccommodations() as $accommodation) {
+            if (!$accommodation->isBooked()) {
+                $price += $accommodation->getPrice();
+                foreach ($accommodation->getAdditionalExpansive() as $item) $price += $item->getPrice();
+            }
+        }
+
+        return $price;
+    }
+
+    /**
+     * TODO
+     * Retourne le montant des dépenses déjà payées et celles restantes à payer
+     * @param Trip $trip
+     * @return array
+     */
+    public function getBudget(Trip $trip): array
+    {
+        return [
+            'toPay' => $this->getNonReservedAccommodationsPrice($trip),
+            'paid' => $this->getReservedAccommodationsPrice($trip),
+        ];
+    }
+}

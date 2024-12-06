@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\AccommodationRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -35,15 +37,29 @@ class Accommodation
     #[ORM\Column]
     private ?float $price = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?float $additionalExpenses = null;
-
     #[ORM\Column]
     private bool $booked = false;
 
     #[ORM\ManyToOne(inversedBy: 'accomodations')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Trip $trip = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?float $deposit = null;
+
+    #[ORM\OneToMany(targetEntity: AccommodationAdditional::class, mappedBy: 'accommodation', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $additionalExpansive;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $arrivalDate = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $departureDate = null;
+
+    public function __construct()
+    {
+        $this->additionalExpansive = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -134,18 +150,6 @@ class Accommodation
         return $this;
     }
 
-    public function getAdditionalExpenses(): ?float
-    {
-        return $this->additionalExpenses;
-    }
-
-    public function setAdditionalExpenses(?float $additionalExpenses): static
-    {
-        $this->additionalExpenses = $additionalExpenses;
-
-        return $this;
-    }
-
     public function isBooked(): bool
     {
         return $this->booked;
@@ -166,6 +170,79 @@ class Accommodation
     public function setTrip(?Trip $trip): static
     {
         $this->trip = $trip;
+
+        return $this;
+    }
+
+    public function getDeposit(): ?float
+    {
+        return $this->deposit;
+    }
+
+    public function setDeposit(?float $deposit): static
+    {
+        $this->deposit = $deposit;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, AccommodationAdditional>
+     */
+    public function getAdditionalExpansive(): Collection
+    {
+        return $this->additionalExpansive;
+    }
+
+    public function addAdditionalExpansive(AccommodationAdditional $AdditionalExpansive): static
+    {
+        if (!$this->additionalExpansive->contains($AdditionalExpansive)) {
+            $this->additionalExpansive->add($AdditionalExpansive);
+            $AdditionalExpansive->setAccommodation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAdditionalExpansive(AccommodationAdditional $AdditionalExpansive): static
+    {
+        if ($this->additionalExpansive->removeElement($AdditionalExpansive)) {
+            // set the owning side to null (unless already changed)
+            if ($AdditionalExpansive->getAccommodation() === $this) {
+                $AdditionalExpansive->setAccommodation(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getTotalPrice()
+    {
+        $total = $this->getPrice();
+        foreach ($this->additionalExpansive as $item) $total += $item->getPrice();
+        return $total;
+    }
+
+    public function getArrivalDate(): ?\DateTimeInterface
+    {
+        return $this->arrivalDate;
+    }
+
+    public function setArrivalDate(?\DateTimeInterface $arrivalDate): static
+    {
+        $this->arrivalDate = $arrivalDate;
+
+        return $this;
+    }
+
+    public function getDepartureDate(): ?\DateTimeInterface
+    {
+        return $this->departureDate;
+    }
+
+    public function setDepartureDate(?\DateTimeInterface $departureDate): static
+    {
+        $this->departureDate = $departureDate;
 
         return $this;
     }

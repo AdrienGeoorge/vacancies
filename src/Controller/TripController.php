@@ -3,8 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Trip;
-use App\Form\TripFormType;
+use App\Form\TripType;
 use App\Service\FileUploaderService;
+use App\Service\TripService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,18 +18,21 @@ class TripController extends AbstractController
 {
     private ManagerRegistry $managerRegistry;
     private FileUploaderService $uploaderService;
+    private TripService $tripService;
 
-    public function __construct(ManagerRegistry $managerRegistry, FileUploaderService $uploaderService)
+    public function __construct(ManagerRegistry $managerRegistry, FileUploaderService $uploaderService,
+                                TripService     $tripService)
     {
         $this->managerRegistry = $managerRegistry;
         $this->uploaderService = $uploaderService;
+        $this->tripService = $tripService;
     }
 
     #[Route('/new', name: 'new')]
     public function new(Request $request): Response
     {
         $trip = new Trip();
-        $form = $this->createForm(TripFormType::class, $trip);
+        $form = $this->createForm(TripType::class, $trip);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -58,7 +62,9 @@ class TripController extends AbstractController
         if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
 
         return $this->render('trip/show.html.twig', [
-            'trip' => $trip
+            'trip' => $trip,
+            'countDaysBeforeOrAfter' => $this->tripService->countDaysBeforeOrAfter($trip),
+            'accommodationsTotalPrice' => $this->tripService->getReservedAccommodationsPrice($trip)
         ]);
     }
 
@@ -67,11 +73,6 @@ class TripController extends AbstractController
     {
         if ($trip->getTraveler() !== $this->getUser()) return new JsonResponse([], 500);
 
-//        TODO
-        return new JsonResponse([
-            'total' => 950,
-            'toPay' => 620,
-            'paid' => 330,
-        ]);
+        return new JsonResponse($this->tripService->getBudget($trip));
     }
 }

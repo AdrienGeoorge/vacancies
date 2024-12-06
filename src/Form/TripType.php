@@ -14,7 +14,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-class TripFormType extends AbstractType
+class TripType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
@@ -27,17 +27,6 @@ class TripFormType extends AbstractType
                               dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
                               dark:placeholder-gray-300',
                     'placeholder' => 'Nom du voyage',
-                ]
-            ])
-            ->add('description', TextareaType::class, [
-                'required' => false,
-                'attr' => [
-                    'class' => 'w-full px-8 py-4 rounded-2xl font-medium bg-gray-100 border border-gray-200
-                              placeholder-gray-400 text-sm
-                              focus:outline-none focus:border-gray-400 focus:bg-white
-                              dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
-                              dark:placeholder-gray-300',
-                    'placeholder' => 'Décris en quelques mots le voyage...',
                 ]
             ])
             ->add('departureDate', DateType::class, [

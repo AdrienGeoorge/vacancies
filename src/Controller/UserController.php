@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Form\AboutYouFormType;
+use App\Form\AboutYouType;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,7 +25,7 @@ class UserController extends AbstractController
         if ($this->getUser()->getFirstname() && $this->getUser()->getLastname()) return $this->redirectToRoute('app_home');
 
         $user = $this->getUser();
-        $form = $this->createForm(AboutYouFormType::class, $user);
+        $form = $this->createForm(AboutYouType::class, $user);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

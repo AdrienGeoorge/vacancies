@@ -41,11 +41,11 @@ class Trip
     private ?User $traveler = null;
 
     #[ORM\OneToMany(targetEntity: Accommodation::class, mappedBy: 'trip', orphanRemoval: true)]
-    private Collection $accomodations;
+    private Collection $accommodations;
 
     public function __construct()
     {
-        $this->accomodations = new ArrayCollection();
+        $this->accommodations = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -137,56 +137,30 @@ class Trip
         return $this;
     }
 
-    public function countDaysBeforeOrAfter(): bool|array|string
-    {
-        $departureDate = $this->getDepartureDate();
-
-        if (!$departureDate) return false;
-
-        if ($departureDate > new DateTime()) {
-            $diff = (new \DateTime('now'))->diff($departureDate);
-            return [
-                'before' => false,
-                'days' => $diff->days
-            ];
-        }
-
-        $returnDate = $this->getReturnDate();
-        if ($returnDate && $this->getReturnDate() < new DateTime()) {
-            $diff = (new \DateTime('now'))->diff($returnDate);
-            return [
-                'before' => true,
-                'days' => $diff->days
-            ];
-        }
-
-        return 'ongoing';
-    }
-
     /**
      * @return Collection<int, Accommodation>
      */
-    public function getAccomodations(): Collection
+    public function getAccommodations(): Collection
     {
-        return $this->accomodations;
+        return $this->accommodations;
     }
 
-    public function addAccomodation(Accommodation $accomodation): static
+    public function addAccommodation(Accommodation $accommodation): static
     {
-        if (!$this->accomodations->contains($accomodation)) {
-            $this->accomodations->add($accomodation);
-            $accomodation->setTrip($this);
+        if (!$this->accommodations->contains($accommodation)) {
+            $this->accommodations->add($accommodation);
+            $accommodation->setTrip($this);
         }
 
         return $this;
     }
 
-    public function removeAccomodation(Accommodation $accomodation): static
+    public function removeAccommodation(Accommodation $accommodation): static
     {
-        if ($this->accomodations->removeElement($accomodation)) {
+        if ($this->accommodations->removeElement($accommodation)) {
             // set the owning side to null (unless already changed)
-            if ($accomodation->getTrip() === $this) {
-                $accomodation->setTrip(null);
+            if ($accommodation->getTrip() === $this) {
+                $accommodation->setTrip(null);
             }
         }
 

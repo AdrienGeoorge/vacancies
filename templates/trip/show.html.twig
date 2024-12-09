@@ -17,7 +17,7 @@
             <div class="flex gap-3 flex-wrap text-sm">
                 <div class="w-fit bg-body rounded-full px-3 py-0.5 flex flex-row items-center gap-1.5 text-black">
                     <span class="text-sm">TOTAL</span>
-                    <span class="text-lg font-bold">{{ accommodationsTotalPrice }}€</span>
+                    <span class="text-lg font-bold">{{ reservedAccommodationsPrice + reservedTransportsPrice }}€</span>
                 </div>
 
                 <div class="flex gap-2">
@@ -43,10 +43,12 @@
                 </svg>
                 <div class="font-poppins-semi-bold text-xl">Dépenses</div>
             </div>
-            <div class="text-sm font-bold leading-4 mt-3.5">Cliquez sur une catégorie pour obtenir le détail des dépenses.
+            <div class="text-sm font-bold leading-4 mt-3.5">Cliquez sur une catégorie pour obtenir le détail des
+                dépenses.
             </div>
 
-            <a href="{{ path('trip_accommodations_index', {'trip': trip.id}) }}" class="flex justify-between gap-3 my-4 -ml-2.5 items-center">
+            <a href="{{ path('trip_accommodations_index', {'trip': trip.id}) }}"
+               class="flex justify-between gap-3 my-4 -ml-2.5 items-center">
                 <div class="flex flex-row gap-2 items-center">
                     <div class="bg-body dark:bg-body-dark rounded-full px-2.5 py-1.5 text-xl">&#127976;</div>
                     <div class="leading-3">
@@ -54,10 +56,10 @@
                         <small>Hôtel, Auberge, location Airbnb...</small>
                     </div>
                 </div>
-                <span class="text-lg font-bold">{{ accommodationsTotalPrice }}€</span>
+                <span class="text-lg font-bold">{{ reservedAccommodationsPrice }}€</span>
             </a>
 
-            <a href="#" class="flex justify-between gap-3 my-4 -ml-2.5 items-center">
+            <a href="{{ path('trip_transports_index', {'trip': trip.id}) }}" class="flex justify-between gap-3 my-4 -ml-2.5 items-center">
                 <div class="flex flex-row gap-2 items-center">
                     <div class="bg-body dark:bg-body-dark rounded-full px-2.5 py-1.5 text-xl">&#128646;</div>
                     <div class="leading-3">
@@ -65,7 +67,7 @@
                         <small>Avion, train, transports en commun...</small>
                     </div>
                 </div>
-                <span class="text-lg font-bold">100€</span>
+                <span class="text-lg font-bold">{{ reservedTransportsPrice }}€</span>
             </a>
 
             <a href="#" class="flex justify-between gap-3 my-4 -ml-2.5 items-center">

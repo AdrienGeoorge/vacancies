@@ -1,0 +1,131 @@
+{% extends 'trip/base.html.twig' %}
+
+{% block bodyTrip %}
+    {{ form_start(form) }}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 px-4 md:px-8">
+        <div class="col-1 flex flex-col gap-4">
+            <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-6 px-8">
+                <div class="text-2xl font-poppins-semi-bold">
+                    Type de transport
+                </div>
+                <div class="mb-5 text-sm font-poppins">
+                    Renseignes le type de transport que tu souhaites enregistrer.
+                </div>
+                {{ form_widget(form.type) }}
+            </div>
+
+            <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-6 px-8">
+                <div class="text-2xl font-poppins-semi-bold">
+                    Compagnie de transport
+                </div>
+                <div class="mb-5 text-sm font-poppins">
+                    Avec quelle compagnie de transports pars-tu? Il n'est pas obligatoire de renseigner une compagnie.
+                </div>
+                <div class="flex flex-col md:flew-row gap-4">
+                    {{ form_widget(form.company) }}
+                </div>
+            </div>
+
+            <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-6 px-8">
+                <div class="text-2xl font-poppins-semi-bold">
+                    Description de l'offre
+                </div>
+                <div class="mb-5 text-sm font-poppins">
+                    Renseignes les formalités sur ce moyen de transport.<br>
+                </div>
+                {{ form_widget(form.description) }}
+            </div>
+        </div>
+
+        <div class="col-2 flex flex-col gap-4">
+            <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-6 px-8 hidden subscription">
+                <div class="text-2xl font-poppins-semi-bold">
+                    Durée de l'abonnement
+                </div>
+                <div class="mb-5 text-sm font-poppins">
+                    La durée est indiquée en jours.
+                </div>
+                <div class="flex flex-col md:flew-row gap-4">
+                    {{ form_widget(form.subscriptionDuration) }}
+                </div>
+            </div>
+
+            <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-6 px-8 hidden departure">
+                <div class="text-2xl font-poppins-semi-bold">
+                    Date et lieu de départ
+                </div>
+                <div class="mb-5 text-sm font-poppins">
+                    <span class="font-bold">Tu ne sais pas encore la date ni le lieu de départ ? Pas de souci, tu peux laisser les champs vide.</span>
+                </div>
+                <div class="flex flex-col md:flew-row gap-4">
+                    {{ form_widget(form.departureDate) }}
+                    {{ form_widget(form.departure) }}
+                </div>
+            </div>
+
+            <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-6 px-8 hidden destination">
+                <div class="text-2xl font-poppins-semi-bold">
+                    Date et lieu d'arrivée
+                </div>
+                <div class="mb-5 text-sm font-poppins">
+                    <span class="font-bold">Tu ne sais pas encore la date ni le lieu d'arrivée ? Pas de souci, tu peux laisser les champs vide.</span>
+                </div>
+                <div class="flex flex-col md:flew-row gap-4">
+                    {{ form_widget(form.arrivalDate) }}
+                    {{ form_widget(form.destination) }}
+                </div>
+            </div>
+
+            <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-6 px-8">
+                <div class="text-2xl font-poppins-semi-bold">
+                    Informations tarifaires
+                </div>
+                <div class="mb-5 text-sm font-poppins">
+                    Renseignes le prix du transport.
+                </div>
+                <div class="flex flex-col md:flew-row gap-4">
+                    {{ form_widget(form.price) }}
+                </div>
+            </div>
+
+            <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-6 px-8">
+                <div class="text-2xl font-poppins-semi-bold">
+                    Paiement
+                </div>
+                <div class="flex gap-4 items-center">
+                    <div class="flex-1">
+                        <div class="text-sm font-poppins">
+                            Cochez la case ci-contre si vous avez déjà effectué le règlement de ce moyen de transport.
+                        </div>
+                    </div>
+                    {{ form_widget(form.paid) }}
+                </div>
+            </div>
+
+            <div class="flex gap-2 flex-wrap justify-center">
+                <button class="tracking-wide bg-teal-500 text-white py-4 px-7 rounded-full
+                                    flex items-center justify-center hover:bg-teal-700
+                                    transition-all duration-300 ease-in-out
+                                    focus:shadow-outline focus:outline-none">
+                    Enregistrer
+                </button>
+                {% if transport.id %}
+                    <a href="{{ path('trip_transports_delete', {'trip': trip.id, 'transport': transport.id}) }}"
+                       class="tracking-wide bg-red-500 text-white py-4 px-7 rounded-full
+                                    flex items-center justify-center hover:bg-red-700
+                                    transition-all duration-300 ease-in-out
+                                    focus:shadow-outline focus:outline-none">
+                        Supprimer
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {{ form_widget(form._token) }}
+    {{ form_end(form, {'render_rest': false}) }}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('transport') }}
+{% endblock %}

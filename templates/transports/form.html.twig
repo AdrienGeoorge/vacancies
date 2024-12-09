@@ -50,6 +50,19 @@
                 </div>
             </div>
 
+            <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-6 px-8 hidden car">
+                <div class="text-2xl font-poppins-semi-bold">
+                    Frais de voiture
+                </div>
+                <div class="mb-5 text-sm font-poppins">
+                    Indiquez une estimation du prix du péage et du carburant pour l'aller/retour.
+                </div>
+                <div class="flex flex-col md:flew-row gap-4">
+                    {{ form_widget(form.estimatedToll) }}
+                    {{ form_widget(form.estimatedGasoline) }}
+                </div>
+            </div>
+
             <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-6 px-8 hidden departure">
                 <div class="text-2xl font-poppins-semi-bold">
                     Date et lieu de départ
@@ -76,7 +89,7 @@
                 </div>
             </div>
 
-            <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-6 px-8">
+            <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-6 px-8 price">
                 <div class="text-2xl font-poppins-semi-bold">
                     Informations tarifaires
                 </div>
@@ -88,7 +101,7 @@
                 </div>
             </div>
 
-            <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-6 px-8">
+            <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-6 px-8 hidden payment">
                 <div class="text-2xl font-poppins-semi-bold">
                     Paiement
                 </div>
@@ -102,7 +115,7 @@
                 </div>
             </div>
 
-            <div class="flex gap-2 flex-wrap justify-center">
+            <div class="flex gap-4 flex-wrap justify-center">
                 <button class="tracking-wide bg-teal-500 text-white py-4 px-7 rounded-full
                                     flex items-center justify-center hover:bg-teal-700
                                     transition-all duration-300 ease-in-out

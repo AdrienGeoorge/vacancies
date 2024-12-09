@@ -49,6 +49,12 @@ class Transport
     #[ORM\JoinColumn(nullable: false)]
     private ?Trip $trip = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?float $estimatedToll = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?float $estimatedGasoline = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -182,6 +188,30 @@ class Transport
     public function setTrip(?Trip $trip): static
     {
         $this->trip = $trip;
+
+        return $this;
+    }
+
+    public function getEstimatedToll(): ?float
+    {
+        return $this->estimatedToll;
+    }
+
+    public function setEstimatedToll(?float $estimatedToll): static
+    {
+        $this->estimatedToll = $estimatedToll;
+
+        return $this;
+    }
+
+    public function getEstimatedGasoline(): ?float
+    {
+        return $this->estimatedGasoline;
+    }
+
+    public function setEstimatedGasoline(?float $estimatedGasoline): static
+    {
+        $this->estimatedGasoline = $estimatedGasoline;
 
         return $this;
     }

@@ -83,7 +83,13 @@ class TripService
     {
         $price = 0;
         foreach ($trip->getTransports() as $transport) {
-            if ($transport->isPaid()) $price += $transport->getPrice();
+            if ($transport->isPaid()) {
+                if ($transport->getType()->getName() === 'Voiture') {
+                    $price += ($transport->getEstimatedToll() + $transport->getEstimatedGasoline());
+                } else {
+                    $price += $transport->getPrice();
+                }
+            }
         }
 
         return $price;

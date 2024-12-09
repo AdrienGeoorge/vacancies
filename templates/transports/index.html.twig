@@ -40,21 +40,21 @@
                         <div class="infos">
                             <div class="font-poppins-semi-bold text-xl">{{ transport.type.name }}</div>
 
-                            {% if transport.type.name != 'Transports en commun' and transport.departure %}
+                            {% if transport.type.name != 'Transports en commun' and transport.type.name != 'Voiture' and transport.departure %}
                                 <div class="mt-4">
                                     <div class="font-poppins-semi-bold">Lieu de départ</div>
                                     <div class="block">{{ transport.departure }}</div>
                                 </div>
                             {% endif %}
 
-                            {% if transport.type.name != 'Transports en commun' and transport.destination %}
+                            {% if transport.type.name != 'Transports en commun' and transport.type.name != 'Voiture' and transport.destination %}
                                 <div class="mt-4">
                                     <div class="font-poppins-semi-bold">Lieu d'arrivée</div>
                                     <div class="block">{{ transport.destination }}</div>
                                 </div>
                             {% endif %}
 
-                            {% if transport.type.name != 'Transports en commun' %}
+                            {% if transport.type.name != 'Transports en commun' and transport.type.name != 'Voiture' %}
                                 <div class="mt-4">
                                     <div class="font-poppins-semi-bold">Date et heure</div>
                                     {% if transport.departureDate and transport.arrivalDate %}
@@ -88,12 +88,29 @@
                                     <span class="block">{{ transport.subscriptionDuration }} jours</span>
                                 </div>
                             {% endif %}
+
+                            {% if transport.type.name == 'Voiture' and transport.estimatedToll and transport.estimatedGasoline %}
+                                <div class="mt-4">
+                                    <div class="font-poppins-semi-bold">Estimation du péage</div>
+                                    <span class="block">{{ transport.estimatedToll }}€</span>
+                                </div>
+
+                                <div class="mt-4">
+                                    <div class="font-poppins-semi-bold">Estimation du carburant</div>
+                                    <span class="block">{{ transport.estimatedGasoline }}€</span>
+                                </div>
+
+                            <div class="mt-4 text-sm">
+                                Il s'agit d'une estimation du prix à payer pour l'aller/retour.
+                            </div>
+                            {% endif %}
                         </div>
 
                         <div class="footer">
                             <div class="mt-4 flex flex-row flex-wrap gap-2 justify-center items-center">
                                 <div class="rounded-full bg-body dark:bg-body-dark w-fit px-3 py-1">
-                                    TOTAL <span class="font-bold">{{ transport.price }}€</span>
+                                    TOTAL <span
+                                            class="font-bold">{{ transport.type.name == 'Voiture' ? transport.estimatedToll + transport.estimatedGasoline : transport.price }}€</span>
                                 </div>
 
                                 <div class="rounded-full {{ transport.isPaid ? 'bg-green-400' : 'bg-red-400' }} w-fit text-white px-3 py-1">
@@ -109,7 +126,7 @@
             </div>
         {% else %}
             <div class="shadow rounded-3xl bg-red-400 text-white py-3.5 px-6">
-                Aucun moyen de transport n'a été trouvé pour ce voyage
+                Aucun moyen de transport n'a été trouvé pour ce voyage.
             </div>
         {% endif %}
     </div>

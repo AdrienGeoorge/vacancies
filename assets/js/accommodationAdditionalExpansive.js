@@ -6,7 +6,7 @@ const addFormToCollection = (e) => {
     const item_title = document.createElement('div')
     item_title.classList.add('text-lg', 'font-poppins-semi-bold', 'mb-4')
     item_title.innerHTML = 'Dépense n°' + (parseInt(collectionHolder.dataset.index) + 1)
-console.log(item_title)
+
     item.innerHTML = item_title.outerHTML + collectionHolder.dataset.prototype.replace(/__name__/g, collectionHolder.dataset.index)
 
     collectionHolder.appendChild(item)

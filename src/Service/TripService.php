@@ -39,7 +39,7 @@ class TripService
     }
 
     /**
-     * Retourne le montant total des réservations de logement non réservés
+     * Retourne le montant total des réservations de logement réservés
      * @param Trip $trip
      * @return float
      */
@@ -75,6 +75,36 @@ class TripService
     }
 
     /**
+     * Retourne le montant total des réservations de transports réservés
+     * @param Trip $trip
+     * @return float
+     */
+    public function getReservedTransportsPrice(Trip $trip): float
+    {
+        $price = 0;
+        foreach ($trip->getTransports() as $transport) {
+            if ($transport->isPaid()) $price += $transport->getPrice();
+        }
+
+        return $price;
+    }
+
+    /**
+     * Retourne le montant total des réservations de transports non réservés
+     * @param Trip $trip
+     * @return float
+     */
+    public function getNonReservedTransportsPrice(Trip $trip): float
+    {
+        $price = 0;
+        foreach ($trip->getTransports() as $transport) {
+            if (!$transport->isPaid()) $price += $transport->getPrice();
+        }
+
+        return $price;
+    }
+
+    /**
      * TODO
      * Retourne le montant des dépenses déjà payées et celles restantes à payer
      * @param Trip $trip
@@ -83,8 +113,8 @@ class TripService
     public function getBudget(Trip $trip): array
     {
         return [
-            'toPay' => $this->getNonReservedAccommodationsPrice($trip),
-            'paid' => $this->getReservedAccommodationsPrice($trip),
+            'toPay' => $this->getNonReservedAccommodationsPrice($trip) + $this->getNonReservedTransportsPrice($trip),
+            'paid' => $this->getReservedAccommodationsPrice($trip) + $this->getReservedTransportsPrice($trip),
         ];
     }
 }

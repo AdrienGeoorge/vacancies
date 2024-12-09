@@ -2,10 +2,11 @@
 
 namespace App\Form;
 
-use App\Entity\Accommodation;
+use App\Entity\Transport;
+use App\Entity\TransportType;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
-use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -13,32 +14,12 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-class AccommodationType extends AbstractType
+class TransportFormType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('name', TextType::class, [
-                'attr' => [
-                    'class' => 'w-full px-8 py-4 rounded-2xl font-medium bg-gray-100 border border-gray-200
-                              placeholder-gray-400 text-sm
-                              focus:outline-none focus:border-gray-400 focus:bg-white
-                              dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
-                              dark:placeholder-gray-300',
-                    'placeholder' => 'Nom du logement',
-                ]
-            ])
-            ->add('address', TextType::class, [
-                'attr' => [
-                    'class' => 'w-full px-8 py-4 rounded-2xl font-medium bg-gray-100 border border-gray-200
-                              placeholder-gray-400 text-sm
-                              focus:outline-none focus:border-gray-400 focus:bg-white
-                              dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
-                              dark:placeholder-gray-300',
-                    'placeholder' => 'Adresse du logement',
-                ]
-            ])
-            ->add('zipCode', TextType::class, [
+            ->add('departure', TextType::class, [
                 'required' => false,
                 'attr' => [
                     'class' => 'w-full px-8 py-4 rounded-2xl font-medium bg-gray-100 border border-gray-200
@@ -46,10 +27,10 @@ class AccommodationType extends AbstractType
                               focus:outline-none focus:border-gray-400 focus:bg-white
                               dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
                               dark:placeholder-gray-300',
-                    'placeholder' => 'Code postal',
+                    'placeholder' => 'Lieu de départ',
                 ]
             ])
-            ->add('city', TextType::class, [
+            ->add('destination', TextType::class, [
                 'required' => false,
                 'attr' => [
                     'class' => 'w-full px-8 py-4 rounded-2xl font-medium bg-gray-100 border border-gray-200
@@ -57,10 +38,36 @@ class AccommodationType extends AbstractType
                               focus:outline-none focus:border-gray-400 focus:bg-white
                               dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
                               dark:placeholder-gray-300',
-                    'placeholder' => 'Ville',
+                    'placeholder' => 'Lieu d\'arrivée',
                 ]
             ])
-            ->add('country', TextType::class, [
+            ->add('departureDate', DateType::class, [
+                'required' => false,
+                'widget' => 'single_text',
+                'input_format' => 'd/m/Y H:i',
+                'attr' => [
+                    'class' => 'w-full px-8 py-4 rounded-2xl font-medium bg-gray-100 border border-gray-200
+                              placeholder-gray-400 text-sm
+                              focus:outline-none focus:border-gray-400 focus:bg-white
+                              dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
+                              dark:placeholder-gray-300',
+                    'placeholder' => 'Date de départ',
+                ]
+            ])
+            ->add('arrivalDate', DateType::class, [
+                'required' => false,
+                'widget' => 'single_text',
+                'input_format' => 'd/m/Y H:i',
+                'attr' => [
+                    'class' => 'w-full px-8 py-4 rounded-2xl font-medium bg-gray-100 border border-gray-200
+                              placeholder-gray-400 text-sm
+                              focus:outline-none focus:border-gray-400 focus:bg-white
+                              dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
+                              dark:placeholder-gray-300',
+                    'placeholder' => 'Date d\'arrivée',
+                ]
+            ])
+            ->add('company', TextType::class, [
                 'required' => false,
                 'attr' => [
                     'class' => 'w-full px-8 py-4 rounded-2xl font-medium bg-gray-100 border border-gray-200
@@ -68,7 +75,18 @@ class AccommodationType extends AbstractType
                               focus:outline-none focus:border-gray-400 focus:bg-white
                               dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
                               dark:placeholder-gray-300',
-                    'placeholder' => 'Pays',
+                    'placeholder' => 'Compagnie de transport',
+                ]
+            ])
+            ->add('subscriptionDuration', TextType::class, [
+                'required' => false,
+                'attr' => [
+                    'class' => 'w-full px-8 py-4 rounded-2xl font-medium bg-gray-100 border border-gray-200
+                              placeholder-gray-400 text-sm
+                              focus:outline-none focus:border-gray-400 focus:bg-white
+                              dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
+                              dark:placeholder-gray-300',
+                    'placeholder' => 'Durée d\'abonnement',
                 ]
             ])
             ->add('description', TextareaType::class, [
@@ -79,7 +97,7 @@ class AccommodationType extends AbstractType
                               focus:outline-none focus:border-gray-400 focus:bg-white
                               dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
                               dark:placeholder-gray-300',
-                    'placeholder' => 'La pension est-elle comprise ? Y a-t-il des choses à savoir avant le départ ?',
+                    'placeholder' => 'Décris les modalités de ce moyen de transport (bagages compris, nourriture...)',
                 ]
             ])
             ->add('price', NumberType::class, [
@@ -89,57 +107,25 @@ class AccommodationType extends AbstractType
                               focus:outline-none focus:border-gray-400 focus:bg-white
                               dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
                               dark:placeholder-gray-300',
-                    'placeholder' => 'Prix du logement',
+                    'placeholder' => 'Prix du moyen de transport',
                 ]
             ])
-            ->add('deposit', NumberType::class, [
-                'required' => false,
-                'attr' => [
-                    'class' => 'w-full px-8 py-4 rounded-2xl font-medium bg-gray-100 border border-gray-200
-                              placeholder-gray-400 text-sm
-                              focus:outline-none focus:border-gray-400 focus:bg-white
-                              dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
-                              dark:placeholder-gray-300',
-                    'placeholder' => 'Dépôt de garantie ou caution',
-                ]
-            ])
-            ->add('arrivalDate', DateType::class, [
-                'required' => false,
-                'widget' => 'single_text',
-                'input_format' => 'd/m/Y',
-                'attr' => [
-                    'class' => 'w-full px-8 py-4 rounded-2xl font-medium bg-gray-100 border border-gray-200
-                              placeholder-gray-400 text-sm
-                              focus:outline-none focus:border-gray-400 focus:bg-white
-                              dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
-                              dark:placeholder-gray-300',
-                    'placeholder' => 'Date d\'arrivée',
-                ]
-            ])
-            ->add('departureDate', DateType::class, [
-                'required' => false,
-                'widget' => 'single_text',
-                'input_format' => 'd/m/Y',
-                'attr' => [
-                    'class' => 'w-full px-8 py-4 rounded-2xl font-medium bg-gray-100 border border-gray-200
-                              placeholder-gray-400 text-sm
-                              focus:outline-none focus:border-gray-400 focus:bg-white
-                              dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
-                              dark:placeholder-gray-300',
-                    'placeholder' => 'Date de départ',
-                ]
-            ])
-            ->add('additionalExpansive', CollectionType::class, [
-                'entry_type' => AccommodationAdditionalType::class,
-                'entry_options' => ['label' => false],
-                'by_reference' => false,
-                'allow_add' => true,
-                'allow_delete' => true,
-            ])
-            ->add('booked', CheckboxType::class, [
+            ->add('paid', CheckboxType::class, [
                 'required' => false,
                 'attr' => [
                     'style' => 'width: 1.5em; height: 1.5em;'
+                ]
+            ])
+            ->add('type', EntityType::class, [
+                'placeholder' => 'Choisis un type de transport',
+                'class' => TransportType::class,
+                'choice_label' => 'name',
+                'attr' => [
+                    'class' => 'w-full px-8 py-4 rounded-2xl font-medium bg-gray-100 border border-gray-200
+                              placeholder-gray-400 text-sm
+                              focus:outline-none focus:border-gray-400 focus:bg-white
+                              dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
+                              dark:placeholder-gray-300',
                 ]
             ]);
     }
@@ -147,7 +133,7 @@ class AccommodationType extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => Accommodation::class,
+            'data_class' => Transport::class,
         ]);
     }
 }

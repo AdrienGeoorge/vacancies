@@ -59,16 +59,39 @@ class TransportController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
-                $this->managerRegistry->getManager()->persist($transport);
-                $this->managerRegistry->getManager()->flush();
+                $error = false;
 
-                if ($request->get('_route') === 'trip_transports_edit') {
-                    $this->addFlash('success', 'Les détails de votre moyen de transport ont bien été modifiés.');
-                } else {
-                    $this->addFlash('success', 'Ce moyen de transport a bien été rattaché à votre voyage.');
+                if ($transport->getType()->getName() === 'Voiture') {
+                    $transport->setPaid(true);
+
+                    if ($transport->getEstimatedToll() === null || $transport->getEstimatedGasoline() === null) {
+                        $this->addFlash('warning', 'Vous avez sélectionné le mode de transport "voiture" : vous devez saisir une estimation du prix du péage et du carburant.');
+                        $error = true;
+                    }
+                } elseif ($transport->getType()->getName() === 'Transports en commun') {
+                    if ($transport->getSubscriptionDuration() === null) {
+                        $this->addFlash('warning', 'Vous avez sélectionné le mode de transport "transports en commun" : vous devez saisir une durée pour l\'abonnement.');
+                        $error = true;
+                    }
                 }
 
-                return $this->redirectToRoute('trip_transports_index', ['trip' => $trip->getId()]);
+                if ($transport->getType()->getName() !== 'Voiture' && $transport->getPrice() === null) {
+                    $this->addFlash('warning', 'Vous devez saisir le coût de ce transport.');
+                    $error = true;
+                }
+
+                if (!$error) {
+                    $this->managerRegistry->getManager()->persist($transport);
+                    $this->managerRegistry->getManager()->flush();
+
+                    if ($request->get('_route') === 'trip_transports_edit') {
+                        $this->addFlash('success', 'Les détails de votre moyen de transport ont bien été modifiés.');
+                    } else {
+                        $this->addFlash('success', 'Ce moyen de transport a bien été rattaché à votre voyage.');
+                    }
+
+                    return $this->redirectToRoute('trip_transports_index', ['trip' => $trip->getId()]);
+                }
             } catch (\Exception $exception) {
                 $this->addFlash('error', 'Une erreur est survenue lors du rattachement du moyen de transport à votre voyage.');
             }

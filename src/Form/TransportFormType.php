@@ -101,6 +101,7 @@ class TransportFormType extends AbstractType
                 ]
             ])
             ->add('price', NumberType::class, [
+                'required' => false,
                 'attr' => [
                     'class' => 'w-full px-8 py-4 rounded-2xl font-medium bg-gray-100 border border-gray-200
                               placeholder-gray-400 text-sm
@@ -108,6 +109,28 @@ class TransportFormType extends AbstractType
                               dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
                               dark:placeholder-gray-300',
                     'placeholder' => 'Prix du moyen de transport',
+                ]
+            ])
+            ->add('estimatedToll', NumberType::class, [
+                'required' => false,
+                'attr' => [
+                    'class' => 'w-full px-8 py-4 rounded-2xl font-medium bg-gray-100 border border-gray-200
+                              placeholder-gray-400 text-sm
+                              focus:outline-none focus:border-gray-400 focus:bg-white
+                              dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
+                              dark:placeholder-gray-300',
+                    'placeholder' => 'Prix du péage',
+                ]
+            ])
+            ->add('estimatedGasoline', NumberType::class, [
+                'required' => false,
+                'attr' => [
+                    'class' => 'w-full px-8 py-4 rounded-2xl font-medium bg-gray-100 border border-gray-200
+                              placeholder-gray-400 text-sm
+                              focus:outline-none focus:border-gray-400 focus:bg-white
+                              dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
+                              dark:placeholder-gray-300',
+                    'placeholder' => 'Prix du carburant',
                 ]
             ])
             ->add('paid', CheckboxType::class, [

@@ -33,69 +33,80 @@
 
     <div class="mt-4">
         {% if trip.accommodations|length > 0 %}
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 items-start mt-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
                 {% for accommodation in trip.accommodations|sort((a, b) => a.arrivalDate > b.arrivalDate) %}
-                    <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-3.5 px-6">
-                        <div class="font-poppins-semi-bold text-xl">{{ accommodation.name }}</div>
-                        <div class="font-poppins text-sm">{{ accommodation.address }},
-                            {{ accommodation.zipCode }} {{ accommodation.city }}, {{ accommodation.country }}
-                        </div>
+                    <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-3.5 px-6 flex flex-col justify-between">
+                        <div class="infos">
+                            <div class="font-poppins-semi-bold text-xl">{{ accommodation.name }}</div>
+                            <div class="font-poppins text-sm">
+                                {{ accommodation.address }}<br>
+                                {% if accommodation.zipCode or accommodation.city %}
+                                    {{ accommodation.zipCode }} {{ accommodation.city }}<br>
+                                {% endif %}
+                                {% if accommodation.zipCode or accommodation.city %}
+                                    {{ accommodation.country }}
+                                {% endif %}
+                            </div>
 
-                        <div class="mt-4">
-                            <div class="font-poppins-semi-bold">Dates de séjour</div>
-                            {% if accommodation.arrivalDate and accommodation.departureDate %}
-                                <div class="block">Du {{ accommodation.arrivalDate|date('d/m/Y') }}
-                                    au {{ accommodation.departureDate|date('d/m/Y') }}</div>
-                            {% elseif accommodation.arrivalDate and not accommodation.departureDate %}
-                                <div class="block">Arrivée le {{ accommodation.arrivalDate|date('d/m/Y') }}<br>
-                                    Départ non défini
+                            <div class="mt-4">
+                                <div class="font-poppins-semi-bold">Dates de séjour</div>
+                                {% if accommodation.arrivalDate and accommodation.departureDate %}
+                                    <div class="block">Du {{ accommodation.arrivalDate|date('d/m/Y') }}
+                                        au {{ accommodation.departureDate|date('d/m/Y') }}</div>
+                                {% elseif accommodation.arrivalDate and not accommodation.departureDate %}
+                                    <div class="block">Arrivée le {{ accommodation.arrivalDate|date('d/m/Y') }}<br>
+                                        Départ non défini
+                                    </div>
+                                {% else %}
+                                    <div class="block">Non définies
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mt-4">
+                                <div class="font-poppins-semi-bold">Description de l'offre</div>
+                                <span class="block">{{ accommodation.description }}</span>
+                            </div>
+
+                            <div class="mt-4">
+                                <div class="font-poppins-semi-bold">Prix du logement</div>
+                                <span class="block">{{ accommodation.price }}€</span>
+                            </div>
+
+                            {% if accommodation.deposit is not null and accommodation.deposit > 0 %}
+                                <div class="mt-4">
+                                    <div class="font-poppins-semi-bold">Caution à règler</div>
+                                    <span class="block">{{ accommodation.deposit }}€</span>
                                 </div>
-                            {% else %}
-                                <div class="block">Non définies
+                            {% endif %}
+
+                            {% if accommodation.additionalExpansive|length > 0 %}
+                                <div class="mt-4">
+                                    <div class="font-poppins-semi-bold">Dépenses additionnelles</div>
+                                    {% for additional in accommodation.additionalExpansive %}
+                                        <div class="flex justify-between gap-3 my-2 items-center">
+                                            <span>{{ additional.name }}</span>
+                                            <span class="font-bold">{{ additional.price }}€</span>
+                                        </div>
+                                    {% endfor %}
                                 </div>
                             {% endif %}
                         </div>
 
-                        <div class="mt-4">
-                            <div class="font-poppins-semi-bold">Description de l'offre</div>
-                            <span class="block">{{ accommodation.description }}</span>
+                        <div class="footer">
+                            <div class="mt-4 flex flex-row flex-wrap gap-2 justify-center items-center">
+                                <div class="rounded-full bg-body dark:bg-body-dark w-fit px-3 py-1">
+                                    TOTAL <span class="font-bold">{{ accommodation.totalPrice }}€</span>
+                                </div>
+
+                                <div class="rounded-full {{ accommodation.isBooked ? 'bg-green-400' : 'bg-red-400' }} w-fit text-white px-3 py-1">
+                                    {{ accommodation.isBooked ? 'Réservé' : 'Non réservé' }}
+                                </div>
+                            </div>
+
+                            <a href="{{ path('trip_accommodations_edit', {'trip': trip.id, 'accommodation': accommodation.id}) }}"
+                               class="block mt-4 bg-blue-500 text-white text-center py-2 px-5 rounded-full">Editer</a>
                         </div>
-
-                        <div class="mt-4">
-                            <div class="font-poppins-semi-bold">Prix du logement</div>
-                            <span class="block">{{ accommodation.price }}€</span>
-                        </div>
-
-                        {% if accommodation.deposit is not null and accommodation.deposit > 0 %}
-                            <div class="mt-4">
-                                <div class="font-poppins-semi-bold">Caution à règler</div>
-                                <span class="block">{{ accommodation.deposit }}€</span>
-                            </div>
-                        {% endif %}
-
-                        {% if accommodation.additionalExpansive|length > 0 %}
-                            <div class="mt-4">
-                                <div class="font-poppins-semi-bold">Dépenses additionnelles</div>
-                                {% for additional in accommodation.additionalExpansive %}
-                                    <div class="flex justify-between gap-3 my-2 items-center">
-                                        <span>{{ additional.name }}</span>
-                                        <span class="font-bold">{{ additional.price }}€</span>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-
-                        <div class="mt-4 flex flex-row flex-wrap gap-2 justify-center items-center">
-                            <div class="rounded-full bg-body dark:bg-body-dark w-fit px-3 py-1">
-                                TOTAL <span class="font-bold">{{ accommodation.totalPrice }}€</span>
-                            </div>
-
-                            <div class="rounded-full {{ accommodation.isBooked ? 'bg-green-400' : 'bg-red-400' }} w-fit text-white px-3 py-1">
-                                {{ accommodation.isBooked ? 'Réservé' : 'Non réservé' }}
-                            </div>
-                        </div>
-
-                        <a href="{{ path('trip_accommodations_edit', {'trip': trip.id, 'accommodation': accommodation.id}) }}" class="block mt-4 bg-blue-500 text-white text-center py-2 px-5 rounded-full">Editer</a>
                     </div>
                 {% endfor %}
             </div>

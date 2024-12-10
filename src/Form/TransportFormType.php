@@ -111,6 +111,12 @@ class TransportFormType extends AbstractType
                     'placeholder' => 'Prix du moyen de transport',
                 ]
             ])
+            ->add('perPerson', CheckboxType::class, [
+                'required' => false,
+                'attr' => [
+                    'style' => 'width: 1.5em; height: 1.5em;'
+                ]
+            ])
             ->add('estimatedToll', NumberType::class, [
                 'required' => false,
                 'attr' => [

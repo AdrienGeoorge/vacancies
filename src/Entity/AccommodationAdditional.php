@@ -17,7 +17,7 @@ class AccommodationAdditional
     #[ORM\Column(length: 500)]
     private ?string $name = null;
 
-    #[ORM\ManyToOne(inversedBy: 'AdditionalExpansive')]
+    #[ORM\ManyToOne(inversedBy: 'additionalExpensive')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Accommodation $accommodation = null;
 

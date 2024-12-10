@@ -55,6 +55,9 @@ class Transport
     #[ORM\Column(nullable: true)]
     private ?float $estimatedGasoline = null;
 
+    #[ORM\Column]
+    private ?bool $perPerson = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -212,6 +215,18 @@ class Transport
     public function setEstimatedGasoline(?float $estimatedGasoline): static
     {
         $this->estimatedGasoline = $estimatedGasoline;
+
+        return $this;
+    }
+
+    public function isPerPerson(): ?bool
+    {
+        return $this->perPerson;
+    }
+
+    public function setPerPerson(bool $perPerson): static
+    {
+        $this->perPerson = $perPerson;
 
         return $this;
     }

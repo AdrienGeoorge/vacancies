@@ -26,6 +26,10 @@ const addTagFormDeleteLink = (item) => {
 
     removeFormButton.addEventListener('click', (e) => {
         e.preventDefault()
+
+        const collectionHolder = document.querySelector('.additionalExpensive')
+        collectionHolder.dataset.index--
+
         item.remove()
     })
 }
@@ -38,7 +42,7 @@ document
     })
 
 document
-    .querySelectorAll('.additionalExpansive .row')
+    .querySelectorAll('.additionalExpensive .row')
     .forEach((tag) => {
         addTagFormDeleteLink(tag)
     })

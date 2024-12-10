@@ -24,7 +24,7 @@ Encore
      */
     .addEntry('app', './assets/app.js')
     .addEntry('showTrip', './assets/js/showTrip.js')
-    .addEntry('accommodationAdditionalExpansive', './assets/js/accommodationAdditionalExpansive.js')
+    .addEntry('accommodationAdditionalExpensive', './assets/js/accommodationAdditionalExpensive.js')
     .addEntry('transport', './assets/js/transport.js')
 
     .copyFiles({

@@ -33,6 +33,9 @@ class Activity
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $date = null;
 
+    #[ORM\Column]
+    private ?bool $perPerson = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -106,6 +109,18 @@ class Activity
     public function setDate(?\DateTimeInterface $date): static
     {
         $this->date = $date;
+
+        return $this;
+    }
+
+    public function isPerPerson(): ?bool
+    {
+        return $this->perPerson;
+    }
+
+    public function setPerPerson(bool $perPerson): static
+    {
+        $this->perPerson = $perPerson;
 
         return $this;
     }

@@ -129,7 +129,7 @@ class AccommodationType extends AbstractType
                     'placeholder' => 'Date de départ',
                 ]
             ])
-            ->add('additionalExpansive', CollectionType::class, [
+            ->add('additionalExpensive', CollectionType::class, [
                 'entry_type' => AccommodationAdditionalType::class,
                 'entry_options' => ['label' => false],
                 'by_reference' => false,

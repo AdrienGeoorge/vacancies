@@ -46,10 +46,14 @@ class Trip
     #[ORM\OneToMany(targetEntity: Transport::class, mappedBy: 'trip', orphanRemoval: true)]
     private Collection $transports;
 
+    #[ORM\OneToMany(targetEntity: Activity::class, mappedBy: 'trip', orphanRemoval: true)]
+    private Collection $activities;
+
     public function __construct()
     {
         $this->accommodations = new ArrayCollection();
         $this->transports = new ArrayCollection();
+        $this->activities = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -195,6 +199,36 @@ class Trip
             // set the owning side to null (unless already changed)
             if ($transport->getTrip() === $this) {
                 $transport->setTrip(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Activity>
+     */
+    public function getActivities(): Collection
+    {
+        return $this->activities;
+    }
+
+    public function addActivity(Activity $activity): static
+    {
+        if (!$this->activities->contains($activity)) {
+            $this->activities->add($activity);
+            $activity->setTrip($this);
+        }
+
+        return $this;
+    }
+
+    public function removeActivity(Activity $activity): static
+    {
+        if ($this->activities->removeElement($activity)) {
+            // set the owning side to null (unless already changed)
+            if ($activity->getTrip() === $this) {
+                $activity->setTrip(null);
             }
         }
 

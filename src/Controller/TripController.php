@@ -64,8 +64,7 @@ class TripController extends AbstractController
         return $this->render('trip/show.html.twig', [
             'trip' => $trip,
             'countDaysBeforeOrAfter' => $this->tripService->countDaysBeforeOrAfter($trip),
-            'reservedAccommodationsPrice' => $this->tripService->getReservedAccommodationsPrice($trip),
-            'reservedTransportsPrice' => $this->tripService->getReservedTransportsPrice($trip)
+            'budget' => $this->tripService->getBudget($trip),
         ]);
     }
 

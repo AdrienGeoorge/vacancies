@@ -53,7 +53,7 @@ class TripService
             }
         }
 
-        return $price;
+        return round($price, 2);
     }
 
     /**
@@ -71,7 +71,7 @@ class TripService
             }
         }
 
-        return $price;
+        return round($price, 2);
     }
 
     /**
@@ -92,7 +92,7 @@ class TripService
             }
         }
 
-        return $price;
+        return round($price, 2);
     }
 
     /**
@@ -107,7 +107,37 @@ class TripService
             if (!$transport->isPaid()) $price += $transport->getPrice();
         }
 
-        return $price;
+        return round($price, 2);
+    }
+
+    /**
+     * Retourne le montant total des réservations de transports réservés
+     * @param Trip $trip
+     * @return float
+     */
+    public function getReservedActivitiesPrice(Trip $trip): float
+    {
+        $price = 0;
+        foreach ($trip->getActivities() as $activity) {
+            if ($activity->isBooked()) $price += $activity->getPrice();
+        }
+
+        return round($price, 2);
+    }
+
+    /**
+     * Retourne le montant total des réservations de transports non réservés
+     * @param Trip $trip
+     * @return float
+     */
+    public function getNonReservedActivitiesPrice(Trip $trip): float
+    {
+        $price = 0;
+        foreach ($trip->getActivities() as $activity) {
+            if (!$activity->isBooked()) $price += $activity->getPrice();
+        }
+
+        return round($price, 2);
     }
 
     /**
@@ -118,9 +148,29 @@ class TripService
      */
     public function getBudget(Trip $trip): array
     {
+        $reservedPrices = [
+            'accommodations' => $this->getReservedAccommodationsPrice($trip),
+            'transports' => $this->getReservedTransportsPrice($trip),
+            'activities' => $this->getReservedActivitiesPrice($trip),
+        ];
+
+        $nonReservedPrices = [
+            'accommodations' => $this->getNonReservedAccommodationsPrice($trip),
+            'transports' => $this->getNonReservedTransportsPrice($trip),
+            'activities' => $this->getNonReservedActivitiesPrice($trip),
+        ];
+
+        $totalReserved = round(array_sum($reservedPrices), 2);
+        $totalNonReserved = round(array_sum($nonReservedPrices), 2);
+
         return [
-            'toPay' => $this->getNonReservedAccommodationsPrice($trip) + $this->getNonReservedTransportsPrice($trip),
-            'paid' => $this->getReservedAccommodationsPrice($trip) + $this->getReservedTransportsPrice($trip),
+            'toPay' => $totalNonReserved,
+            'paid' => $totalReserved,
+            'total' => round($totalNonReserved + $totalReserved, 2),
+            'details' => [
+                'reserved' => $reservedPrices,
+                'nonReserved' => $nonReservedPrices,
+            ],
         ];
     }
 }

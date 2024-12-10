@@ -39,7 +39,7 @@ class TripService
     }
 
     /**
-     * Retourne le montant total des réservations de logement réservés
+     * Retourne le montant total des logement réservés
      * @param Trip $trip
      * @return float
      */
@@ -49,7 +49,7 @@ class TripService
         foreach ($trip->getAccommodations() as $accommodation) {
             if ($accommodation->isBooked()) {
                 $price += $accommodation->getPrice();
-                foreach ($accommodation->getAdditionalExpansive() as $item) $price += $item->getPrice();
+                foreach ($accommodation->getAdditionalExpensive() as $item) $price += $item->getPrice();
             }
         }
 
@@ -57,7 +57,7 @@ class TripService
     }
 
     /**
-     * Retourne le montant total des réservations de logement non réservés
+     * Retourne le montant total des logement non réservés
      * @param Trip $trip
      * @return float
      */
@@ -67,7 +67,7 @@ class TripService
         foreach ($trip->getAccommodations() as $accommodation) {
             if (!$accommodation->isBooked()) {
                 $price += $accommodation->getPrice();
-                foreach ($accommodation->getAdditionalExpansive() as $item) $price += $item->getPrice();
+                foreach ($accommodation->getAdditionalExpensive() as $item) $price += $item->getPrice();
             }
         }
 
@@ -75,7 +75,7 @@ class TripService
     }
 
     /**
-     * Retourne le montant total des réservations de transports réservés
+     * Retourne le montant total des transports réservés
      * @param Trip $trip
      * @return float
      */
@@ -83,11 +83,55 @@ class TripService
     {
         $price = 0;
         foreach ($trip->getTransports() as $transport) {
-            if ($transport->isPaid()) {
-                if ($transport->getType()->getName() === 'Voiture') {
-                    $price += ($transport->getEstimatedToll() + $transport->getEstimatedGasoline());
+            if (!$transport->isPaid()) continue;
+
+            if ($transport->isPerPerson() && $transport->getType()->getName() !== 'Voiture') {
+                $price += ($transport->getPrice() * $trip->getTravelers());
+            } else if (!$transport->isPerPerson() && $transport->getType()->getName() === 'Voiture') {
+                $price += ($transport->getEstimatedToll() + $transport->getEstimatedGasoline());
+            } else {
+                $price += $transport->getPrice();
+            }
+        }
+
+        return round($price, 2);
+    }
+
+    /**
+     * Retourne le montant total des transports non réservés
+     * @param Trip $trip
+     * @return float
+     */
+    public function getNonReservedTransportsPrice(Trip $trip): float
+    {
+        $price = 0;
+        foreach ($trip->getTransports() as $transport) {
+            if ($transport->isPaid()) continue;
+
+            if ($transport->isPerPerson()) {
+                $price += ($transport->getPrice() * $trip->getTravelers());
+            } else {
+                $price += $transport->getPrice();
+            }
+        }
+
+        return round($price, 2);
+    }
+
+    /**
+     * Retourne le montant total des activités réservées
+     * @param Trip $trip
+     * @return float
+     */
+    public function getReservedActivitiesPrice(Trip $trip): float
+    {
+        $price = 0;
+        foreach ($trip->getActivities() as $activity) {
+            if ($activity->isBooked()) {
+                if ($activity->isPerPerson()) {
+                    $price += ($activity->getPrice() * $trip->getTravelers());
                 } else {
-                    $price += $transport->getPrice();
+                    $price += $activity->getPrice();
                 }
             }
         }
@@ -96,37 +140,7 @@ class TripService
     }
 
     /**
-     * Retourne le montant total des réservations de transports non réservés
-     * @param Trip $trip
-     * @return float
-     */
-    public function getNonReservedTransportsPrice(Trip $trip): float
-    {
-        $price = 0;
-        foreach ($trip->getTransports() as $transport) {
-            if (!$transport->isPaid()) $price += $transport->getPrice();
-        }
-
-        return round($price, 2);
-    }
-
-    /**
-     * Retourne le montant total des réservations de transports réservés
-     * @param Trip $trip
-     * @return float
-     */
-    public function getReservedActivitiesPrice(Trip $trip): float
-    {
-        $price = 0;
-        foreach ($trip->getActivities() as $activity) {
-            if ($activity->isBooked()) $price += $activity->getPrice();
-        }
-
-        return round($price, 2);
-    }
-
-    /**
-     * Retourne le montant total des réservations de transports non réservés
+     * Retourne le montant total des activités non réservées
      * @param Trip $trip
      * @return float
      */
@@ -134,7 +148,13 @@ class TripService
     {
         $price = 0;
         foreach ($trip->getActivities() as $activity) {
-            if (!$activity->isBooked()) $price += $activity->getPrice();
+            if (!$activity->isBooked()) {
+                if ($activity->isPerPerson()) {
+                    $price += ($activity->getPrice() * $trip->getTravelers());
+                } else {
+                    $price += $activity->getPrice();
+                }
+            }
         }
 
         return round($price, 2);

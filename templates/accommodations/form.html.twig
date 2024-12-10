@@ -60,7 +60,7 @@
                     Informations tarifaires
                 </div>
                 <div class="mb-5 text-sm font-poppins">
-                    Renseignes le prix du logement. Y a-t-il une caution à déposer à l'arrivée sur place ?
+                    Renseignes le prix <b>total</b> du logement. Y a-t-il une caution à déposer à l'arrivée sur place ?
                 </div>
                 <div class="flex flex-col md:flew-row gap-4">
                     {{ form_widget(form.price) }}
@@ -76,19 +76,19 @@
                     Avez-vous fait des dépenses supplémentaires (comme une arrivée anticipée, un départ tardif...) ?
                 </div>
 
-                <div class="additionalExpansive"
-                     data-index="{{ form.additionalExpansive|length > 0 ? form.additionalExpansive|last.vars.name + 1 : 0 }}"
-                     data-prototype="{{ form_widget(form.additionalExpansive.vars.prototype)|e('html_attr') }}">
-                    {% for key, additionalExpansive in form.additionalExpansive %}
+                <div class="additionalExpensive"
+                     data-index="{{ form.additionalExpensive|length > 0 ? form.additionalExpensive|last.vars.name + 1 : 0 }}"
+                     data-prototype="{{ form_widget(form.additionalExpensive.vars.prototype)|e('html_attr') }}">
+                    {% for key, additionalExpensive in form.additionalExpensive %}
                         <div class="row">
                             <div class="text-lg font-poppins-semi-bold mb-4">Dépense n°{{ key + 1 }}</div>
-                            {{ form_widget(additionalExpansive.name) }}
-                            {{ form_widget(additionalExpansive.price) }}
+                            {{ form_widget(additionalExpensive.name) }}
+                            {{ form_widget(additionalExpensive.price) }}
                         </div>
                     {% endfor %}
                 </div>
 
-                <button type="button" data-collection-holder-class="additionalExpansive"
+                <button type="button" data-collection-holder-class="additionalExpensive"
                         class="add_item_link tracking-wide bg-teal-500 text-white py-2 px-5 rounded-full w-fit m-auto mt-2
                         flex items-center justify-center hover:bg-teal-700 transition-all duration-300 ease-in-out
                         focus:shadow-outline focus:outline-none">
@@ -135,5 +135,5 @@
 
 {% block javascripts %}
     {{ parent() }}
-    {{ encore_entry_script_tags('accommodationAdditionalExpansive') }}
+    {{ encore_entry_script_tags('accommodationAdditionalExpensive') }}
 {% endblock %}

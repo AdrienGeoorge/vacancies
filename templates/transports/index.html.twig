@@ -68,13 +68,6 @@
                                 </div>
                             {% endif %}
 
-                            {% if transport.description %}
-                                <div class="mt-4">
-                                    <div class="font-poppins-semi-bold">Description de l'offre</div>
-                                    <span class="block">{{ transport.description }}</span>
-                                </div>
-                            {% endif %}
-
                             {% if transport.company %}
                                 <div class="mt-4">
                                     <div class="font-poppins-semi-bold">Compagnie de transport</div>
@@ -82,10 +75,24 @@
                                 </div>
                             {% endif %}
 
+                            {% if transport.description %}
+                                <div class="mt-4">
+                                    <div class="font-poppins-semi-bold">Description de l'offre</div>
+                                    <span class="block">{{ transport.description }}</span>
+                                </div>
+                            {% endif %}
+
                             {% if transport.type.name == 'Transports en commun' and transport.subscriptionDuration %}
                                 <div class="mt-4">
                                     <div class="font-poppins-semi-bold">Durée de l'abonnement</div>
                                     <span class="block">{{ transport.subscriptionDuration }} jours</span>
+                                </div>
+                            {% endif %}
+
+                            {% if transport.type.name != 'Voiture' and transport.price %}
+                                <div class="mt-4">
+                                    <div class="font-poppins-semi-bold">Prix du transport</div>
+                                    <span class="block">{{ transport.price }}€ {% if transport.perPerson %}par personne{% endif %}</span>
                                 </div>
                             {% endif %}
 
@@ -100,17 +107,22 @@
                                     <span class="block">{{ transport.estimatedGasoline }}€</span>
                                 </div>
 
-                            <div class="mt-4 text-sm">
-                                Il s'agit d'une estimation du prix à payer pour l'aller/retour.
-                            </div>
+                                <div class="mt-4 text-sm">
+                                    Il s'agit d'une estimation du prix à payer pour l'aller/retour.
+                                </div>
                             {% endif %}
                         </div>
 
                         <div class="footer">
                             <div class="mt-4 flex flex-row flex-wrap gap-2 justify-center items-center">
                                 <div class="rounded-full bg-body dark:bg-body-dark w-fit px-3 py-1">
-                                    TOTAL <span
-                                            class="font-bold">{{ transport.type.name == 'Voiture' ? transport.estimatedToll + transport.estimatedGasoline : transport.price }}€</span>
+                                    TOTAL <span class="font-bold">
+                                        {% if transport.type.name == 'Voiture' %}
+                                            {{ transport.estimatedToll + transport.estimatedGasoline }}€
+                                        {% else %}
+                                            {{ transport.perPerson ? transport.price * trip.travelers : transport.price }}€
+                                        {% endif %}
+                                    </span>
                                 </div>
 
                                 <div class="rounded-full {{ transport.isPaid ? 'bg-green-400' : 'bg-red-400' }} w-fit text-white px-3 py-1">

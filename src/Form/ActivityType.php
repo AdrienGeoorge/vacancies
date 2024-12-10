@@ -61,6 +61,12 @@ class ActivityType extends AbstractType
                     'placeholder' => 'Prix de l\'activité',
                 ]
             ])
+            ->add('perPerson', CheckboxType::class, [
+                'required' => false,
+                'attr' => [
+                    'style' => 'width: 1.5em; height: 1.5em;'
+                ]
+            ])
             ->add('booked', CheckboxType::class, [
                 'required' => false,
                 'attr' => [

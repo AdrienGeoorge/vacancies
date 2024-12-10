@@ -48,7 +48,7 @@ class Accommodation
     private ?float $deposit = null;
 
     #[ORM\OneToMany(targetEntity: AccommodationAdditional::class, mappedBy: 'accommodation', cascade: ['persist', 'remove'], orphanRemoval: true)]
-    private Collection $additionalExpansive;
+    private Collection $additionalExpensive;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $arrivalDate = null;
@@ -58,7 +58,7 @@ class Accommodation
 
     public function __construct()
     {
-        $this->additionalExpansive = new ArrayCollection();
+        $this->additionalExpensive = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -189,27 +189,27 @@ class Accommodation
     /**
      * @return Collection<int, AccommodationAdditional>
      */
-    public function getAdditionalExpansive(): Collection
+    public function getAdditionalExpensive(): Collection
     {
-        return $this->additionalExpansive;
+        return $this->additionalExpensive;
     }
 
-    public function addAdditionalExpansive(AccommodationAdditional $AdditionalExpansive): static
+    public function addAdditionalExpensive(AccommodationAdditional $AdditionalExpensive): static
     {
-        if (!$this->additionalExpansive->contains($AdditionalExpansive)) {
-            $this->additionalExpansive->add($AdditionalExpansive);
-            $AdditionalExpansive->setAccommodation($this);
+        if (!$this->additionalExpensive->contains($AdditionalExpensive)) {
+            $this->additionalExpensive->add($AdditionalExpensive);
+            $AdditionalExpensive->setAccommodation($this);
         }
 
         return $this;
     }
 
-    public function removeAdditionalExpansive(AccommodationAdditional $AdditionalExpansive): static
+    public function removeAdditionalExpensive(AccommodationAdditional $AdditionalExpensive): static
     {
-        if ($this->additionalExpansive->removeElement($AdditionalExpansive)) {
+        if ($this->additionalExpensive->removeElement($AdditionalExpensive)) {
             // set the owning side to null (unless already changed)
-            if ($AdditionalExpansive->getAccommodation() === $this) {
-                $AdditionalExpansive->setAccommodation(null);
+            if ($AdditionalExpensive->getAccommodation() === $this) {
+                $AdditionalExpensive->setAccommodation(null);
             }
         }
 
@@ -219,7 +219,7 @@ class Accommodation
     public function getTotalPrice()
     {
         $total = $this->getPrice();
-        foreach ($this->additionalExpansive as $item) $total += $item->getPrice();
+        foreach ($this->additionalExpensive as $item) $total += $item->getPrice();
         return $total;
     }
 

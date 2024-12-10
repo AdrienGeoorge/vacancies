@@ -94,10 +94,19 @@
                     Informations tarifaires
                 </div>
                 <div class="mb-5 text-sm font-poppins">
-                    Renseignes le prix du transport.
+                    Renseignes le prix du transport. Par défaut le prix saisi correspond au montant total.
                 </div>
                 <div class="flex flex-col md:flew-row gap-4">
                     {{ form_widget(form.price) }}
+                </div>
+
+                <div class="flex gap-4 mt-4 items-center">
+                    <div class="flex-1">
+                        <div class="text-sm font-poppins">
+                            Cochez la case ci-contre si le prix de ce transport est <b>par personne</b>.
+                        </div>
+                    </div>
+                    {{ form_widget(form.perPerson) }}
                 </div>
             </div>
 

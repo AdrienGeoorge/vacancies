@@ -80,10 +80,10 @@
                                 </div>
                             {% endif %}
 
-                            {% if accommodation.additionalExpansive|length > 0 %}
+                            {% if accommodation.additionalExpensive|length > 0 %}
                                 <div class="mt-4">
                                     <div class="font-poppins-semi-bold">Dépenses additionnelles</div>
-                                    {% for additional in accommodation.additionalExpansive %}
+                                    {% for additional in accommodation.additionalExpensive %}
                                         <div class="flex justify-between gap-3 my-2 items-center">
                                             <span>{{ additional.name }}</span>
                                             <span class="font-bold">{{ additional.price }}€</span>

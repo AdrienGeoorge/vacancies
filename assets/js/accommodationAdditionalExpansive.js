@@ -33,7 +33,8 @@ const addTagFormDeleteLink = (item) => {
 document
     .querySelectorAll('.add_item_link')
     .forEach(btn => {
-        btn.addEventListener("click", addFormToCollection)
+        if (!btn.classList.contains('initialized')) btn.addEventListener("click", addFormToCollection)
+        btn.classList.add('initialized')
     })
 
 document

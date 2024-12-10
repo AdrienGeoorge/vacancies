@@ -1,0 +1,86 @@
+{% extends 'trip/base.html.twig' %}
+
+{% block bodyTrip %}
+    <div class="grid grid-cols-4 gap-4">
+        <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-3.5 px-6 col-span-3">
+            <div class="mb-2 flex flex-row items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                    <path fill-rule="evenodd"
+                          d="M4.5 2.25a.75.75 0 0 0 0 1.5v16.5h-.75a.75.75 0 0 0 0 1.5h16.5a.75.75 0 0 0 0-1.5h-.75V3.75a.75.75 0 0 0 0-1.5h-15ZM9 6a.75.75 0 0 0 0 1.5h1.5a.75.75 0 0 0 0-1.5H9Zm-.75 3.75A.75.75 0 0 1 9 9h1.5a.75.75 0 0 1 0 1.5H9a.75.75 0 0 1-.75-.75ZM9 12a.75.75 0 0 0 0 1.5h1.5a.75.75 0 0 0 0-1.5H9Zm3.75-5.25A.75.75 0 0 1 13.5 6H15a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM13.5 9a.75.75 0 0 0 0 1.5H15A.75.75 0 0 0 15 9h-1.5Zm-.75 3.75a.75.75 0 0 1 .75-.75H15a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75ZM9 19.5v-2.25a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v2.25a.75.75 0 0 1-.75.75h-4.5A.75.75 0 0 1 9 19.5Z"
+                          clip-rule="evenodd"></path>
+                </svg>
+                <div class="font-poppins-semi-bold text-xl">Détails des activités</div>
+            </div>
+            <div class="text-sm">Retrouvez les activités prévues lors de votre séjour. Seul les activités notifiées
+                comme
+                réservées seront incluses dans le calcul des dépenses.
+            </div>
+        </div>
+
+        <a href="{{ path('trip_activities_new', {'trip': trip.id}) }}" class="shadow rounded-3xl py-3.5 px-6 flex flex-col gap-2 items-center justify-center text-center
+                          tracking-wide bg-teal-500 text-white
+                                    border border-teal-300 hover:bg-teal-600
+                                    transition-all duration-300 ease-in-out focus:shadow-outline focus:outline-none">
+            <span class="bg-teal-400 rounded-full p-1">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                    <path fill-rule="evenodd"
+                          d="M12 3.75a.75.75 0 0 1 .75.75v6.75h6.75a.75.75 0 0 1 0 1.5h-6.75v6.75a.75.75 0 0 1-1.5 0v-6.75H4.5a.75.75 0 0 1 0-1.5h6.75V4.5a.75.75 0 0 1 .75-.75Z"
+                          clip-rule="evenodd"></path>
+                </svg>
+            </span>
+            <span>Nouvelle activité</span>
+        </a>
+    </div>
+
+    <div class="mt-4">
+        {% if trip.activities|length > 0 %}
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
+                {% for activity in trip.activities|sort((a, b) => a.date > b.date) %}
+                    <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-3.5 px-6 flex flex-col justify-between">
+                        <div class="infos">
+                            <div class="font-poppins-semi-bold text-xl">{{ activity.name }}</div>
+
+                            {% if activity.date %}
+                                <div class="mt-4">
+                                    <div class="font-poppins-semi-bold">Date et heure</div>
+                                    <div class="block">Le {{ activity.date|date('d/m/Y à H:i') }}</div>
+                                </div>
+                            {% endif %}
+
+                            {% if activity.description %}
+                                <div class="mt-4">
+                                    <div class="font-poppins-semi-bold">Description de l'offre</div>
+                                    <span class="block">{{ activity.description }}</span>
+                                </div>
+                            {% endif %}
+
+                            <div class="mt-4">
+                                <div class="font-poppins-semi-bold">Prix de l'activité</div>
+                                <span class="block">{{ activity.price }}€</span>
+                            </div>
+                        </div>
+
+                        <div class="footer">
+                            <div class="mt-4 flex flex-row flex-wrap gap-2 justify-center items-center">
+                                <div class="rounded-full bg-body dark:bg-body-dark w-fit px-3 py-1">
+                                    TOTAL <span class="font-bold">{{ activity.price }}€</span>
+                                </div>
+
+                                <div class="rounded-full {{ activity.isBooked ? 'bg-green-400' : 'bg-red-400' }} w-fit text-white px-3 py-1">
+                                    {{ activity.isBooked ? 'Réservé' : 'Non réservé' }}
+                                </div>
+                            </div>
+
+                            <a href="{{ path('trip_activities_edit', {'trip': trip.id, 'activity': activity.id}) }}"
+                               class="block mt-4 bg-blue-500 text-white text-center py-2 px-5 rounded-full">Editer</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="shadow rounded-3xl bg-red-400 text-white py-3.5 px-6">
+                Aucune activité n'a été trouvée pour ce voyage.
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

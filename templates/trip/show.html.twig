@@ -17,7 +17,7 @@
             <div class="flex gap-3 flex-wrap text-sm">
                 <div class="w-fit bg-body rounded-full px-3 py-0.5 flex flex-row items-center gap-1.5 text-black">
                     <span class="text-sm">TOTAL</span>
-                    <span class="text-lg font-bold">{{ reservedAccommodationsPrice + reservedTransportsPrice }}€</span>
+                    <span class="text-lg font-bold">{{ budget.total }}€</span>
                 </div>
 
                 <div class="flex gap-2">
@@ -48,6 +48,11 @@
                 dépenses.
             </div>
 
+            <div class="flex items-center gap-1 text-sm mt-2 -mb-2">
+                <div class="budget-pastille bg-red-500"></div>
+                Restant à payer
+            </div>
+
             <a href="{{ path('trip_accommodations_index', {'trip': trip.id}) }}"
                class="flex justify-between gap-3 my-4 -ml-2.5 items-center">
                 <div class="flex flex-row gap-2 items-center">
@@ -57,10 +62,16 @@
                         <small>Hôtel, Auberge, location Airbnb...</small>
                     </div>
                 </div>
-                <span class="text-lg font-bold">{{ reservedAccommodationsPrice }}€</span>
+                <div class="flex flex-col text-right">
+                    <span class="text-lg font-bold">{{ budget.details.reserved.accommodations }}€</span>
+                    {% if budget.details.nonReserved.accommodations > 0 %}
+                        <span class="text-sm font-bold text-red-500">{{ budget.details.nonReserved.accommodations }}€</span>
+                    {% endif %}
+                </div>
             </a>
 
-            <a href="{{ path('trip_transports_index', {'trip': trip.id}) }}" class="flex justify-between gap-3 my-4 -ml-2.5 items-center">
+            <a href="{{ path('trip_transports_index', {'trip': trip.id}) }}"
+               class="flex justify-between gap-3 my-4 -ml-2.5 items-center">
                 <div class="flex flex-row gap-2 items-center">
                     <div class="bg-body dark:bg-body-dark rounded-full px-2.5 py-1.5 text-xl">&#128646;</div>
                     <div class="leading-3">
@@ -68,18 +79,29 @@
                         <small>Avion, train, transports en commun...</small>
                     </div>
                 </div>
-                <span class="text-lg font-bold">{{ reservedTransportsPrice }}€</span>
+                <div class="flex flex-col text-right">
+                    <span class="text-lg font-bold">{{ budget.details.reserved.transports }}€</span>
+                    {% if budget.details.nonReserved.transports > 0 %}
+                        <span class="text-sm font-bold text-red-500">{{ budget.details.nonReserved.transports }}€</span>
+                    {% endif %}
+                </div>
             </a>
 
-            <a href="#" class="flex justify-between gap-3 my-4 -ml-2.5 items-center">
+            <a href="{{ path('trip_activities_index', {'trip': trip.id}) }}"
+               class="flex justify-between gap-3 my-4 -ml-2.5 items-center">
                 <div class="flex flex-row gap-2 items-center">
                     <div class="bg-body dark:bg-body-dark rounded-full px-2.5 py-1.5 text-xl">&#127903;</div>
                     <div class="leading-3">
                         <div class="text-lg">Activités</div>
-                        <small>Musées, parcs d'attractions...</small>
+                        <small>Musées, zoos, parcs d'attractions...</small>
                     </div>
                 </div>
-                <span class="text-lg font-bold">100€</span>
+                <div class="flex flex-col text-right">
+                    <span class="text-lg font-bold">{{ budget.details.reserved.activities }}€</span>
+                    {% if budget.details.nonReserved.activities > 0 %}
+                        <span class="text-sm font-bold text-red-500">{{ budget.details.nonReserved.activities }}€</span>
+                    {% endif %}
+                </div>
             </a>
 
             <a href="#" class="flex justify-between gap-3 my-4 -ml-2.5 items-center">
@@ -90,7 +112,10 @@
                         <small>Assurance, VISA, forfait mobile...</small>
                     </div>
                 </div>
-                <span class="text-lg font-bold">100€</span>
+                <div class="flex flex-col text-right">
+                    <span class="text-lg font-bold">100€</span>
+                    <span class="text-sm font-bold text-red-500">50€</span>
+                </div>
             </a>
         </div>
     </div>

@@ -28,7 +28,7 @@
                                     <div class="text-sm">Dates non définies</div>
                                 {% endif %}
                             </div>
-                            <a href="{{ path('trip_show', {'id': trip.id}) }}"
+                            <a href="{{ path('trip_show', {'trip': trip.id}) }}"
                                class="rounded-2xl py-2.5 px-5 bg-gray-700 text-white dark:bg-white dark:text-gray-700 w-fit m-auto border-2 border-gray-500 dark:border-gray-300">
                                 Consulter
                             </a>
@@ -56,7 +56,7 @@
                                 <div class="font-roboto-medium text-2xl trip-name">{{ trip.name }}</div>
                                 <div class="text-sm">{{ trip.departureDate|date('j M. Y') ~ ' - ' ~ trip.returnDate|date('j M. Y') }}</div>
                             </div>
-                            <a href="{{ path('trip_show', {'id': trip.id}) }}"
+                            <a href="{{ path('trip_show', {'trip': trip.id}) }}"
                                class="rounded-2xl py-2.5 px-5 bg-gray-700 text-white dark:bg-white dark:text-gray-700 w-fit m-auto border-2 border-gray-500 dark:border-gray-300">
                                 Consulter
                             </a>

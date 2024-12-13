@@ -125,7 +125,7 @@
             </div>
 
             <div class="flex gap-4 flex-wrap justify-center">
-                <button class="tracking-wide bg-teal-500 text-white py-4 px-7 rounded-full
+                <button class="tracking-wide bg-teal-500 border-2 border-teal-400 text-white py-4 px-7 rounded-full
                                     flex items-center justify-center hover:bg-teal-700
                                     transition-all duration-300 ease-in-out
                                     focus:shadow-outline focus:outline-none">
@@ -133,7 +133,7 @@
                 </button>
                 {% if transport.id %}
                     <a href="{{ path('trip_transports_delete', {'trip': trip.id, 'transport': transport.id}) }}"
-                       class="tracking-wide bg-red-500 text-white py-4 px-7 rounded-full
+                       class="tracking-wide bg-red-500 border-2 border-red-400 text-white py-4 px-7 rounded-full
                                     flex items-center justify-center hover:bg-red-700
                                     transition-all duration-300 ease-in-out
                                     focus:shadow-outline focus:outline-none">

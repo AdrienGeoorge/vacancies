@@ -2,11 +2,8 @@
 
 namespace App\Controller;
 
-use App\Entity\Accommodation;
 use App\Entity\Transport;
-use App\Entity\TransportType;
 use App\Entity\Trip;
-use App\Form\AccommodationType;
 use App\Form\TransportFormType;
 use App\Service\TripService;
 use Doctrine\Persistence\ManagerRegistry;
@@ -15,7 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/trip/show/{trip}/transports', name: 'trip_transports_')]
+#[Route('/trip/show/{trip}/transports', name: 'trip_transports_', requirements: ['trip' => '\d+'])]
 class TransportController extends AbstractController
 {
     private ManagerRegistry $managerRegistry;
@@ -27,7 +24,7 @@ class TransportController extends AbstractController
         $this->tripService = $tripService;
     }
 
-    #[Route('/', name: 'index', requirements: ['id' => '\d+'])]
+    #[Route('/', name: 'index')]
     public function transports(Trip $trip): Response
     {
         if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
@@ -39,7 +36,7 @@ class TransportController extends AbstractController
     }
 
     #[Route('/new', name: 'new')]
-    #[Route('/edit/{transport}', name: 'edit')]
+    #[Route('/edit/{transport}', name: 'edit', requirements: ['transport' => '\d+'])]
     public function form(Request $request, Trip $trip, ?Transport $transport): Response
     {
         if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
@@ -105,7 +102,7 @@ class TransportController extends AbstractController
         ]);
     }
 
-    #[Route('/delete/{transport}', name: 'delete')]
+    #[Route('/delete/{transport}', name: 'delete', requirements: ['transport' => '\d+'])]
     public function delete(Trip $trip, Transport $transport): Response
     {
         if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');

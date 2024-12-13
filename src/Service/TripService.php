@@ -18,8 +18,8 @@ class TripService
 
         if (!$departureDate) return false;
 
-        if ($departureDate > new DateTime()) {
-            $diff = (new \DateTime('now'))->diff($departureDate);
+        if ($departureDate >= new DateTime('midnight')) {
+            $diff = (new \DateTime('midnight'))->diff($departureDate);
             return [
                 'before' => false,
                 'days' => $diff->days
@@ -27,8 +27,8 @@ class TripService
         }
 
         $returnDate = $trip->getReturnDate();
-        if ($returnDate && $returnDate < new DateTime()) {
-            $diff = (new \DateTime('now'))->diff($returnDate);
+        if ($returnDate && $returnDate < new DateTime('midnight')) {
+            $diff = (new \DateTime('midnight'))->diff($returnDate);
             return [
                 'before' => true,
                 'days' => $diff->days

@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/trip/show/{trip}/activities', name: 'trip_activities_')]
+#[Route('/trip/show/{trip}/activities', name: 'trip_activities_', requirements: ['trip' => '\d+'])]
 class ActivitiesController extends AbstractController
 {
     private ManagerRegistry $managerRegistry;
@@ -24,7 +24,7 @@ class ActivitiesController extends AbstractController
         $this->tripService = $tripService;
     }
 
-    #[Route('/', name: 'index', requirements: ['id' => '\d+'])]
+    #[Route('/', name: 'index')]
     public function activities(Trip $trip): Response
     {
         if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
@@ -36,7 +36,7 @@ class ActivitiesController extends AbstractController
     }
 
     #[Route('/new', name: 'new')]
-    #[Route('/edit/{activity}', name: 'edit')]
+    #[Route('/edit/{activity}', name: 'edit', requirements: ['activity' => '\d+'])]
     public function form(Request $request, Trip $trip, ?Activity $activity): Response
     {
         if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
@@ -79,7 +79,7 @@ class ActivitiesController extends AbstractController
         ]);
     }
 
-    #[Route('/delete/{activity}', name: 'delete')]
+    #[Route('/delete/{activity}', name: 'delete', requirements: ['activity' => '\d+'])]
     public function delete(Trip $trip, Activity $activity): Response
     {
         if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');

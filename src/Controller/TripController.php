@@ -51,18 +51,22 @@ class TripController extends AbstractController
                         $trip->setImage('/' . $this->getParameter('upload_directory') . '/' . $imageFileName);
                     }
 
-                    $trip->setTraveler($this->getUser());
-
-                    $this->managerRegistry->getManager()->persist($trip);
-                    $this->managerRegistry->getManager()->flush();
-
-                    if ($request->get('_route') === 'trip_edit') {
-                        $this->addFlash('success', 'Les informations de ton voyage ont bien été modifiées.');
+                    if ($trip->getTravelers() <= 0) {
+                        $this->addFlash('warning', 'Vous devez saisir un nombre de voyageurs supérieur à 0.');
                     } else {
-                        $this->addFlash('success', 'Ton voyage a bien été créé.');
-                    }
+                        $trip->setTraveler($this->getUser());
 
-                    return $this->redirectToRoute('trip_show', ['trip' => $trip->getId()]);
+                        $this->managerRegistry->getManager()->persist($trip);
+                        $this->managerRegistry->getManager()->flush();
+
+                        if ($request->get('_route') === 'trip_edit') {
+                            $this->addFlash('success', 'Les informations de ton voyage ont bien été modifiées.');
+                        } else {
+                            $this->addFlash('success', 'Ton voyage a bien été créé.');
+                        }
+
+                        return $this->redirectToRoute('trip_show', ['trip' => $trip->getId()]);
+                    }
                 } catch (\Exception $exception) {
                     $this->addFlash('error', 'Une erreur est survenue lors de la création du voyage.');
                 }

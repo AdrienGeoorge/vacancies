@@ -15,9 +15,18 @@
                 <div class="font-poppins-semi-bold text-xl">Coût du séjour</div>
             </div>
             <div class="flex gap-3 flex-wrap text-sm">
-                <div class="w-fit bg-body rounded-full px-3 py-0.5 flex flex-row items-center gap-1.5 text-black">
-                    <span class="text-sm">TOTAL</span>
-                    <span class="text-lg font-bold">{{ budget.total }}€</span>
+                <div class="flex gap-1.5 flex-col">
+                    <div class="w-fit bg-body rounded-full px-3 py-0.5 flex flex-row items-center gap-1.5 text-black">
+                        <span class="text-sm">TOTAL</span>
+                        <span class="text-lg font-bold">{{ budget.total }}€</span>
+                    </div>
+
+                    {% if trip.travelers > 1 %}
+                        <div class="w-fit bg-body rounded-full px-3 py-0.5 flex flex-row items-center gap-1.5 text-black">
+                            <span class="text-sm">PAR PERSONNE</span>
+                            <span class="text-lg font-bold">{{ (budget.total / trip.travelers)|round(2) }}€</span>
+                        </div>
+                    {% endif %}
                 </div>
 
                 <div class="flex gap-2">

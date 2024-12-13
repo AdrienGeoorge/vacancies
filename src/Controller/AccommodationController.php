@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/trip/show/{trip}/accommodations', name: 'trip_accommodations_')]
+#[Route('/trip/show/{trip}/accommodations', name: 'trip_accommodations_', requirements: ['trip' => '\d+'])]
 class AccommodationController extends AbstractController
 {
     private ManagerRegistry $managerRegistry;
@@ -24,7 +24,7 @@ class AccommodationController extends AbstractController
         $this->tripService = $tripService;
     }
 
-    #[Route('/', name: 'index', requirements: ['id' => '\d+'])]
+    #[Route('/', name: 'index')]
     public function accommodations(Trip $trip): Response
     {
         if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
@@ -36,7 +36,7 @@ class AccommodationController extends AbstractController
     }
 
     #[Route('/new', name: 'new')]
-    #[Route('/edit/{accommodation}', name: 'edit')]
+    #[Route('/edit/{accommodation}', name: 'edit', requirements: ['accommodation' => '\d+'])]
     public function form(Request $request, Trip $trip, ?Accommodation $accommodation): Response
     {
         if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
@@ -79,7 +79,7 @@ class AccommodationController extends AbstractController
         ]);
     }
 
-    #[Route('/delete/{accommodation}', name: 'delete')]
+    #[Route('/delete/{accommodation}', name: 'delete', requirements: ['accommodation' => '\d+'])]
     public function delete(Trip $trip, Accommodation $accommodation): Response
     {
         if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');

@@ -29,9 +29,15 @@ class TripController extends AbstractController
     }
 
     #[Route('/new', name: 'new')]
-    public function new(Request $request): Response
+    #[Route('/edit/{trip}', name: 'edit', requirements: ['trip' => '\d+'])]
+    public function new(Request $request, ?Trip $trip): Response
     {
-        $trip = new Trip();
+        if (!$trip) $trip = new Trip();
+
+        if ($trip->getTraveler() !== null && $trip->getTraveler() !== $this->getUser()) {
+            return $this->redirectToRoute('app_home');
+        }
+
         $form = $this->createForm(TripType::class, $trip);
         $form->handleRequest($request);
 
@@ -51,12 +57,12 @@ class TripController extends AbstractController
             }
         }
 
-        return $this->render('trip/new.html.twig', [
+        return $this->render('trip/form.html.twig', [
             'form' => $form->createView()
         ]);
     }
 
-    #[Route('/show/{id}', name: 'show', requirements: ['id' => '\d+'])]
+    #[Route('/show/{trip}', name: 'show', requirements: ['trip' => '\d+'])]
     public function show(Trip $trip): Response
     {
         if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
@@ -68,7 +74,7 @@ class TripController extends AbstractController
         ]);
     }
 
-    #[Route('/get-budget/{id}', name: 'get_budget', requirements: ['id' => '\d+'], options: ['expose' => true])]
+    #[Route('/get-budget/{trip}', name: 'get_budget', requirements: ['trip' => '\d+'], options: ['expose' => true])]
     public function getBudget(Trip $trip): Response
     {
         if ($trip->getTraveler() !== $this->getUser()) return new JsonResponse([], 500);

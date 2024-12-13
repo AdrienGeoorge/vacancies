@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/trip/show/{trip}/various-expensive', name: 'trip_various_expensive_')]
+#[Route('/trip/show/{trip}/various-expensive', name: 'trip_various_expensive_', requirements: ['trip' => '\d+'])]
 class VariousExpensiveController extends AbstractController
 {
     private ManagerRegistry $managerRegistry;
@@ -24,7 +24,7 @@ class VariousExpensiveController extends AbstractController
         $this->tripService = $tripService;
     }
 
-    #[Route('/', name: 'index', requirements: ['id' => '\d+'])]
+    #[Route('/', name: 'index')]
     public function variousExpensive(Trip $trip): Response
     {
         if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
@@ -36,7 +36,7 @@ class VariousExpensiveController extends AbstractController
     }
 
     #[Route('/new', name: 'new')]
-    #[Route('/edit/{expensive}', name: 'edit')]
+    #[Route('/edit/{expensive}', name: 'edit', requirements: ['expensive' => '\d+'])]
     public function form(Request $request, Trip $trip, ?VariousExpensive $expensive): Response
     {
         if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
@@ -79,7 +79,7 @@ class VariousExpensiveController extends AbstractController
         ]);
     }
 
-    #[Route('/delete/{expensive}', name: 'delete')]
+    #[Route('/delete/{expensive}', name: 'delete', requirements: ['expensive' => '\d+'])]
     public function delete(Trip $trip, VariousExpensive $expensive): Response
     {
         if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');

@@ -11,7 +11,7 @@ if (tripId && ctx) {
 
     axios({
         method: 'get',
-        url: Routing.generate('trip_get_budget', {'id': tripId.value}),
+        url: Routing.generate('trip_get_budget', {'trip': tripId.value}),
         headers: {'X-Requested-With': 'XMLHttpRequest'}
     })
         .then(response => {

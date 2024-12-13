@@ -161,6 +161,48 @@ class TripService
     }
 
     /**
+     * Retourne le montant total des dépenses supplémentaires achetées
+     * @param Trip $trip
+     * @return float
+     */
+    public function getReservedVariousExpensivePrice(Trip $trip): float
+    {
+        $price = 0;
+        foreach ($trip->getVariousExpensives() as $expensive) {
+            if ($expensive->isPaid()) {
+                if ($expensive->isPerPerson()) {
+                    $price += ($expensive->getPrice() * $trip->getTravelers());
+                } else {
+                    $price += $expensive->getPrice();
+                }
+            }
+        }
+
+        return round($price, 2);
+    }
+
+    /**
+     * Retourne le montant total des dépenses supplémentaires non achetées
+     * @param Trip $trip
+     * @return float
+     */
+    public function getNonReservedVariousExpensivePrice(Trip $trip): float
+    {
+        $price = 0;
+        foreach ($trip->getVariousExpensives() as $expensive) {
+            if (!$expensive->isPaid()) {
+                if ($expensive->isPerPerson()) {
+                    $price += ($expensive->getPrice() * $trip->getTravelers());
+                } else {
+                    $price += $expensive->getPrice();
+                }
+            }
+        }
+
+        return round($price, 2);
+    }
+
+    /**
      * TODO
      * Retourne le montant des dépenses déjà payées et celles restantes à payer
      * @param Trip $trip
@@ -172,12 +214,14 @@ class TripService
             'accommodations' => $this->getReservedAccommodationsPrice($trip),
             'transports' => $this->getReservedTransportsPrice($trip),
             'activities' => $this->getReservedActivitiesPrice($trip),
+            'variousExpensive' => $this->getReservedVariousExpensivePrice($trip),
         ];
 
         $nonReservedPrices = [
             'accommodations' => $this->getNonReservedAccommodationsPrice($trip),
             'transports' => $this->getNonReservedTransportsPrice($trip),
             'activities' => $this->getNonReservedActivitiesPrice($trip),
+            'variousExpensive' => $this->getNonReservedVariousExpensivePrice($trip),
         ];
 
         $totalReserved = round(array_sum($reservedPrices), 2);

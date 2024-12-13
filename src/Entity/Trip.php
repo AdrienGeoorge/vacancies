@@ -49,11 +49,15 @@ class Trip
     #[ORM\OneToMany(targetEntity: Activity::class, mappedBy: 'trip', orphanRemoval: true)]
     private Collection $activities;
 
+    #[ORM\OneToMany(targetEntity: VariousExpensive::class, mappedBy: 'trip', orphanRemoval: true)]
+    private Collection $variousExpensives;
+
     public function __construct()
     {
         $this->accommodations = new ArrayCollection();
         $this->transports = new ArrayCollection();
         $this->activities = new ArrayCollection();
+        $this->variousExpensives = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -229,6 +233,36 @@ class Trip
             // set the owning side to null (unless already changed)
             if ($activity->getTrip() === $this) {
                 $activity->setTrip(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, VariousExpensive>
+     */
+    public function getVariousExpensives(): Collection
+    {
+        return $this->variousExpensives;
+    }
+
+    public function addVariousExpensife(VariousExpensive $variousExpensife): static
+    {
+        if (!$this->variousExpensives->contains($variousExpensife)) {
+            $this->variousExpensives->add($variousExpensife);
+            $variousExpensife->setTrip($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVariousExpensife(VariousExpensive $variousExpensife): static
+    {
+        if ($this->variousExpensives->removeElement($variousExpensife)) {
+            // set the owning side to null (unless already changed)
+            if ($variousExpensife->getTrip() === $this) {
+                $variousExpensife->setTrip(null);
             }
         }
 

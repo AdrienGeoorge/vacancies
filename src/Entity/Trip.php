@@ -28,7 +28,7 @@ class Trip
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $returnDate = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 500)]
     private ?string $image = null;
 
     #[ORM\Column]
@@ -50,12 +50,16 @@ class Trip
     #[ORM\OneToMany(targetEntity: VariousExpensive::class, mappedBy: 'trip', orphanRemoval: true)]
     private Collection $variousExpensives;
 
+    #[ORM\OneToMany(targetEntity: TripDocument::class, mappedBy: 'trip', orphanRemoval: true)]
+    private Collection $documents;
+
     public function __construct()
     {
         $this->accommodations = new ArrayCollection();
         $this->transports = new ArrayCollection();
         $this->activities = new ArrayCollection();
         $this->variousExpensives = new ArrayCollection();
+        $this->documents = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -261,6 +265,36 @@ class Trip
             // set the owning side to null (unless already changed)
             if ($variousExpensife->getTrip() === $this) {
                 $variousExpensife->setTrip(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TripDocument>
+     */
+    public function getDocuments(): Collection
+    {
+        return $this->documents;
+    }
+
+    public function addDocument(TripDocument $document): static
+    {
+        if (!$this->documents->contains($document)) {
+            $this->documents->add($document);
+            $document->setTrip($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDocument(TripDocument $document): static
+    {
+        if ($this->documents->removeElement($document)) {
+            // set the owning side to null (unless already changed)
+            if ($document->getTrip() === $this) {
+                $document->setTrip(null);
             }
         }
 

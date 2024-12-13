@@ -32,7 +32,7 @@
     </div>
 
     <div class="mt-4">
-        {% if trip.accommodations|length > 0 %}
+        {% if not trip.accommodations.empty %}
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
                 {% for accommodation in trip.accommodations|sort((a, b) => a.arrivalDate > b.arrivalDate) %}
                     <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-3.5 px-6 flex flex-col justify-between">
@@ -80,7 +80,7 @@
                                 </div>
                             {% endif %}
 
-                            {% if accommodation.additionalExpensive|length > 0 %}
+                            {% if not accommodation.additionalExpensive.empty %}
                                 <div class="mt-4">
                                     <div class="font-poppins-semi-bold">Dépenses additionnelles</div>
                                     {% for additional in accommodation.additionalExpensive %}

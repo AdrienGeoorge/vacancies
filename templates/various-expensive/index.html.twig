@@ -35,7 +35,7 @@
     </div>
 
     <div class="mt-4">
-        {% if trip.variousExpensives|length > 0 %}
+        {% if not trip.variousExpensives.empty %}
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
                 {% for expensive in trip.variousExpensives|sort((a, b) => a.id > b.id) %}
                     <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-3.5 px-6 flex flex-col justify-between">

@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ app_name }} - Nouveau voyage{% endblock %}
+
+{% block content %}
+    {{ form_start(form) }}
+    {{ form_errors(form) }}
+    <div class="px-4 md:px-8">
+        <div class="flex flex-col gap-4 w-full sm:w-5/6 md:w-4/6 lg:w-3/6 m-auto">
+            <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-6 px-8">
+                <div class="text-2xl font-poppins-semi-bold">
+                    Ajout d'un document
+                </div>
+                <div class="mb-5 text-sm font-poppins">
+                    Ajoutez une facture, une réservation ou des billets par exemple. Vous pourrez les retrouver dans
+                    l'espace fichiers de votre voyage.
+                </div>
+                {{ form_widget(form.name) }}
+                <div class="mt-4">
+                    {{ form_widget(form.file) }}
+                </div>
+
+                <button class="mt-5 tracking-wide bg-teal-500 border-2 border-teal-400 text-white w-full py-4
+                                    rounded-full flex items-center justify-center hover:bg-teal-700
+                                    transition-all duration-300 ease-in-out
+                                    focus:shadow-outline focus:outline-none">
+                    Ajouter le document
+                </button>
+            </div>
+        </div>
+    </div>
+    {{ form_end(form) }}
+{% endblock %}

@@ -21,14 +21,15 @@ class FileUploaderService
     /**
      * @throws Exception
      */
-    public function upload(UploadedFile $file, ?string $name = null): string
+    public function upload(UploadedFile $file, ?string $name = null, ?string $directory = null): string
     {
         $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $safeFilename = $this->slugger->slug($originalFilename);
         $fileName = ($name ?: $safeFilename . '-' . uniqid()) . '.' . $file->guessExtension();
 
         try {
-            $file->move($this->getTargetDirectory(), $fileName);
+            if (!$directory) $file->move($this->getTargetDirectory(), $fileName);
+            else $file->move($directory, $fileName);
         } catch (FileException $e) {
             throw new Exception('Erreur lors du téléchargement du fichier!');
         }
@@ -39,10 +40,5 @@ class FileUploaderService
     public function getTargetDirectory(): string
     {
         return $this->targetDirectory;
-    }
-
-    public function setTargetDirectory($targetDirectory): void
-    {
-        $this->targetDirectory = $targetDirectory;
     }
 }

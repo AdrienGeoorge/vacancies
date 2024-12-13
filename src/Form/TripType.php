@@ -3,16 +3,14 @@
 namespace App\Form;
 
 use App\Entity\Trip;
-use App\Entity\User;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\File;
 
 class TripType extends AbstractType
 {
@@ -63,7 +61,20 @@ class TripType extends AbstractType
                               focus:outline-none focus:border-gray-400 focus:bg-white
                               dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
                               dark:placeholder-gray-300',
-                ]
+                ],
+                'constraints' => [
+                    new File([
+                        'maxSize' => '500k',
+                        'mimeTypes' => [
+                            'image/jpeg',
+                            'image/png',
+                            'image/gif',
+                        ],
+                        'mimeTypesMessage' => 'Merci de télécharger un fichier valide',
+                    ])
+                ],
+                'mapped' => false,
+                'required' => !$options['data']->getId()
             ])
             ->add('travelers', IntegerType::class, [
                 'label' => 'Combien de voyageurs y aura-t-il, y compris toi ?',
@@ -74,8 +85,7 @@ class TripType extends AbstractType
                               dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
                               dark:placeholder-gray-300',
                 ]
-            ])
-        ;
+            ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

@@ -203,7 +203,6 @@ class TripService
     }
 
     /**
-     * TODO
      * Retourne le montant des dépenses déjà payées et celles restantes à payer
      * @param Trip $trip
      * @return array
@@ -236,5 +235,42 @@ class TripService
                 'nonReserved' => $nonReservedPrices,
             ],
         ];
+    }
+
+    /**
+     * Retourne le planning des évènements
+     * @param Trip $trip
+     * @return array
+     */
+    public function getPlanning(Trip $trip): array
+    {
+        return [
+            'start' => $trip->getDepartureDate()?->format('Y-m-d'),
+            'end' => $trip->getReturnDate()?->add(new \DateInterval('P1D'))->format('Y-m-d'),
+            'events' => $this->eventsToArray($trip)
+        ];
+    }
+
+    /**
+     * Retourne les évènements prévus dans le planning
+     * @param Trip $trip
+     * @return array
+     */
+    public function eventsToArray(Trip $trip): array
+    {
+        $events = [];
+        foreach ($trip->getPlanningEvents()->toArray() as $event) {
+            $events[] = [
+                'id' => $event->getId(),
+                'title' => $event->getTitle(),
+                'start' => $event->getStart()->format('Y-m-d H:i'),
+                'end' => $event->getEnd()?->format('Y-m-d H:i'),
+                'timeToGo' => $event->getTimeToGo(),
+                'type' => $event->getType()->getName(),
+                'color' => $event->getType()->getColor()
+            ];
+        }
+
+        return $events;
     }
 }

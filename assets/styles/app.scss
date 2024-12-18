@@ -1,4 +1,5 @@
 @import "fonts";
+@import "planning";
 
 @tailwind base;
 @tailwind components;
@@ -33,61 +34,3 @@ button {
    height: 10px;
    border-radius: 100%;
 }
-
-/*
-.box {
-   .box-header {
-      display: flex;
-
-      .box-title {
-         flex: 2;
-         border-radius: 1.75em 2em 0 0;
-         position: relative;
-         padding: 1em 1.75em;
-         line-height: 20px;
-
-         .title {
-            font-family: "InterSemiBold", sans-serif;
-            font-size: 21px;
-         }
-
-         .subtitle {
-            font-family: "InterLight", sans-serif;
-            font-size: 17px;
-         }
-
-         &:after {
-            content: "";
-            position: absolute;
-            width: 2em;
-            height: 2em;
-            bottom: 0;
-            right: -32.24px;
-            border-radius: 0 0 0 100%;
-            z-index: 9999;
-         }
-      }
-
-      .box-logo {
-         display: flex;
-         justify-content: center;
-         align-items: center;
-         margin: 0 0 0.75em 0.75em;
-
-         .box-logo-background {
-            border-radius: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 0.5em;
-            width: 3.5em;
-            height: 3.5em;
-         }
-      }
-   }
-
-   .box-content {
-      border-radius: 0 1.75em 1.75em 1.75em;
-      padding: 0 1.75em 1em 1.75em;
-   }
-}*/

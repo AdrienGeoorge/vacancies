@@ -7,7 +7,7 @@ use App\Entity\TransportType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
-use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -41,7 +41,7 @@ class TransportFormType extends AbstractType
                     'placeholder' => 'Lieu d\'arrivée',
                 ]
             ])
-            ->add('departureDate', DateType::class, [
+            ->add('departureDate', DateTimeType::class, [
                 'required' => false,
                 'widget' => 'single_text',
                 'input_format' => 'd/m/Y H:i',
@@ -54,7 +54,7 @@ class TransportFormType extends AbstractType
                     'placeholder' => 'Date de départ',
                 ]
             ])
-            ->add('arrivalDate', DateType::class, [
+            ->add('arrivalDate', DateTimeType::class, [
                 'required' => false,
                 'widget' => 'single_text',
                 'input_format' => 'd/m/Y H:i',

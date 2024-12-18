@@ -53,6 +53,9 @@ class Trip
     #[ORM\OneToMany(targetEntity: TripDocument::class, mappedBy: 'trip', orphanRemoval: true)]
     private Collection $documents;
 
+    #[ORM\OneToMany(targetEntity: PlanningEvent::class, mappedBy: 'trip', orphanRemoval: true)]
+    private Collection $planningEvents;
+
     public function __construct()
     {
         $this->accommodations = new ArrayCollection();
@@ -60,6 +63,7 @@ class Trip
         $this->activities = new ArrayCollection();
         $this->variousExpensives = new ArrayCollection();
         $this->documents = new ArrayCollection();
+        $this->planningEvents = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -295,6 +299,36 @@ class Trip
             // set the owning side to null (unless already changed)
             if ($document->getTrip() === $this) {
                 $document->setTrip(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, PlanningEvent>
+     */
+    public function getPlanningEvents(): Collection
+    {
+        return $this->planningEvents;
+    }
+
+    public function addPlanningEvent(PlanningEvent $planningEvent): static
+    {
+        if (!$this->planningEvents->contains($planningEvent)) {
+            $this->planningEvents->add($planningEvent);
+            $planningEvent->setTrip($this);
+        }
+
+        return $this;
+    }
+
+    public function removePlanningEvent(PlanningEvent $planningEvent): static
+    {
+        if ($this->planningEvents->removeElement($planningEvent)) {
+            // set the owning side to null (unless already changed)
+            if ($planningEvent->getTrip() === $this) {
+                $planningEvent->setTrip(null);
             }
         }
 

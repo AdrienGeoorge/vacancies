@@ -31,6 +31,7 @@ if (tripId && ctx) {
                         }]
                     },
                     options: {
+                        responsive: true,
                         tooltips: {
                             enabled: false
                         },

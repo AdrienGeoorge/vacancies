@@ -64,13 +64,15 @@ class TripType extends AbstractType
                 ],
                 'constraints' => [
                     new File([
-                        'maxSize' => '500k',
+                        'maxSize' => '128M',
                         'mimeTypes' => [
                             'image/jpeg',
                             'image/png',
                             'image/gif',
                         ],
-                        'mimeTypesMessage' => 'Merci de télécharger un fichier valide',
+                        'mimeTypesMessage' => 'Votre image ne peut pas être ajouté. Les types autorisés sont les suivants : .jpeg / .png / .gif',
+                        'maxSizeMessage' => 'Le fichier est trop volumineux ({{ size }}{{ suffix }}). Le taille maximale autorisée est de {{ limit }}{{ suffix }}.'
+
                     ])
                 ],
                 'mapped' => false,

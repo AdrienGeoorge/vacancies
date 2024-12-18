@@ -70,6 +70,8 @@ class TripController extends AbstractController
                 } catch (\Exception $exception) {
                     $this->addFlash('error', 'Une erreur est survenue lors de la création du voyage.');
                 }
+            } else {
+                $this->addFlash('error', $form->getErrors(true)->current()->getMessage());
             }
         }
 

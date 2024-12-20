@@ -56,16 +56,22 @@ class AccommodationController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
-                $this->managerRegistry->getManager()->persist($accommodation);
-                $this->managerRegistry->getManager()->flush();
+                $errorOnCompare = $this->tripService->compareElementDateBetweenTripDates($trip, $accommodation->getArrivalDate(), $accommodation->getDepartureDate());
 
-                if ($request->get('_route') === 'trip_accommodations_edit') {
-                    $this->addFlash('success', 'Les détails de votre logement ont bien été modifiés.');
+                if ($errorOnCompare === null) {
+                    $this->managerRegistry->getManager()->persist($accommodation);
+                    $this->managerRegistry->getManager()->flush();
+
+                    if ($request->get('_route') === 'trip_accommodations_edit') {
+                        $this->addFlash('success', 'Les détails de votre logement ont bien été modifiés.');
+                    } else {
+                        $this->addFlash('success', 'Ce logement a bien été rattaché à votre voyage.');
+                    }
+
+                    return $this->redirectToRoute('trip_accommodations_index', ['trip' => $trip->getId()]);
                 } else {
-                    $this->addFlash('success', 'Ce logement a bien été rattaché à votre voyage.');
+                    $this->addFlash('warning', $errorOnCompare);
                 }
-
-                return $this->redirectToRoute('trip_accommodations_index', ['trip' => $trip->getId()]);
             } catch (\Exception $exception) {
                 $this->addFlash('error', 'Une erreur est survenue lors du rattachement du logement à votre voyage.');
             }

@@ -78,16 +78,22 @@ class TransportController extends AbstractController
                 }
 
                 if (!$error) {
-                    $this->managerRegistry->getManager()->persist($transport);
-                    $this->managerRegistry->getManager()->flush();
+                    $errorOnCompare = $this->tripService->compareElementDateBetweenTripDates($trip, $transport->getDepartureDate(), $transport->getArrivalDate());
 
-                    if ($request->get('_route') === 'trip_transports_edit') {
-                        $this->addFlash('success', 'Les détails de votre moyen de transport ont bien été modifiés.');
+                    if ($errorOnCompare === null) {
+                        $this->managerRegistry->getManager()->persist($transport);
+                        $this->managerRegistry->getManager()->flush();
+
+                        if ($request->get('_route') === 'trip_transports_edit') {
+                            $this->addFlash('success', 'Les détails de votre moyen de transport ont bien été modifiés.');
+                        } else {
+                            $this->addFlash('success', 'Ce moyen de transport a bien été rattaché à votre voyage.');
+                        }
+
+                        return $this->redirectToRoute('trip_transports_index', ['trip' => $trip->getId()]);
                     } else {
-                        $this->addFlash('success', 'Ce moyen de transport a bien été rattaché à votre voyage.');
+                        $this->addFlash('warning', $errorOnCompare);
                     }
-
-                    return $this->redirectToRoute('trip_transports_index', ['trip' => $trip->getId()]);
                 }
             } catch (\Exception $exception) {
                 $this->addFlash('error', 'Une erreur est survenue lors du rattachement du moyen de transport à votre voyage.');

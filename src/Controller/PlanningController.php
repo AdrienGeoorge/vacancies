@@ -57,17 +57,9 @@ class PlanningController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
-                if ($trip->getDepartureDate() && $event->getStart() < $trip->getDepartureDate()) {
-                    $this->addFlash('warning', 'La date de début ne pas être inférieure à la date de commencement du séjour.');
-                } elseif ($trip->getDepartureDate() && $event->getEnd() && $event->getEnd() < $trip->getDepartureDate()) {
-                    $this->addFlash('warning', 'La date de fin ne pas être inférieure à la date de commencement du séjour.');
-                } elseif ($trip->getReturnDate() && $event->getStart() > $trip->getReturnDate()) {
-                    $this->addFlash('warning', 'La date de début ne pas être supérieure à la date de fin du séjour.');
-                } elseif ($trip->getReturnDate() && $event->getEnd() && $event->getEnd() > $trip->getReturnDate()) {
-                    $this->addFlash('warning', 'La date de fin ne pas être supérieure à la date de fin du séjour.');
-                } elseif ($event->getEnd() && $event->getEnd() < $event->getStart()) {
-                    $this->addFlash('warning', 'L\'évènement ne peut pas se terminer avant d\'avoir commencé.');
-                } else {
+                $errorOnCompare = $this->tripService->compareElementDateBetweenTripDates($trip, $event->getStart(), $event->getEnd());
+
+                if ($errorOnCompare === null) {
                     $this->managerRegistry->getManager()->persist($event);
                     $this->managerRegistry->getManager()->flush();
 
@@ -78,6 +70,8 @@ class PlanningController extends AbstractController
                     }
 
                     return $this->redirectToRoute('trip_planning_index', ['trip' => $trip->getId()]);
+                } else {
+                    $this->addFlash('warning', $errorOnCompare);
                 }
             } catch (\Exception $exception) {
                 $this->addFlash('error', 'Une erreur est survenue lors de l\'ajout de l\'évènement à votre planning.');

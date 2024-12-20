@@ -56,16 +56,22 @@ class ActivitiesController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
-                $this->managerRegistry->getManager()->persist($activity);
-                $this->managerRegistry->getManager()->flush();
+                $errorOnCompare = $this->tripService->compareElementDateBetweenTripDates($trip, $activity->getDate());
 
-                if ($request->get('_route') === 'trip_activities_edit') {
-                    $this->addFlash('success', 'Les détails de votre activité ont bien été modifiés.');
+                if ($errorOnCompare === null) {
+                    $this->managerRegistry->getManager()->persist($activity);
+                    $this->managerRegistry->getManager()->flush();
+
+                    if ($request->get('_route') === 'trip_activities_edit') {
+                        $this->addFlash('success', 'Les détails de votre activité ont bien été modifiés.');
+                    } else {
+                        $this->addFlash('success', 'Cette activité a bien été rattachée à votre voyage.');
+                    }
+
+                    return $this->redirectToRoute('trip_activities_index', ['trip' => $trip->getId()]);
                 } else {
-                    $this->addFlash('success', 'Cette activité a bien été rattachée à votre voyage.');
+                    $this->addFlash('warning', $errorOnCompare);
                 }
-
-                return $this->redirectToRoute('trip_activities_index', ['trip' => $trip->getId()]);
             } catch (\Exception $exception) {
                 $this->addFlash('error', 'Une erreur est survenue lors du rattachement de l\'activité à votre voyage.');
             }

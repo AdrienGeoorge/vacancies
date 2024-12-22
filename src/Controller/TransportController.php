@@ -11,6 +11,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/trip/show/{trip}/transports', name: 'trip_transports_', requirements: ['trip' => '\d+'])]
 class TransportController extends AbstractController
@@ -25,10 +26,9 @@ class TransportController extends AbstractController
     }
 
     #[Route('/', name: 'index')]
+    #[IsGranted('view', subject: 'trip')]
     public function transports(Trip $trip): Response
     {
-        if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
-
         return $this->render('transports/index.html.twig', [
             'trip' => $trip,
             'countDaysBeforeOrAfter' => $this->tripService->countDaysBeforeOrAfter($trip),
@@ -37,10 +37,9 @@ class TransportController extends AbstractController
 
     #[Route('/new', name: 'new')]
     #[Route('/edit/{transport}', name: 'edit', requirements: ['transport' => '\d+'])]
+    #[IsGranted('edit_elements', subject: 'trip')]
     public function form(Request $request, Trip $trip, ?Transport $transport): Response
     {
-        if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
-
         if (!$transport) {
             $transport = new Transport();
             $transport->setTrip($trip);
@@ -109,10 +108,9 @@ class TransportController extends AbstractController
     }
 
     #[Route('/delete/{transport}', name: 'delete', requirements: ['transport' => '\d+'])]
+    #[IsGranted('edit_elements', subject: 'trip')]
     public function delete(Trip $trip, Transport $transport): Response
     {
-        if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
-
         $this->managerRegistry->getManager()->remove($transport);
         $this->managerRegistry->getManager()->flush();
 

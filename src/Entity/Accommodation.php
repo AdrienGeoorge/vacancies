@@ -40,7 +40,7 @@ class Accommodation
     #[ORM\Column]
     private bool $booked = false;
 
-    #[ORM\ManyToOne(inversedBy: 'accomodations')]
+    #[ORM\ManyToOne(inversedBy: 'accommodations')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Trip $trip = null;
 

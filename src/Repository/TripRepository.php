@@ -27,17 +27,22 @@ class TripRepository extends ServiceEntityRepository
     public function getFutureTrips($user): array
     {
         $qb = $this->createQueryBuilder('t')
-            ->andWhere('t.traveler = :traveler')
-            ->setParameter('traveler', $user);
+            ->leftJoin('t.sharings', 'ts');
 
-        $orX = $qb->expr()->orX(
-            $qb->expr()->gte('t.returnDate', ':today'),
-            $qb->expr()->isNull('t.departureDate'),
-            $qb->expr()->isNull('t.returnDate')
-        );
+        $qb->andWhere(
+            $qb->expr()->orX(
+                $qb->expr()->eq('t.traveler', ':traveler'),
+                $qb->expr()->eq('ts.user', ':traveler')
+            )
+        )->setParameter('traveler', $user);
 
-        return $qb->andWhere($orX)
-            ->setParameter('today', (new \DateTime())->format('Y-m-d'))
+        return $qb->andWhere(
+            $qb->expr()->orX(
+                $qb->expr()->gte('t.returnDate', ':today'),
+                $qb->expr()->isNull('t.departureDate'),
+                $qb->expr()->isNull('t.returnDate')
+            )
+        )->setParameter('today', (new \DateTime())->format('Y-m-d'))
             ->orderBy("CASE WHEN t.departureDate IS NULL THEN 1 ELSE 0 END", 'ASC')
             ->addOrderBy('t.departureDate', 'ASC')
             ->addOrderBy('t.id', 'DESC')
@@ -47,9 +52,15 @@ class TripRepository extends ServiceEntityRepository
 
     public function getPassedTrips($user): array
     {
-        return $this->createQueryBuilder('t')
-            ->andWhere('t.traveler = :traveler')
-            ->setParameter('traveler', $user)
+        $qb = $this->createQueryBuilder('t')
+            ->leftJoin('t.sharings', 'ts');
+
+        return $qb->andWhere(
+            $qb->expr()->orX(
+                $qb->expr()->eq('t.traveler', ':traveler'),
+                $qb->expr()->eq('ts.user', ':traveler')
+            )
+        )->setParameter('traveler', $user)
             ->andWhere('t.departureDate IS NOT NULL')
             ->andWhere('t.returnDate IS NOT NULL')
             ->andWhere('t.returnDate < :today')

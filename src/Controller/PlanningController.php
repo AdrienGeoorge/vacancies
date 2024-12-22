@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/trip/show/{trip}/planning', name: 'trip_planning_', requirements: ['trip' => '\d+'])]
 class PlanningController extends AbstractController
@@ -26,10 +27,9 @@ class PlanningController extends AbstractController
     }
 
     #[Route('/', name: 'index', options: ['expose' => true])]
+    #[IsGranted('view', subject: 'trip')]
     public function planning(Trip $trip): Response
     {
-        if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
-
         return $this->render('planning/index.html.twig', [
             'trip' => $trip,
             'countDaysBeforeOrAfter' => $this->tripService->countDaysBeforeOrAfter($trip),
@@ -38,10 +38,9 @@ class PlanningController extends AbstractController
 
     #[Route('/new', name: 'new')]
     #[Route('/edit/{event}', name: 'edit', requirements: ['event' => '\d+'], options: ['expose' => true])]
+    #[IsGranted('edit_elements', subject: 'trip')]
     public function form(Request $request, Trip $trip, ?PlanningEvent $event): Response
     {
-        if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
-
         if (!$event) {
             $event = new PlanningEvent();
             $event->setTrip($trip);
@@ -87,10 +86,9 @@ class PlanningController extends AbstractController
     }
 
     #[Route('/delete/{event}', name: 'delete', requirements: ['event' => '\d+'])]
+    #[IsGranted('edit_elements', subject: 'trip')]
     public function delete(Trip $trip, PlanningEvent $event): Response
     {
-        if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
-
         $this->managerRegistry->getManager()->remove($event);
         $this->managerRegistry->getManager()->flush();
 
@@ -100,18 +98,17 @@ class PlanningController extends AbstractController
     }
 
     #[Route('/get', name: 'get', options: ['expose' => true])]
+    #[IsGranted('view', subject: 'trip')]
     public function getPlanning(Trip $trip): Response
     {
-        if ($trip->getTraveler() !== $this->getUser()) return new JsonResponse([], 500);
-
         return new JsonResponse($this->tripService->getPlanning($trip));
     }
 
     #[Route('/drop-event', name: 'drop_event', options: ['expose' => true])]
+    #[IsGranted('edit_elements', subject: 'trip')]
     public function dropEvent(Request $request, Trip $trip): Response
     {
         if (!$request->isXmlHttpRequest()) return new JsonResponse([], 500);
-        if ($trip->getTraveler() !== $this->getUser()) return new JsonResponse([], 500);
 
         $event = $this->managerRegistry->getRepository(PlanningEvent::class)->find($request->request->get('id'));
 

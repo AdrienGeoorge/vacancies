@@ -2,11 +2,29 @@
 
 namespace App\Service;
 
+use App\Entity\ShareInvitation;
 use App\Entity\Trip;
+use App\Entity\User;
 use DateTime;
+use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\String\ByteString;
 
 class TripService
 {
+    private RouterInterface $router;
+    private MailerInterface $mailer;
+    private ManagerRegistry $managerRegistry;
+
+    public function __construct(RouterInterface $router, MailerInterface $mailer, ManagerRegistry $managerRegistry) {
+        $this->mailer = $mailer;
+        $this->router = $router;
+        $this->managerRegistry = $managerRegistry;
+    }
+
     /**
      * Compte le nombre de jours à attendre ou passés pour le voyage
      * @param Trip $trip
@@ -297,5 +315,35 @@ class TripService
         }
 
         return null;
+    }
+
+    public function sendSharingMail(Trip $trip, User $userToShareWith, string $invitedBy): ?string
+    {
+        try {
+            $token = ByteString::fromRandom(50);
+            $url = $this->router->generate('trip_accept', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
+
+            $email = (new TemplatedEmail())
+                ->from('no-reply@adriengeorge.fr')
+                ->to($userToShareWith->getEmail())
+                ->subject('Vacancies : invitation à rejoindre un voyage')
+                ->htmlTemplate('trip/share-mail.html.twig')
+                ->context(['url' => $url, 'invitedBy' => $invitedBy]);
+
+            $this->mailer->send($email);
+        } catch (\Exception) {
+            return false;
+        }
+
+        $invitation = new ShareInvitation();
+        $invitation->setUserToShareWith($userToShareWith);
+        $invitation->setTrip($trip);
+        $invitation->setToken($token);
+        $invitation->setExpireAt(new \DateTimeImmutable('+30 minutes'));
+
+        $this->managerRegistry->getManager()->persist($invitation);
+        $this->managerRegistry->getManager()->flush();
+
+        return true;
     }
 }

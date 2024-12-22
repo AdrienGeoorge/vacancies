@@ -27,6 +27,7 @@ Encore
     .addEntry('accommodationAdditionalExpensive', './assets/js/accommodationAdditionalExpensive.js')
     .addEntry('transport', './assets/js/transport.js')
     .addEntry('planning', './assets/js/planning.js')
+    .addEntry('shareTrip', './assets/js/shareTrip.js')
 
     .copyFiles({
         from: './assets/images',

@@ -2,8 +2,10 @@
 
 namespace App\Controller;
 
-use App\Entity\Accommodation;
+use App\Entity\ShareInvitation;
 use App\Entity\Trip;
+use App\Entity\TripSharing;
+use App\Entity\User;
 use App\Form\TripType;
 use App\Service\FileUploaderService;
 use App\Service\TripService;
@@ -13,6 +15,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/trip', name: 'trip_')]
 class TripController extends AbstractController
@@ -31,7 +34,8 @@ class TripController extends AbstractController
 
     #[Route('/new', name: 'new')]
     #[Route('/edit/{trip}', name: 'edit', requirements: ['trip' => '\d+'])]
-    public function new(Request $request, ?Trip $trip): Response
+    #[IsGranted('edit_trip', subject: 'trip')]
+    public function new(Request $request, ?Trip $trip = new Trip()): Response
     {
         if (!$trip) $trip = new Trip();
 
@@ -82,10 +86,9 @@ class TripController extends AbstractController
     }
 
     #[Route('/show/{trip}', name: 'show', requirements: ['trip' => '\d+'])]
+    #[IsGranted('view', subject: 'trip')]
     public function show(Trip $trip): Response
     {
-        if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
-
         return $this->render('trip/show.html.twig', [
             'trip' => $trip,
             'countDaysBeforeOrAfter' => $this->tripService->countDaysBeforeOrAfter($trip),
@@ -94,10 +97,9 @@ class TripController extends AbstractController
     }
 
     #[Route('/delete/{trip}', name: 'delete', requirements: ['trip' => '\d+'])]
+    #[IsGranted('delete_trip', subject: 'trip')]
     public function delete(Trip $trip): Response
     {
-        if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
-
         $this->managerRegistry->getManager()->remove($trip);
         $this->managerRegistry->getManager()->flush();
 
@@ -107,10 +109,84 @@ class TripController extends AbstractController
     }
 
     #[Route('/get-budget/{trip}', name: 'get_budget', requirements: ['trip' => '\d+'], options: ['expose' => true])]
+    #[IsGranted('view', 'trip')]
     public function getBudget(Trip $trip): Response
     {
-        if ($trip->getTraveler() !== $this->getUser()) return new JsonResponse([], 500);
-
         return new JsonResponse($this->tripService->getBudget($trip));
+    }
+
+    #[Route('/share/{trip}', name: 'share', requirements: ['trip' => '\d+'], options: ['expose' => true])]
+    #[IsGranted('invite', subject: 'trip')]
+    public function share(Request $request, Trip $trip): Response
+    {
+        if (!$request->isXmlHttpRequest()) {
+            $this->addFlash('error', 'Une erreur est survenue. Veuillez recommencer.');
+            return new JsonResponse([], 500);
+        }
+
+        if(!$this->isGranted('INVITE', $trip)) {
+            $this->addFlash('error', 'Vous n\'êtes pas autorisé à inviter quelqu\'un pour ce voyage.');
+            return new JsonResponse([], 403);
+        }
+
+        $userToShareWith = $this->managerRegistry->getRepository(User::class)
+            ->findOneBy(['email' => $request->request->get('email')]);
+
+        if (!$userToShareWith) {
+            $this->addFlash('warning', 'Aucun utilisateur n\'a été trouvé avec cette adresse mail. Veuillez recommencer.');
+            return new JsonResponse([], 404);
+        }
+
+        $alreadyInvited = $this->managerRegistry->getRepository(ShareInvitation::class)
+            ->getInvitationByUser($userToShareWith);
+
+        if ($alreadyInvited) {
+            $this->addFlash('warning', 'Vous avez déjà invité cet utilisateur à rejoindre ce séjour.');
+            return new JsonResponse([], 200);
+        }
+
+        $alreadyInTrip = $this->managerRegistry->getRepository(TripSharing::class)
+            ->findOneBy(['user' => $userToShareWith]);
+
+        if ($alreadyInTrip || $this->getUser() === $trip->getTraveler()) {
+            $this->addFlash('warning', 'Cet utilisateur a déjà rejoint ce séjour.');
+            return new JsonResponse([], 200);
+        }
+
+        if (!$this->tripService->sendSharingMail($trip, $userToShareWith, $this->getUser()->getFirstname() . ' ' . $this->getUser()->getLastname())) {
+            $this->addFlash('error', 'L\'email n\'a pas pu être envoyé en raison d\'une anomalie.');
+            return new JsonResponse([], 500);
+        }
+
+        $this->addFlash('success', 'L\'invitation à prendre part à ce voyage a bien été transmise.');
+        return new JsonResponse([], 201);
+    }
+
+    #[Route('/accept/{token}', name: 'accept', requirements: ['token' => '\w+'])]
+    public function acceptInvitation(string $token): Response
+    {
+        $invitation = $this->managerRegistry->getRepository(ShareInvitation::class)
+            ->findOneBy(['token' => $token]);
+
+        if (!$invitation) {
+            $this->addFlash('error', 'Nous n\'avons trouvé aucune invitation. Veuillez réessayer.');
+            return $this->redirectToRoute('app_home');
+        }
+
+        if ($invitation->getExpireAt() < new \DateTimeImmutable('now')) {
+            $this->addFlash('error', 'Cette invitation a expiré. La personne à l\'origine de cette requête doit renouveler l\'invitation.');
+            return $this->redirectToRoute('app_home');
+        }
+
+        $sharing = new TripSharing();
+        $sharing->setTrip($invitation->getTrip());
+        $sharing->setUser($invitation->getUserToShareWith());
+
+        $this->managerRegistry->getManager()->persist($sharing);
+        $this->managerRegistry->getManager()->remove($invitation);
+        $this->managerRegistry->getManager()->flush();
+
+        $this->addFlash('success', sprintf('Vous avez rejoint le voyage %s.', $invitation->getTrip()->getName()));
+        return $this->redirectToRoute('trip_show', ['trip' => $invitation->getTrip()->getId()]);
     }
 }

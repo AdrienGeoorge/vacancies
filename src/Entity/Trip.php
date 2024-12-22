@@ -56,6 +56,12 @@ class Trip
     #[ORM\OneToMany(targetEntity: PlanningEvent::class, mappedBy: 'trip', orphanRemoval: true)]
     private Collection $planningEvents;
 
+    #[ORM\OneToMany(targetEntity: ShareInvitation::class, mappedBy: 'trip', orphanRemoval: true)]
+    private Collection $shareInvitations;
+
+    #[ORM\OneToMany(targetEntity: TripSharing::class, mappedBy: 'trip', orphanRemoval: true)]
+    private Collection $sharings;
+
     public function __construct()
     {
         $this->accommodations = new ArrayCollection();
@@ -64,6 +70,8 @@ class Trip
         $this->variousExpensives = new ArrayCollection();
         $this->documents = new ArrayCollection();
         $this->planningEvents = new ArrayCollection();
+        $this->shareInvitations = new ArrayCollection();
+        $this->sharings = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -329,6 +337,66 @@ class Trip
             // set the owning side to null (unless already changed)
             if ($planningEvent->getTrip() === $this) {
                 $planningEvent->setTrip(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ShareInvitation>
+     */
+    public function getShareInvitations(): Collection
+    {
+        return $this->shareInvitations;
+    }
+
+    public function addShareInvitation(ShareInvitation $shareInvitation): static
+    {
+        if (!$this->shareInvitations->contains($shareInvitation)) {
+            $this->shareInvitations->add($shareInvitation);
+            $shareInvitation->setTrip($this);
+        }
+
+        return $this;
+    }
+
+    public function removeShareInvitation(ShareInvitation $shareInvitation): static
+    {
+        if ($this->shareInvitations->removeElement($shareInvitation)) {
+            // set the owning side to null (unless already changed)
+            if ($shareInvitation->getTrip() === $this) {
+                $shareInvitation->setTrip(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TripSharing>
+     */
+    public function getSharings(): Collection
+    {
+        return $this->sharings;
+    }
+
+    public function addSharing(TripSharing $tripSharing): static
+    {
+        if (!$this->sharings->contains($tripSharing)) {
+            $this->sharings->add($tripSharing);
+            $tripSharing->setTrip($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSharing(TripSharing $tripSharing): static
+    {
+        if ($this->sharings->removeElement($tripSharing)) {
+            // set the owning side to null (unless already changed)
+            if ($tripSharing->getTrip() === $this) {
+                $tripSharing->setTrip(null);
             }
         }
 

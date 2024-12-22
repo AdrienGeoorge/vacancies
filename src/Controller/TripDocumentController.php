@@ -17,6 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Mime\MimeTypes;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/trip/show/{trip}/documents', name: 'trip_documents_', requirements: ['trip' => '\d+'])]
 class TripDocumentController extends AbstractController
@@ -34,6 +35,7 @@ class TripDocumentController extends AbstractController
     }
 
     #[Route('/new', name: 'new')]
+    #[IsGranted('edit_elements', subject: 'trip')]
     public function new(Trip $trip, Request $request): Response
     {
         $document = new TripDocument();
@@ -73,10 +75,9 @@ class TripDocumentController extends AbstractController
     }
 
     #[Route('/bag', name: 'bag', requirements: ['trip' => '\d+'])]
+    #[IsGranted('view', subject: 'trip')]
     public function bag(Trip $trip): Response
     {
-        if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
-
         return $this->render('trip_documents/bag.html.twig', [
             'trip' => $trip,
             'countDaysBeforeOrAfter' => $this->tripService->countDaysBeforeOrAfter($trip),
@@ -84,10 +85,9 @@ class TripDocumentController extends AbstractController
     }
 
     #[Route('/delete/{document}', name: 'delete', requirements: ['document' => '\d+'])]
+    #[IsGranted('edit_elements', subject: 'trip')]
     public function delete(Trip $trip, TripDocument $document): Response
     {
-        if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
-
         if ($document->getTrip() !== $trip) {
             $this->addFlash('error', 'Ce document n\'est pas associé à ce voyage. Vous ne pouvez pas y accéder.');
             return $this->redirectToRoute('app_home');
@@ -109,10 +109,9 @@ class TripDocumentController extends AbstractController
     }
 
     #[Route('/show/{document}', name: 'show', requirements: ['document' => '\d+'])]
+    #[IsGranted('edit_elements', subject: 'trip')]
     public function showOrDownload(Trip $trip, TripDocument $document)
     {
-        if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
-
         if ($document->getTrip() !== $trip) {
             $this->addFlash('error', 'Ce document n\'est pas associé à ce voyage. Vous ne pouvez pas y accéder.');
             return $this->redirectToRoute('app_home');

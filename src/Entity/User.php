@@ -45,9 +45,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Trip::class, mappedBy: 'traveler', orphanRemoval: true)]
     private Collection $trips;
 
+    #[ORM\OneToMany(targetEntity: TripSharing::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $sharings;
+
+    #[ORM\OneToMany(targetEntity: ShareInvitation::class, mappedBy: 'userToShareWith', orphanRemoval: true)]
+    private Collection $shareInvitations;
+
     public function __construct()
     {
         $this->trips = new ArrayCollection();
+        $this->sharings = new ArrayCollection();
+        $this->shareInvitations = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -173,6 +181,66 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($trip->getTraveler() === $this) {
                 $trip->setTraveler(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TripSharing>
+     */
+    public function getSharings(): Collection
+    {
+        return $this->sharings;
+    }
+
+    public function addSharing(TripSharing $tripSharing): static
+    {
+        if (!$this->sharings->contains($tripSharing)) {
+            $this->sharings->add($tripSharing);
+            $tripSharing->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSharing(TripSharing $tripSharing): static
+    {
+        if ($this->sharings->removeElement($tripSharing)) {
+            // set the owning side to null (unless already changed)
+            if ($tripSharing->getUser() === $this) {
+                $tripSharing->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ShareInvitation>
+     */
+    public function getShareInvitations(): Collection
+    {
+        return $this->shareInvitations;
+    }
+
+    public function addShareInvitation(ShareInvitation $shareInvitation): static
+    {
+        if (!$this->shareInvitations->contains($shareInvitation)) {
+            $this->shareInvitations->add($shareInvitation);
+            $shareInvitation->setUserToShareWith($this);
+        }
+
+        return $this;
+    }
+
+    public function removeShareInvitation(ShareInvitation $shareInvitation): static
+    {
+        if ($this->shareInvitations->removeElement($shareInvitation)) {
+            // set the owning side to null (unless already changed)
+            if ($shareInvitation->getUserToShareWith() === $this) {
+                $shareInvitation->setUserToShareWith(null);
             }
         }
 

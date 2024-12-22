@@ -11,6 +11,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/trip/show/{trip}/accommodations', name: 'trip_accommodations_', requirements: ['trip' => '\d+'])]
 class AccommodationController extends AbstractController
@@ -25,10 +26,9 @@ class AccommodationController extends AbstractController
     }
 
     #[Route('/', name: 'index')]
+    #[IsGranted('view', subject: 'trip')]
     public function accommodations(Trip $trip): Response
     {
-        if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
-
         return $this->render('accommodations/index.html.twig', [
             'trip' => $trip,
             'countDaysBeforeOrAfter' => $this->tripService->countDaysBeforeOrAfter($trip),
@@ -37,10 +37,9 @@ class AccommodationController extends AbstractController
 
     #[Route('/new', name: 'new')]
     #[Route('/edit/{accommodation}', name: 'edit', requirements: ['accommodation' => '\d+'])]
+    #[IsGranted('edit_elements', subject: 'trip')]
     public function form(Request $request, Trip $trip, ?Accommodation $accommodation): Response
     {
-        if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
-
         if (!$accommodation) {
             $accommodation = new Accommodation();
             $accommodation->setTrip($trip);
@@ -86,6 +85,7 @@ class AccommodationController extends AbstractController
     }
 
     #[Route('/delete/{accommodation}', name: 'delete', requirements: ['accommodation' => '\d+'])]
+    #[IsGranted('edit_elements', subject: 'trip')]
     public function delete(Trip $trip, Accommodation $accommodation): Response
     {
         if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');

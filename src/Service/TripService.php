@@ -19,7 +19,8 @@ class TripService
     private MailerInterface $mailer;
     private ManagerRegistry $managerRegistry;
 
-    public function __construct(RouterInterface $router, MailerInterface $mailer, ManagerRegistry $managerRegistry) {
+    public function __construct(RouterInterface $router, MailerInterface $mailer, ManagerRegistry $managerRegistry)
+    {
         $this->mailer = $mailer;
         $this->router = $router;
         $this->managerRegistry = $managerRegistry;
@@ -104,7 +105,7 @@ class TripService
             if (!$transport->isPaid()) continue;
 
             if ($transport->isPerPerson() && $transport->getType()->getName() !== 'Voiture') {
-                $price += ($transport->getPrice() * $trip->getTravelers());
+                $price += ($transport->getPrice() * $trip->getTripTravelers()->count());
             } else if (!$transport->isPerPerson() && $transport->getType()->getName() === 'Voiture') {
                 $price += ($transport->getEstimatedToll() + $transport->getEstimatedGasoline());
             } else {
@@ -127,7 +128,7 @@ class TripService
             if ($transport->isPaid()) continue;
 
             if ($transport->isPerPerson()) {
-                $price += ($transport->getPrice() * $trip->getTravelers());
+                $price += ($transport->getPrice() * $trip->getTripTravelers()->count());
             } else {
                 $price += $transport->getPrice();
             }
@@ -147,7 +148,7 @@ class TripService
         foreach ($trip->getActivities() as $activity) {
             if ($activity->isBooked()) {
                 if ($activity->isPerPerson()) {
-                    $price += ($activity->getPrice() * $trip->getTravelers());
+                    $price += ($activity->getPrice() * $trip->getTripTravelers()->count());
                 } else {
                     $price += $activity->getPrice();
                 }
@@ -168,7 +169,7 @@ class TripService
         foreach ($trip->getActivities() as $activity) {
             if (!$activity->isBooked()) {
                 if ($activity->isPerPerson()) {
-                    $price += ($activity->getPrice() * $trip->getTravelers());
+                    $price += ($activity->getPrice() * $trip->getTripTravelers()->count());
                 } else {
                     $price += $activity->getPrice();
                 }
@@ -189,7 +190,7 @@ class TripService
         foreach ($trip->getVariousExpensives() as $expensive) {
             if ($expensive->isPaid()) {
                 if ($expensive->isPerPerson()) {
-                    $price += ($expensive->getPrice() * $trip->getTravelers());
+                    $price += ($expensive->getPrice() * $trip->getTripTravelers()->count());
                 } else {
                     $price += $expensive->getPrice();
                 }
@@ -210,13 +211,25 @@ class TripService
         foreach ($trip->getVariousExpensives() as $expensive) {
             if (!$expensive->isPaid()) {
                 if ($expensive->isPerPerson()) {
-                    $price += ($expensive->getPrice() * $trip->getTravelers());
+                    $price += ($expensive->getPrice() * $trip->getTripTravelers()->count());
                 } else {
                     $price += $expensive->getPrice();
                 }
             }
         }
 
+        return round($price, 2);
+    }
+
+    /**
+     * Retourne le montant total des dépenses effectuées sur place
+     * @param Trip $trip
+     * @return float
+     */
+    public function getOnSiteExpensePrice(Trip $trip): float
+    {
+        $price = 0;
+        foreach ($trip->getOnSiteExpenses() as $expense) $price += $expense->getPrice();
         return round($price, 2);
     }
 
@@ -252,6 +265,7 @@ class TripService
                 'reserved' => $reservedPrices,
                 'nonReserved' => $nonReservedPrices,
             ],
+            'onSite' => $this->getOnSiteExpensePrice($trip)
         ];
     }
 

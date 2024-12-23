@@ -31,9 +31,6 @@ class Trip
     #[ORM\Column(length: 500)]
     private ?string $image = null;
 
-    #[ORM\Column]
-    private ?int $travelers = 1;
-
     #[ORM\ManyToOne(inversedBy: 'trips')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $traveler = null;
@@ -62,6 +59,12 @@ class Trip
     #[ORM\OneToMany(targetEntity: TripSharing::class, mappedBy: 'trip', orphanRemoval: true)]
     private Collection $sharings;
 
+    #[ORM\OneToMany(targetEntity: OnSiteExpense::class, mappedBy: 'trip', orphanRemoval: true)]
+    private Collection $onSiteExpenses;
+
+    #[ORM\OneToMany(targetEntity: TripTraveler::class, mappedBy: 'trip', orphanRemoval: true)]
+    private Collection $tripTravelers;
+
     public function __construct()
     {
         $this->accommodations = new ArrayCollection();
@@ -72,6 +75,8 @@ class Trip
         $this->planningEvents = new ArrayCollection();
         $this->shareInvitations = new ArrayCollection();
         $this->sharings = new ArrayCollection();
+        $this->onSiteExpenses = new ArrayCollection();
+        $this->tripTravelers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -135,18 +140,6 @@ class Trip
     public function setImage(string $image): static
     {
         $this->image = $image;
-
-        return $this;
-    }
-
-    public function getTravelers(): ?int
-    {
-        return $this->travelers;
-    }
-
-    public function setTravelers(int $travelers): static
-    {
-        $this->travelers = $travelers;
 
         return $this;
     }
@@ -397,6 +390,66 @@ class Trip
             // set the owning side to null (unless already changed)
             if ($tripSharing->getTrip() === $this) {
                 $tripSharing->setTrip(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, OnSiteExpense>
+     */
+    public function getOnSiteExpenses(): Collection
+    {
+        return $this->onSiteExpenses;
+    }
+
+    public function addOnSiteExpense(OnSiteExpense $onSiteExpense): static
+    {
+        if (!$this->onSiteExpenses->contains($onSiteExpense)) {
+            $this->onSiteExpenses->add($onSiteExpense);
+            $onSiteExpense->setTrip($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOnSiteExpense(OnSiteExpense $onSiteExpense): static
+    {
+        if ($this->onSiteExpenses->removeElement($onSiteExpense)) {
+            // set the owning side to null (unless already changed)
+            if ($onSiteExpense->getTrip() === $this) {
+                $onSiteExpense->setTrip(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TripTraveler>
+     */
+    public function getTripTravelers(): Collection
+    {
+        return $this->tripTravelers;
+    }
+
+    public function addTripTraveler(TripTraveler $tripTraveler): static
+    {
+        if (!$this->tripTravelers->contains($tripTraveler)) {
+            $this->tripTravelers->add($tripTraveler);
+            $tripTraveler->setTrip($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTripTraveler(TripTraveler $tripTraveler): static
+    {
+        if ($this->tripTravelers->removeElement($tripTraveler)) {
+            // set the owning side to null (unless already changed)
+            if ($tripTraveler->getTrip() === $this) {
+                $tripTraveler->setTrip(null);
             }
         }
 

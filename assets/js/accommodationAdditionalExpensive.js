@@ -44,5 +44,8 @@ document
 document
     .querySelectorAll('.additionalExpensive .row')
     .forEach((tag) => {
-        addTagFormDeleteLink(tag)
+        if (!tag.classList.contains('initialized')) {
+            addTagFormDeleteLink(tag)
+            tag.classList.add('initialized')
+        }
     })

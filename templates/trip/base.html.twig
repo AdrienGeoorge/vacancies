@@ -43,7 +43,7 @@
     </div>
 
     <div class="flex flex-col xl:flex-row items-start gap-4 px-4 xl:px-8">
-        <div class="w-full xl:w-1/3 flex flex-col gap-4">
+        <div class="w-full xl:w-1/3 flex flex-col gap-4 relative xl:sticky top-6">
             {% if app.request.get('_route') != 'trip_show' %}
                 {% if app.request.get('_route') == 'trip_planning_new' or app.request.get('_route') == 'trip_planning_edit' %}
                     <a href="{{ path('trip_planning_index', {'trip': trip.id}) }}" class="shadow rounded-2xl py-2.5 px-5 bg-gray-700 text-white dark:bg-white dark:text-gray-700
@@ -92,10 +92,16 @@
             <div class="flex gap-4 flex-row w-full">
                 <div class="rounded-3xl shadow bg-teal-500 text-white p-5 flex-1 flex items-center justify-center">
                     <div class="text-center">
-                        <div class="font-poppins-semi-bold text-4xl">{{ trip.travelers }}</div>
-                        <div class="font-poppins-semi-bold text-2xl">voyageur{{ trip.travelers > 1 ? 's' }}</div>
-                        <div class="font-poppins-semi-bold text-sm">prêt{{ trip.travelers > 1 ? 's' }} à partir
+                        <div class="font-poppins-semi-bold text-4xl">{{ trip.tripTravelers.count }}</div>
+                        <div class="font-poppins-semi-bold text-2xl">voyageur{{ trip.tripTravelers.count > 1 ? 's' }}</div>
+                        <div class="font-poppins-semi-bold text-sm">
+                            prêt{{ trip.tripTravelers.count > 1 ? 's' }} à partir
                         </div>
+                        <a href="{{ path('trip_traveler_index', {'trip': trip.id}) }}" class="shadow block rounded-xl py-1.5 px-3
+                        w-fit mt-2.5 m-auto bg-white text-gray-700 border-gray-300 font-bold text-center border-2 text-sm
+                        hover:bg-gray-200 transition-all duration-300 ease-in-out focus:shadow-outline focus:outline-none">
+                            Gérer les voyageurs
+                        </a>
                     </div>
                 </div>
                 <div class="rounded-3xl shadow bg-amber-400 text-white p-5 flex-1 flex items-center justify-center">
@@ -135,7 +141,7 @@
             {% if app.user == trip.traveler %}
                 <div id="share-modal-button" class="cursor-pointer shadow rounded-2xl py-2.5 px-5 bg-rose-400 text-white
                         w-full font-bold text-center m-auto border-2 border-rose-300 hover:bg-rose-500
-                        transition-all duration-300 ease-in-out focus:shadow-outline focus:outline-none">
+                        transition-all duration-300 ease-in-out focus:shadow-outline focus:outline-none mb-6 xl:mb-0">
                     Partager le voyage
                 </div>
             {% endif %}

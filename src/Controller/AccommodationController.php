@@ -88,8 +88,6 @@ class AccommodationController extends AbstractController
     #[IsGranted('edit_elements', subject: 'trip')]
     public function delete(Trip $trip, Accommodation $accommodation): Response
     {
-        if ($trip->getTraveler() !== $this->getUser()) return $this->redirectToRoute('app_home');
-
         $this->managerRegistry->getManager()->remove($accommodation);
         $this->managerRegistry->getManager()->flush();
 

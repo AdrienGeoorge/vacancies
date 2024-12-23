@@ -120,7 +120,7 @@
                                         {% if transport.type.name == 'Voiture' %}
                                             {{ transport.estimatedToll + transport.estimatedGasoline }}€
                                         {% else %}
-                                            {{ transport.perPerson ? transport.price * trip.travelers : transport.price }}€
+                                            {{ transport.perPerson ? transport.price * trip.tripTravelers.count : transport.price }}€
                                         {% endif %}
                                     </span>
                                 </div>

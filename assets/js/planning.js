@@ -13,7 +13,9 @@ const formatTime = minutes => {
     const m = minutes % 60
     const h = (minutes - m) / 60
 
-    return (h > 0 ? h + 'h' + m : m + ' min.') + ' de trajet'
+    return h > 0
+        ? `${h}h${m > 0 ? ` ${m} min.` : ''} de trajet`
+        : `${m} min. de trajet`
 }
 
 const formatDate = date => {

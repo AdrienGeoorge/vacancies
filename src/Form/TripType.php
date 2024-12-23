@@ -77,16 +77,6 @@ class TripType extends AbstractType
                 ],
                 'mapped' => false,
                 'required' => !$options['data']->getId()
-            ])
-            ->add('travelers', IntegerType::class, [
-                'label' => 'Combien de voyageurs y aura-t-il, y compris toi ?',
-                'attr' => [
-                    'class' => 'w-full px-8 py-4 rounded-2xl font-medium bg-gray-100 border border-gray-200
-                              placeholder-gray-400 text-sm
-                              focus:outline-none focus:border-gray-400 focus:bg-white
-                              dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
-                              dark:placeholder-gray-300',
-                ]
             ]);
     }
 

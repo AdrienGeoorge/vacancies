@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\ShareInvitation;
 use App\Entity\Trip;
 use App\Entity\TripSharing;
+use App\Entity\TripTraveler;
 use App\Entity\User;
 use App\Form\TripType;
 use App\Service\FileUploaderService;
@@ -55,22 +56,26 @@ class TripController extends AbstractController
                         $trip->setImage('/' . $this->getParameter('upload_directory') . '/' . $imageFileName);
                     }
 
-                    if ($trip->getTravelers() <= 0) {
-                        $this->addFlash('warning', 'Vous devez saisir un nombre de voyageurs supérieur à 0.');
-                    } else {
-                        $trip->setTraveler($this->getUser());
+                    $trip->setTraveler($this->getUser());
 
-                        $this->managerRegistry->getManager()->persist($trip);
-                        $this->managerRegistry->getManager()->flush();
-
-                        if ($request->get('_route') === 'trip_edit') {
-                            $this->addFlash('success', 'Les informations de ton voyage ont bien été modifiées.');
-                        } else {
-                            $this->addFlash('success', 'Ton voyage a bien été créé.');
-                        }
-
-                        return $this->redirectToRoute('trip_show', ['trip' => $trip->getId()]);
+                    if ($trip->getTripTravelers()->count() === 0) {
+                        $traveler = new TripTraveler();
+                        $traveler->setName($this->getUser()->getFirstname() . ' ' . $this->getUser()->getLastname());
+                        $traveler->setTrip($trip);
+                        $trip->addTripTraveler($traveler);
+                        $this->managerRegistry->getManager()->persist($traveler);
                     }
+
+                    $this->managerRegistry->getManager()->persist($trip);
+                    $this->managerRegistry->getManager()->flush();
+
+                    if ($request->get('_route') === 'trip_edit') {
+                        $this->addFlash('success', 'Les informations de ton voyage ont bien été modifiées.');
+                    } else {
+                        $this->addFlash('success', 'Ton voyage a bien été créé.');
+                    }
+
+                    return $this->redirectToRoute('trip_show', ['trip' => $trip->getId()]);
                 } catch (\Exception $exception) {
                     $this->addFlash('error', 'Une erreur est survenue lors de la création du voyage.');
                 }
@@ -124,7 +129,7 @@ class TripController extends AbstractController
             return new JsonResponse([], 500);
         }
 
-        if(!$this->isGranted('invite', $trip)) {
+        if (!$this->isGranted('invite', $trip)) {
             $this->addFlash('error', 'Vous n\'êtes pas autorisé à inviter quelqu\'un pour ce voyage.');
             return new JsonResponse([], 403);
         }

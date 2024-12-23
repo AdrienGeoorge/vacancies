@@ -59,7 +59,7 @@
                             <div class="mt-4 flex flex-row flex-wrap gap-2 justify-center items-center">
                                 <div class="rounded-full bg-body dark:bg-body-dark w-fit px-3 py-1">
                                     TOTAL <span
-                                            class="font-bold">{{ expensive.perPerson ? expensive.price * trip.travelers : expensive.price }}€</span>
+                                            class="font-bold">{{ expensive.perPerson ? expensive.price * trip.tripTravelers.count : expensive.price }}€</span>
                                 </div>
 
                                 <div class="rounded-full {{ expensive.isPaid ? 'bg-green-400' : 'bg-red-400' }} w-fit text-white px-3 py-1">

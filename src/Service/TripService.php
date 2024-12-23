@@ -281,6 +281,7 @@ class TripService
             $events[] = [
                 'id' => $event->getId(),
                 'title' => $event->getTitle(),
+                'description' => $event->getDescription(),
                 'start' => $event->getStart()->format('Y-m-d H:i'),
                 'end' => $event->getEnd()?->format('Y-m-d H:i'),
                 'timeToGo' => $event->getTimeToGo(),

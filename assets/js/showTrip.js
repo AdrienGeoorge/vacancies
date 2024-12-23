@@ -139,7 +139,16 @@ if (tripId && calendarEl) {
                     start: response.data.start,
                     end: response.data.end
                 },
-                events: response.data.events
+                events: response.data.events,
+                eventDidMount: info => {
+                    console.log('ici');
+                    if (info.event.extendedProps.description) {
+                        let timeToGo = document.createElement('p')
+                        timeToGo.classList.add('text-wrap', 'text-sm')
+                        timeToGo.textContent = info.event.extendedProps.description
+                        info.el.querySelector('.fc-list-event-title').insertAdjacentElement('beforeend', timeToGo)
+                    }
+                },
             })
             calendar.render()
         })

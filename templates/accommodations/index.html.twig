@@ -91,6 +91,13 @@
                                     {% endfor %}
                                 </div>
                             {% endif %}
+
+                            {% if accommodation.isBooked and accommodation.payedBy %}
+                                <div class="mt-4">
+                                    <div class="font-poppins-semi-bold">Payé par</div>
+                                    <span class="block">{{ accommodation.payedBy.name }}</span>
+                                </div>
+                            {% endif %}
                         </div>
 
                         <div class="footer">

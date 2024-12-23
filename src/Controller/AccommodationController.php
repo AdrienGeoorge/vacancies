@@ -58,16 +58,20 @@ class AccommodationController extends AbstractController
                 $errorOnCompare = $this->tripService->compareElementDateBetweenTripDates($trip, $accommodation->getArrivalDate(), $accommodation->getDepartureDate());
 
                 if ($errorOnCompare === null) {
-                    $this->managerRegistry->getManager()->persist($accommodation);
-                    $this->managerRegistry->getManager()->flush();
-
-                    if ($request->get('_route') === 'trip_accommodations_edit') {
-                        $this->addFlash('success', 'Les détails de votre logement ont bien été modifiés.');
+                    if ($accommodation->isBooked() && !$accommodation->getPayedBy()) {
+                        $this->addFlash('warning', 'Vous avez indiqué que la réservation a été effectuée mais n\'avez pas renseigné qui a payé.');
                     } else {
-                        $this->addFlash('success', 'Ce logement a bien été rattaché à votre voyage.');
-                    }
+                        $this->managerRegistry->getManager()->persist($accommodation);
+                        $this->managerRegistry->getManager()->flush();
 
-                    return $this->redirectToRoute('trip_accommodations_index', ['trip' => $trip->getId()]);
+                        if ($request->get('_route') === 'trip_accommodations_edit') {
+                            $this->addFlash('success', 'Les détails de votre logement ont bien été modifiés.');
+                        } else {
+                            $this->addFlash('success', 'Ce logement a bien été rattaché à votre voyage.');
+                        }
+
+                        return $this->redirectToRoute('trip_accommodations_index', ['trip' => $trip->getId()]);
+                    }
                 } else {
                     $this->addFlash('warning', $errorOnCompare);
                 }

@@ -8,10 +8,12 @@ if (select) {
         document.querySelector('.destination').classList.add('hidden')
         document.querySelector('.price').classList.remove('hidden')
         document.querySelector('.payment').classList.remove('hidden')
+        document.querySelector('.transport-payed-by').classList.remove('hidden')
 
         if (select.value !== '') {
             if (select.options[select.value].innerHTML === 'Transports en commun') {
                 document.querySelector('.subscription').classList.remove('hidden')
+                document.querySelector('.transport-payed-by').classList.add('hidden')
             }
 
             if (select.options[select.value].innerHTML === 'Voiture') {

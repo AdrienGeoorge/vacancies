@@ -80,16 +80,20 @@ class TransportController extends AbstractController
                     $errorOnCompare = $this->tripService->compareElementDateBetweenTripDates($trip, $transport->getDepartureDate(), $transport->getArrivalDate());
 
                     if ($errorOnCompare === null) {
-                        $this->managerRegistry->getManager()->persist($transport);
-                        $this->managerRegistry->getManager()->flush();
-
-                        if ($request->get('_route') === 'trip_transports_edit') {
-                            $this->addFlash('success', 'Les détails de votre moyen de transport ont bien été modifiés.');
+                        if ($transport->isPaid() && $transport->getType() !== 'Transports en commun' && !$transport->getPayedBy()) {
+                            $this->addFlash('warning', 'Vous avez indiqué que la réservation a été effectuée mais n\'avez pas renseigné qui a payé.');
                         } else {
-                            $this->addFlash('success', 'Ce moyen de transport a bien été rattaché à votre voyage.');
-                        }
+                            $this->managerRegistry->getManager()->persist($transport);
+                            $this->managerRegistry->getManager()->flush();
 
-                        return $this->redirectToRoute('trip_transports_index', ['trip' => $trip->getId()]);
+                            if ($request->get('_route') === 'trip_transports_edit') {
+                                $this->addFlash('success', 'Les détails de votre moyen de transport ont bien été modifiés.');
+                            } else {
+                                $this->addFlash('success', 'Ce moyen de transport a bien été rattaché à votre voyage.');
+                            }
+
+                            return $this->redirectToRoute('trip_transports_index', ['trip' => $trip->getId()]);
+                        }
                     } else {
                         $this->addFlash('warning', $errorOnCompare);
                     }

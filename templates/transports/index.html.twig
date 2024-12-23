@@ -111,6 +111,13 @@
                                     Il s'agit d'une estimation du prix à payer pour l'aller/retour.
                                 </div>
                             {% endif %}
+
+                            {% if transport.isPaid and transport.payedBy %}
+                                <div class="mt-4">
+                                    <div class="font-poppins-semi-bold">Payé par</div>
+                                    <span class="block">{{ transport.payedBy.name }}</span>
+                                </div>
+                            {% endif %}
                         </div>
 
                         <div class="footer">

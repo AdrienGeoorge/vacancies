@@ -108,6 +108,13 @@
                     </div>
                     {{ form_widget(form.booked) }}
                 </div>
+
+                <div class="mb-5 text-sm font-poppins mt-4 font-bold">
+                    Qui est à l'origine du paiement de cette dépense ?
+                </div>
+                <div class="flex flex-col md:flew-row gap-4">
+                    {{ form_widget(form.payedBy) }}
+                </div>
             </div>
 
             <div class="flex gap-4 flex-wrap justify-center">

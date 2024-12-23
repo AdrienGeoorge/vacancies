@@ -56,6 +56,9 @@ class Accommodation
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $departureDate = null;
 
+    #[ORM\ManyToOne]
+    private ?TripTraveler $payedBy = null;
+
     public function __construct()
     {
         $this->additionalExpensive = new ArrayCollection();
@@ -243,6 +246,18 @@ class Accommodation
     public function setDepartureDate(?\DateTimeInterface $departureDate): static
     {
         $this->departureDate = $departureDate;
+
+        return $this;
+    }
+
+    public function getPayedBy(): ?TripTraveler
+    {
+        return $this->payedBy;
+    }
+
+    public function setPayedBy(?TripTraveler $payedBy): static
+    {
+        $this->payedBy = $payedBy;
 
         return $this;
     }

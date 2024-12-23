@@ -27,7 +27,7 @@ class ShareInvitationRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('s')
             ->andWhere('s.userToShareWith = :user')
             ->setParameter('user', $user)
-            ->andWhere('s.expireAt < :now')
+            ->andWhere('s.expireAt > :now')
             ->setParameter('now', new \DateTimeImmutable('now'))
             ->getQuery()
             ->getOneOrNullResult();

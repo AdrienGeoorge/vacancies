@@ -148,7 +148,7 @@ class TripController extends AbstractController
         $alreadyInTrip = $this->managerRegistry->getRepository(TripSharing::class)
             ->findOneBy(['user' => $userToShareWith]);
 
-        if ($alreadyInTrip || $this->getUser() === $trip->getTraveler()) {
+        if ($alreadyInTrip || $userToShareWith === $trip->getTraveler()) {
             $this->addFlash('warning', 'Cet utilisateur a déjà rejoint ce séjour.');
             return new JsonResponse([], 200);
         }

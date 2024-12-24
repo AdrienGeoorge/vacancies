@@ -58,16 +58,20 @@ class ActivitiesController extends AbstractController
                 $errorOnCompare = $this->tripService->compareElementDateBetweenTripDates($trip, $activity->getDate());
 
                 if ($errorOnCompare === null) {
-                    $this->managerRegistry->getManager()->persist($activity);
-                    $this->managerRegistry->getManager()->flush();
-
-                    if ($request->get('_route') === 'trip_activities_edit') {
-                        $this->addFlash('success', 'Les détails de votre activité ont bien été modifiés.');
+                    if ($activity->isBooked() && !$activity->getPayedBy()) {
+                        $this->addFlash('warning', 'Vous avez indiqué que la réservation a été effectuée mais n\'avez pas renseigné qui a payé.');
                     } else {
-                        $this->addFlash('success', 'Cette activité a bien été rattachée à votre voyage.');
-                    }
+                        $this->managerRegistry->getManager()->persist($activity);
+                        $this->managerRegistry->getManager()->flush();
 
-                    return $this->redirectToRoute('trip_activities_index', ['trip' => $trip->getId()]);
+                        if ($request->get('_route') === 'trip_activities_edit') {
+                            $this->addFlash('success', 'Les détails de votre activité ont bien été modifiés.');
+                        } else {
+                            $this->addFlash('success', 'Cette activité a bien été rattachée à votre voyage.');
+                        }
+
+                        return $this->redirectToRoute('trip_activities_index', ['trip' => $trip->getId()]);
+                    }
                 } else {
                     $this->addFlash('warning', $errorOnCompare);
                 }

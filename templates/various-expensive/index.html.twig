@@ -53,6 +53,13 @@
                                 <div class="font-poppins-semi-bold">Prix</div>
                                 <span class="block">{{ expensive.price }}€ {% if expensive.perPerson %}par personne{% endif %}</span>
                             </div>
+
+                            {% if expensive.isPaid and expensive.payedBy %}
+                                <div class="mt-4">
+                                    <div class="font-poppins-semi-bold">Payé par</div>
+                                    <span class="block">{{ expensive.payedBy.name }}</span>
+                                </div>
+                            {% endif %}
                         </div>
 
                         <div class="footer">

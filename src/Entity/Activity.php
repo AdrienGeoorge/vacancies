@@ -36,6 +36,9 @@ class Activity
     #[ORM\Column]
     private ?bool $perPerson = null;
 
+    #[ORM\ManyToOne]
+    private ?TripTraveler $payedBy = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -121,6 +124,18 @@ class Activity
     public function setPerPerson(bool $perPerson): static
     {
         $this->perPerson = $perPerson;
+
+        return $this;
+    }
+
+    public function getPayedBy(): ?TripTraveler
+    {
+        return $this->payedBy;
+    }
+
+    public function setPayedBy(?TripTraveler $payedBy): static
+    {
+        $this->payedBy = $payedBy;
 
         return $this;
     }

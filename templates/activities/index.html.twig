@@ -60,6 +60,13 @@
                             </div>
                         </div>
 
+                        {% if activity.isBooked and activity.payedBy %}
+                            <div class="mt-4">
+                                <div class="font-poppins-semi-bold">Payé par</div>
+                                <span class="block">{{ activity.payedBy.name }}</span>
+                            </div>
+                        {% endif %}
+
                         <div class="footer">
                             <div class="mt-4 flex flex-row flex-wrap gap-2 justify-center items-center">
                                 <div class="rounded-full bg-body dark:bg-body-dark w-fit px-3 py-1">

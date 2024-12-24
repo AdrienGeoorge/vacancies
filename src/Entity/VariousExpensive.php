@@ -33,6 +33,9 @@ class VariousExpensive
     #[ORM\JoinColumn(nullable: false)]
     private ?Trip $trip = null;
 
+    #[ORM\ManyToOne]
+    private ?TripTraveler $payedBy = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -106,6 +109,18 @@ class VariousExpensive
     public function setTrip(?Trip $trip): static
     {
         $this->trip = $trip;
+
+        return $this;
+    }
+
+    public function getPayedBy(): ?TripTraveler
+    {
+        return $this->payedBy;
+    }
+
+    public function setPayedBy(?TripTraveler $payedBy): static
+    {
+        $this->payedBy = $payedBy;
 
         return $this;
     }

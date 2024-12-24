@@ -55,16 +55,20 @@ class VariousExpensiveController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             try {
-                $this->managerRegistry->getManager()->persist($expensive);
-                $this->managerRegistry->getManager()->flush();
-
-                if ($request->get('_route') === 'trip_various_expensive_edit') {
-                    $this->addFlash('success', 'Les détails de votre dépense ont bien été modifiés.');
+                if ($expensive->isPaid() && !$expensive->getPayedBy()) {
+                    $this->addFlash('warning', 'Vous avez indiqué que la réservation a été effectuée mais n\'avez pas renseigné qui a payé.');
                 } else {
-                    $this->addFlash('success', 'Cette dépense supplémentaire a bien été rattachée à votre voyage.');
-                }
+                    $this->managerRegistry->getManager()->persist($expensive);
+                    $this->managerRegistry->getManager()->flush();
 
-                return $this->redirectToRoute('trip_various_expensive_index', ['trip' => $trip->getId()]);
+                    if ($request->get('_route') === 'trip_various_expensive_edit') {
+                        $this->addFlash('success', 'Les détails de votre dépense ont bien été modifiés.');
+                    } else {
+                        $this->addFlash('success', 'Cette dépense supplémentaire a bien été rattachée à votre voyage.');
+                    }
+
+                    return $this->redirectToRoute('trip_various_expensive_index', ['trip' => $trip->getId()]);
+                }
             } catch (\Exception $exception) {
                 $this->addFlash('error', 'Une erreur est survenue lors du rattachement de la dépense à votre voyage.');
             }

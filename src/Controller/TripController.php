@@ -98,6 +98,7 @@ class TripController extends AbstractController
             'trip' => $trip,
             'countDaysBeforeOrAfter' => $this->tripService->countDaysBeforeOrAfter($trip),
             'budget' => $this->tripService->getBudget($trip),
+            'byTraveler' => $this->tripService->getExpensesByTraveler($trip)
         ]);
     }
 

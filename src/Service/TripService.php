@@ -2,13 +2,18 @@
 
 namespace App\Service;
 
+use App\Entity\Accommodation;
+use App\Entity\Activity;
 use App\Entity\ShareInvitation;
+use App\Entity\Transport;
 use App\Entity\Trip;
 use App\Entity\User;
+use App\Entity\VariousExpensive;
 use DateTime;
 use Doctrine\Persistence\ManagerRegistry;
 use Exception;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
@@ -271,6 +276,40 @@ class TripService
     }
 
     /**
+     * Retourne le montant des dépenses effectuées par voyageur
+     * @param Trip $trip
+     * @return array
+     */
+    public function getExpensesByTraveler(Trip $trip): array
+    {
+        $expenses = [];
+        $amountByPerson = round($this->getBudget($trip)['paid'] / $trip->getTripTravelers()->count(), 2);
+
+        foreach ($trip->getTripTravelers() as $traveler) {
+            $accommodations = $this->managerRegistry->getRepository(Accommodation::class)
+                ->findByTraveler($trip, $traveler);
+
+            $transports = $this->managerRegistry->getRepository(Transport::class)
+                ->findByTraveler($trip, $traveler);
+
+            $activities = $this->managerRegistry->getRepository(Activity::class)
+                ->findByTraveler($trip, $traveler);
+
+            $variousExpenses = $this->managerRegistry->getRepository(VariousExpensive::class)
+                ->findByTraveler($trip, $traveler);
+
+            $paid = round($accommodations + $transports + $activities + $variousExpenses, 2);
+
+            $expenses[$traveler->getName()] = [
+                'paid' => $paid,
+                'amountDue' => $paid - $amountByPerson
+            ];
+        }
+
+        return $expenses;
+    }
+
+    /**
      * Retourne le planning des évènements
      * @param Trip $trip
      * @return array
@@ -336,6 +375,13 @@ class TripService
         return null;
     }
 
+    /** Envoi du mail de partage de voyage
+     * @param Trip $trip
+     * @param User $userToShareWith
+     * @param string $invitedBy
+     * @return string|null
+     * @throws TransportExceptionInterface
+     */
     public function sendSharingMail(Trip $trip, User $userToShareWith, string $invitedBy): ?string
     {
         try {

@@ -3,7 +3,10 @@
 namespace App\Repository;
 
 use App\Entity\Accommodation;
+use App\Entity\Trip;
+use App\Entity\TripTraveler;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Exception;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -21,28 +24,29 @@ class AccommodationRepository extends ServiceEntityRepository
         parent::__construct($registry, Accommodation::class);
     }
 
-    //    /**
-    //     * @return Accommodation[] Returns an array of Accommodation objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('a')
-    //            ->andWhere('a.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('a.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    /**
+     * Retourne le montant des hôtels réservés par voyageur
+     * @param Trip $trip
+     * @param TripTraveler $traveler
+     * @return mixed
+     * @throws Exception
+     */
+    public function findByTraveler(Trip $trip, TripTraveler $traveler): mixed
+    {
+        $result = $this->getEntityManager()->getConnection()->executeQuery(
+            "SELECT 
+                    (SELECT SUM(a.price) 
+                         FROM accommodation a 
+                         WHERE a.trip_id = :trip AND a.payed_by_id = :traveler AND a.booked = true) as hotelTotal,
+                    (SELECT SUM(ad.price) 
+                         FROM accommodation_additional ad
+                         JOIN accommodation a ON ad.accommodation_id = a.id
+                         WHERE a.trip_id = :trip AND a.payed_by_id = :traveler AND a.booked = true) as additionalTotal",
+            [
+                'trip' => $trip->getId(),
+                'traveler' => $traveler->getId()
+            ])->fetchAssociative();
 
-    //    public function findOneBySomeField($value): ?Accommodation
-    //    {
-    //        return $this->createQueryBuilder('a')
-    //            ->andWhere('a.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        return $result['hotelTotal'] + $result['additionalTotal'];
+    }
 }

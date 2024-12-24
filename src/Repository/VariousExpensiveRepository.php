@@ -2,6 +2,8 @@
 
 namespace App\Repository;
 
+use App\Entity\Trip;
+use App\Entity\TripTraveler;
 use App\Entity\VariousExpensive;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -21,28 +23,26 @@ class VariousExpensiveRepository extends ServiceEntityRepository
         parent::__construct($registry, VariousExpensive::class);
     }
 
-    //    /**
-    //     * @return VariousExpensive[] Returns an array of VariousExpensive objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('v')
-    //            ->andWhere('v.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('v.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?VariousExpensive
-    //    {
-    //        return $this->createQueryBuilder('v')
-    //            ->andWhere('v.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    /**
+     * Retourne le montant des dépenses diverses effectuées par voyageur
+     * @param Trip $trip
+     * @param TripTraveler $traveler
+     * @return mixed
+     */
+    public function findByTraveler(Trip $trip, TripTraveler $traveler): mixed
+    {
+        return $this->createQueryBuilder('ve')
+            ->select('SUM(CASE 
+                    WHEN ve.perPerson = true THEN ve.price * :nbTraveler
+                    ELSE ve.price 
+                 END) as totalPrice')
+            ->setParameter('nbTraveler', $trip->getTripTravelers()->count())
+            ->andWhere('ve.trip = :trip')
+            ->setParameter('trip', $trip)
+            ->andWhere('ve.payedBy = :traveler')
+            ->setParameter('traveler', $traveler)
+            ->andWhere('ve.paid = true')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

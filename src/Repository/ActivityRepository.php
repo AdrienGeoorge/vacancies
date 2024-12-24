@@ -3,6 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\Activity;
+use App\Entity\Trip;
+use App\Entity\TripTraveler;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -21,28 +23,26 @@ class ActivityRepository extends ServiceEntityRepository
         parent::__construct($registry, Activity::class);
     }
 
-    //    /**
-    //     * @return Activity[] Returns an array of Activity objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('a')
-    //            ->andWhere('a.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('a.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?Activity
-    //    {
-    //        return $this->createQueryBuilder('a')
-    //            ->andWhere('a.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    /**
+     * Retourne le montant des activités réservées par voyageur
+     * @param Trip $trip
+     * @param TripTraveler $traveler
+     * @return mixed
+     */
+    public function findByTraveler(Trip $trip, TripTraveler $traveler): mixed
+    {
+        return $this->createQueryBuilder('a')
+            ->select('SUM(CASE 
+                    WHEN a.perPerson = true THEN a.price * :nbTraveler
+                    ELSE a.price 
+                 END) as totalPrice')
+            ->setParameter('nbTraveler', $trip->getTripTravelers()->count())
+            ->andWhere('a.trip = :trip')
+            ->setParameter('trip', $trip)
+            ->andWhere('a.payedBy = :traveler')
+            ->setParameter('traveler', $traveler)
+            ->andWhere('a.booked = true')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

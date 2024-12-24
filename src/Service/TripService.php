@@ -7,6 +7,7 @@ use App\Entity\Trip;
 use App\Entity\User;
 use DateTime;
 use Doctrine\Persistence\ManagerRegistry;
+use Exception;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -312,18 +313,21 @@ class TripService
      * @param DateTime|null $start
      * @param DateTime|null $end
      * @return string|null
+     * @throws Exception
      */
     public function compareElementDateBetweenTripDates(Trip $trip, ?DateTime $start, ?DateTime $end = null): ?string
     {
+        $returnDate = $trip->getReturnDate() ? new DateTime($trip->getReturnDate()->format('Y-m-d') . '23:59') : null;
+
         if ($trip->getDepartureDate() && $start && $start < $trip->getDepartureDate()) {
             return 'La date de début ne pas être inférieure à la date de commencement du séjour.';
         } elseif ($trip->getDepartureDate() && $end && $end < $trip->getDepartureDate()) {
             return 'La date de fin ne pas être inférieure à la date de commencement du séjour.';
         } elseif (!$trip->getDepartureDate() && ($start < new DateTime('today') || $end < new DateTime('today'))) {
             return 'Comme vous n\'avez pas renseigné vos dates de séjour, votre évènement ne peut pas commencer ou se terminer avant la date du jour.';
-        } elseif ($trip->getReturnDate() && $start > $trip->getReturnDate()) {
+        } elseif ($returnDate && $start > $returnDate) {
             return 'La date de début ne pas être supérieure à la date de fin du séjour.';
-        } elseif ($trip->getReturnDate() && $end && $end > $trip->getReturnDate()) {
+        } elseif ($returnDate && $end && $end > $returnDate) {
             return 'La date de fin ne pas être supérieure à la date de fin du séjour.';
         } elseif ($end && $end < $start) {
             return 'L\'évènement ne peut pas se terminer avant d\'avoir commencé.';
@@ -346,7 +350,7 @@ class TripService
                 ->context(['url' => $url, 'invitedBy' => $invitedBy]);
 
             $this->mailer->send($email);
-        } catch (\Exception) {
+        } catch (Exception) {
             return false;
         }
 

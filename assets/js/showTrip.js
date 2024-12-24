@@ -6,6 +6,7 @@ import Routing from "fos-router"
 import {Calendar} from '@fullcalendar/core'
 import allLocales from '@fullcalendar/core/locales-all'
 import listPlugin from '@fullcalendar/list'
+import {getPlanningTitle} from "./components/dateFunctions"
 
 const tripId = document.getElementById('tripId')
 const ctx = document.getElementById('budgetChart')
@@ -75,42 +76,7 @@ if (tripId && calendarEl) {
                 locales: allLocales,
                 locale: 'fr',
                 datesSet: function (info) {
-                    const viewType = info.view.type
-                    const startDate = new Date(info.start)
-                    const endDate = new Date(info.end)
-
-                    const dayOptions = {day: 'numeric'}
-                    const formatterDay = new Intl.DateTimeFormat('fr-FR', dayOptions)
-
-                    let title
-
-                    if (viewType === 'listWeek') {
-                        const monthOptions = {month: 'short'}
-                        const formatterMonth = new Intl.DateTimeFormat('fr-FR', monthOptions)
-
-                        const startDay = formatterDay.format(startDate)
-                        const endDay = formatterDay.format(endDate)
-                        const startMonth = formatterMonth.format(startDate)
-                        const endMonth = formatterMonth.format(endDate)
-
-                        if (startMonth === endMonth) {
-                            title = `Semaine du ${startDay} au ${endDay} ${startMonth}`
-                        } else {
-                            title = `Semaine du ${startDay} ${startMonth} au ${endDay} ${endMonth}`
-                        }
-                    } else if (viewType === 'listDay') {
-                        const monthOptions = {month: 'long'}
-                        const formatterMonth = new Intl.DateTimeFormat('fr-FR', monthOptions)
-
-                        const day = formatterDay.format(startDate)
-                        const month = formatterMonth.format(startDate)
-
-                        title = `Journée du ${day} ${month}`
-                    } else {
-                        title = info.view.title
-                    }
-
-                    document.querySelector('.fc-toolbar-title').textContent = title
+                    document.querySelector('.fc-toolbar-title').textContent = getPlanningTitle(info)
                 },
                 customButtons: {
                     editPlanning: {

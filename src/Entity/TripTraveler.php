@@ -22,6 +22,9 @@ class TripTraveler
     #[ORM\JoinColumn(nullable: false)]
     private ?Trip $trip = null;
 
+    #[ORM\ManyToOne]
+    private ?User $invited = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -47,6 +50,18 @@ class TripTraveler
     public function setTrip(?Trip $trip): static
     {
         $this->trip = $trip;
+
+        return $this;
+    }
+
+    public function getInvited(): ?User
+    {
+        return $this->invited;
+    }
+
+    public function setInvited(?User $invited): static
+    {
+        $this->invited = $invited;
 
         return $this;
     }

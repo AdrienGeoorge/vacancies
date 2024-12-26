@@ -56,9 +56,6 @@ class Trip
     #[ORM\OneToMany(targetEntity: ShareInvitation::class, mappedBy: 'trip', orphanRemoval: true)]
     private Collection $shareInvitations;
 
-    #[ORM\OneToMany(targetEntity: TripSharing::class, mappedBy: 'trip', orphanRemoval: true)]
-    private Collection $sharings;
-
     #[ORM\OneToMany(targetEntity: OnSiteExpense::class, mappedBy: 'trip', orphanRemoval: true)]
     private Collection $onSiteExpenses;
 
@@ -74,7 +71,6 @@ class Trip
         $this->documents = new ArrayCollection();
         $this->planningEvents = new ArrayCollection();
         $this->shareInvitations = new ArrayCollection();
-        $this->sharings = new ArrayCollection();
         $this->onSiteExpenses = new ArrayCollection();
         $this->tripTravelers = new ArrayCollection();
     }
@@ -360,36 +356,6 @@ class Trip
             // set the owning side to null (unless already changed)
             if ($shareInvitation->getTrip() === $this) {
                 $shareInvitation->setTrip(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, TripSharing>
-     */
-    public function getSharings(): Collection
-    {
-        return $this->sharings;
-    }
-
-    public function addSharing(TripSharing $tripSharing): static
-    {
-        if (!$this->sharings->contains($tripSharing)) {
-            $this->sharings->add($tripSharing);
-            $tripSharing->setTrip($this);
-        }
-
-        return $this;
-    }
-
-    public function removeSharing(TripSharing $tripSharing): static
-    {
-        if ($this->sharings->removeElement($tripSharing)) {
-            // set the owning side to null (unless already changed)
-            if ($tripSharing->getTrip() === $this) {
-                $tripSharing->setTrip(null);
             }
         }
 

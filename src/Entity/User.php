@@ -45,16 +45,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Trip::class, mappedBy: 'traveler', orphanRemoval: true)]
     private Collection $trips;
 
-    #[ORM\OneToMany(targetEntity: TripSharing::class, mappedBy: 'user', orphanRemoval: true)]
-    private Collection $sharings;
-
     #[ORM\OneToMany(targetEntity: ShareInvitation::class, mappedBy: 'userToShareWith', orphanRemoval: true)]
     private Collection $shareInvitations;
 
     public function __construct()
     {
         $this->trips = new ArrayCollection();
-        $this->sharings = new ArrayCollection();
         $this->shareInvitations = new ArrayCollection();
     }
 
@@ -157,6 +153,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getCompleteName(): ?string
+    {
+        return $this->firstname . ' ' . $this->lastname;
+    }
+
     /**
      * @return Collection<int, Trip>
      */
@@ -181,36 +182,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($trip->getTraveler() === $this) {
                 $trip->setTraveler(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, TripSharing>
-     */
-    public function getSharings(): Collection
-    {
-        return $this->sharings;
-    }
-
-    public function addSharing(TripSharing $tripSharing): static
-    {
-        if (!$this->sharings->contains($tripSharing)) {
-            $this->sharings->add($tripSharing);
-            $tripSharing->setUser($this);
-        }
-
-        return $this;
-    }
-
-    public function removeSharing(TripSharing $tripSharing): static
-    {
-        if ($this->sharings->removeElement($tripSharing)) {
-            // set the owning side to null (unless already changed)
-            if ($tripSharing->getUser() === $this) {
-                $tripSharing->setUser(null);
             }
         }
 

@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\ShareInvitation;
 use App\Entity\Trip;
-use App\Entity\TripSharing;
 use App\Entity\TripTraveler;
 use App\Entity\User;
 use App\Form\TripType;
@@ -62,6 +61,7 @@ class TripController extends AbstractController
                         $traveler = new TripTraveler();
                         $traveler->setName($this->getUser()->getFirstname() . ' ' . $this->getUser()->getLastname());
                         $traveler->setTrip($trip);
+                        $traveler->setInvited($this->getUser());
                         $trip->addTripTraveler($traveler);
                         $this->managerRegistry->getManager()->persist($traveler);
                     }
@@ -151,8 +151,8 @@ class TripController extends AbstractController
             return new JsonResponse([], 200);
         }
 
-        $alreadyInTrip = $this->managerRegistry->getRepository(TripSharing::class)
-            ->findOneBy(['user' => $userToShareWith]);
+        $alreadyInTrip = $this->managerRegistry->getRepository(TripTraveler::class)
+            ->findOneBy(['invited' => $userToShareWith]);
 
         if ($alreadyInTrip || $userToShareWith === $trip->getTraveler()) {
             $this->addFlash('warning', 'Cet utilisateur a déjà rejoint ce séjour.');
@@ -184,11 +184,12 @@ class TripController extends AbstractController
             return $this->redirectToRoute('app_home');
         }
 
-        $sharing = new TripSharing();
-        $sharing->setTrip($invitation->getTrip());
-        $sharing->setUser($invitation->getUserToShareWith());
+        $traveler = new TripTraveler();
+        $traveler->setTrip($invitation->getTrip());
+        $traveler->setName($invitation->getUserToShareWith()->getCompleteName());
+        $traveler->setInvited($invitation->getUserToShareWith()->getCompleteName());
 
-        $this->managerRegistry->getManager()->persist($sharing);
+        $this->managerRegistry->getManager()->persist($traveler);
         $this->managerRegistry->getManager()->remove($invitation);
         $this->managerRegistry->getManager()->flush();
 

@@ -1,10 +1,9 @@
 <?php
 
-// src/Security/PostVoter.php
 namespace App\Security;
 
 use App\Entity\Trip;
-use App\Entity\TripSharing;
+use App\Entity\TripTraveler;
 use App\Entity\User;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -59,8 +58,8 @@ class TripVoter extends Voter
     {
         if ($this->canManageTripOrInvite($trip, $user)) return true;
 
-        $canAccess = $this->managerRegistry->getRepository(TripSharing::class)
-            ->findOneBy(['user' => $user, 'trip' => $trip]);
+        $canAccess = $this->managerRegistry->getRepository(TripTraveler::class)
+            ->findOneBy(['invited' => $user, 'trip' => $trip]);
 
         if ($canAccess) return true;
         return false;

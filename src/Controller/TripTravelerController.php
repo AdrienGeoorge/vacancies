@@ -50,6 +50,16 @@ class TripTravelerController extends AbstractController
             return $this->redirectToRoute('app_home');
         }
 
+        if ($traveler->getInvited() && $traveler->getInvited()->getCompleteName() === $trip->getTraveler()->getCompleteName()) {
+            $this->addFlash('warning', 'Vous ne pouvez pas modifier les informations du créateur du séjour.');
+            return $this->redirectToRoute('trip_traveler_index', ['trip' => $trip->getId()]);
+        }
+
+        if ($traveler->getInvited() && $trip->getTraveler() !== $this->getUser()) {
+            $this->addFlash('warning', 'Vous ne pouvez pas modifier les informations d\'un utilisateur invité à rejoindre ce séjour.');
+            return $this->redirectToRoute('trip_traveler_index', ['trip' => $trip->getId()]);
+        }
+
         $form = $this->createForm(TripTravelerType::class, $traveler);
         $form->handleRequest($request);
 
@@ -82,10 +92,26 @@ class TripTravelerController extends AbstractController
     #[IsGranted('edit_elements', subject: 'trip')]
     public function delete(Trip $trip, TripTraveler $traveler): Response
     {
-        $this->managerRegistry->getManager()->remove($traveler);
-        $this->managerRegistry->getManager()->flush();
+        if ($traveler->getInvited() && $traveler->getInvited()->getCompleteName() === $trip->getTraveler()->getCompleteName()) {
+            $this->addFlash('warning', 'Vous ne pouvez pas supprimer le créateur du séjour.');
+            return $this->redirectToRoute('trip_traveler_index', ['trip' => $trip->getId()]);
+        }
 
-        $this->addFlash('success', 'Ce voyageur a bien été dissocié de ce voyage et supprimé.');
+        if ($traveler->getInvited() && $trip->getTraveler() !== $this->getUser()) {
+            $this->addFlash('warning', 'Vous ne pouvez pas supprimer un utilisateur invité à rejoindre ce séjour.');
+            return $this->redirectToRoute('trip_traveler_index', ['trip' => $trip->getId()]);
+        }
+
+        try {
+            $this->managerRegistry->getManager()->remove($traveler);
+            $this->managerRegistry->getManager()->flush();
+
+            $this->addFlash('success', 'Ce voyageur a bien été dissocié de ce voyage et supprimé.');
+        } catch (\Exception) {
+            $this->addFlash('error',
+                'Ce voyageur est rattaché à des éléments du voyage (logement, transport, activité ou dépense diverse...).
+                Veuillez les supprimer ou les mettre à jour afin de pouvoir supprimer ce voyageur.');
+        }
 
         return $this->redirectToRoute('trip_traveler_index', ['trip' => $trip->getId()]);
     }

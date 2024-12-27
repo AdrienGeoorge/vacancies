@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Accommodation;
 use App\Entity\Activity;
+use App\Entity\OnSiteExpense;
 use App\Entity\ShareInvitation;
 use App\Entity\Transport;
 use App\Entity\Trip;
@@ -246,11 +247,14 @@ class TripService
      */
     public function getBudget(Trip $trip): array
     {
+        $onSite = $this->getOnSiteExpensePrice($trip);
+
         $reservedPrices = [
             'accommodations' => $this->getReservedAccommodationsPrice($trip),
             'transports' => $this->getReservedTransportsPrice($trip),
             'activities' => $this->getReservedActivitiesPrice($trip),
             'variousExpensive' => $this->getReservedVariousExpensivePrice($trip),
+            'onSite' => $onSite
         ];
 
         $nonReservedPrices = [
@@ -270,8 +274,8 @@ class TripService
             'details' => [
                 'reserved' => $reservedPrices,
                 'nonReserved' => $nonReservedPrices,
+                'onSite' => $onSite
             ],
-            'onSite' => $this->getOnSiteExpensePrice($trip)
         ];
     }
 
@@ -282,31 +286,113 @@ class TripService
      */
     public function getExpensesByTraveler(Trip $trip): array
     {
-        $expenses = [];
-        $amountByPerson = round($this->getBudget($trip)['paid'] / $trip->getTripTravelers()->count(), 2);
+        $balances = [];
+        $totalTravelers = $trip->getTripTravelers()->count();
 
-        foreach ($trip->getTripTravelers() as $traveler) {
-            $accommodations = $this->managerRegistry->getRepository(Accommodation::class)
-                ->findByTraveler($trip, $traveler);
+        if ($totalTravelers > 0) {
+            $totalPaid = round($this->getBudget($trip)['paid'], 2);
+            $amountByPerson = round($totalPaid / $totalTravelers, 2);
 
-            $transports = $this->managerRegistry->getRepository(Transport::class)
-                ->findByTraveler($trip, $traveler);
+            $allTransports = $this->managerRegistry->getRepository(Transport::class)
+                ->findBy(['trip' => $trip]);
 
-            $activities = $this->managerRegistry->getRepository(Activity::class)
-                ->findByTraveler($trip, $traveler);
+            foreach ($trip->getTripTravelers() as $traveler) {
+                $accommodations = $this->managerRegistry->getRepository(Accommodation::class)
+                    ->findByTraveler($trip, $traveler);
+                $activities = $this->managerRegistry->getRepository(Activity::class)
+                    ->findByTraveler($trip, $traveler);
+                $variousExpenses = $this->managerRegistry->getRepository(VariousExpensive::class)
+                    ->findByTraveler($trip, $traveler);
+                $onSite = $this->managerRegistry->getRepository(OnSiteExpense::class)
+                    ->findByTraveler($trip, $traveler);
 
-            $variousExpenses = $this->managerRegistry->getRepository(VariousExpensive::class)
-                ->findByTraveler($trip, $traveler);
+                $transportPaid = 0;
+                foreach ($allTransports as $transport) {
+                    if ($transport->isPaid()) {
+                        if ($transport->getType()->getName() === 'Voiture') {
+                            $transportPaid += round(($transport->getEstimatedToll() + $transport->getEstimatedGasoline()) / $totalTravelers, 2);
+                        } elseif ($transport->isPerPerson() && $transport->getPayedBy() === $traveler) {
+                            $transportPaid += round($transport->getPrice() * $totalTravelers, 2);
+                        } elseif (!$transport->isPerPerson() && $transport->getPayedBy() === $traveler) {
+                            $transportPaid += $transport->getPrice();
+                        } elseif (!$transport->getPayedBy() && $transport->getType()->getName() === 'Transports en commun') {
+                            if ($transport->isPerPerson()) {
+                                $transportPaid += $transport->getPrice();
+                            } else {
+                                $transportPaid += round($transport->getPrice() / $totalTravelers, 2);
+                            }
+                        }
+                    }
+                }
 
-            $paid = round($accommodations + $transports + $activities + $variousExpenses, 2);
+                $paid = round($accommodations + $transportPaid + $activities + $variousExpenses + $onSite, 2);
 
-            $expenses[$traveler->getName()] = [
-                'paid' => $paid,
-                'amountDue' => $paid - $amountByPerson
-            ];
+                $balances[$traveler->getName()] = [
+                    'paid' => $paid,
+                    'amountDue' => round($amountByPerson - $paid, 2)
+                ];
+            }
         }
 
-        return $expenses;
+        return $balances;
+    }
+
+    /**
+     * Retourne le montant des dépenses effectuées par voyageur
+     * @param Trip $trip
+     * @return array
+     */
+    public function getCreditorAndDebtorDetails(Trip $trip): array
+    {
+        $balances = $this->getExpensesByTraveler($trip);
+
+        $creditors = []; // Ceux qui ont payé plus que leur part équitable
+        $debtors = []; // Ceux qui ont payé moins que leur part équitable
+
+        // Séparer les créditeurs et débiteurs
+        foreach ($balances as $traveler => $balance) {
+            if ($balance['amountDue'] < 0) { // Montant négatif : doit être remboursé
+                $creditors[$traveler] = abs($balance['amountDue']);
+            } elseif ($balance['amountDue'] > 0) { // Montant positif : doit payer
+                $debtors[$traveler] = $balance['amountDue'];
+            }
+        }
+
+        $data['balances'] = $balances;
+
+        // Répartition des remboursements
+        while (!empty($creditors) && !empty($debtors)) {
+            // Obtenir le premier créditeur et débiteur
+            $creditor = array_key_first($creditors);
+            $debtor = array_key_first($debtors);
+
+            $creditAmount = $creditors[$creditor];
+            $debtAmount = $debtors[$debtor];
+
+            // Montant à transférer
+            $transferAmount = min($creditAmount, $debtAmount);
+
+            // Ajouter la transaction
+            $data['refund'][] = [
+                'from' => $debtor,
+                'to' => $creditor,
+                'amount' => $transferAmount
+            ];
+
+            // Mise à jour des soldes
+            $creditors[$creditor] -= $transferAmount;
+            $debtors[$debtor] -= $transferAmount;
+
+            // Supprimer les clés si les soldes sont équilibrés
+            if ($creditors[$creditor] <= 0) {
+                unset($creditors[$creditor]);
+            }
+            if ($debtors[$debtor] <= 0) {
+                unset($debtors[$debtor]);
+            }
+        }
+
+        return $data;
     }
 
     /**

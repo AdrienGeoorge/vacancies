@@ -80,7 +80,7 @@ class TransportController extends AbstractController
                     $errorOnCompare = $this->tripService->compareElementDateBetweenTripDates($trip, $transport->getDepartureDate(), $transport->getArrivalDate());
 
                     if ($errorOnCompare === null) {
-                        if ($transport->isPaid() && $transport->getType() !== 'Transports en commun' && !$transport->getPayedBy()) {
+                        if ($transport->isPaid() && $transport->getType()->getName() !== 'Transports en commun' && !$transport->getPayedBy()) {
                             $this->addFlash('warning', 'Vous avez indiqué que la réservation a été effectuée mais n\'avez pas renseigné qui a payé.');
                         } else {
                             $this->managerRegistry->getManager()->persist($transport);

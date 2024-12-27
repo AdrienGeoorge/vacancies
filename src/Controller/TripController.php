@@ -102,6 +102,17 @@ class TripController extends AbstractController
         ]);
     }
 
+    #[Route('/show/{trip}/balance', name: 'balance_details', requirements: ['trip' => '\d+'])]
+    #[IsGranted('view', subject: 'trip')]
+    public function balance(Trip $trip): Response
+    {
+        return $this->render('trip/balance.html.twig', [
+            'trip' => $trip,
+            'countDaysBeforeOrAfter' => $this->tripService->countDaysBeforeOrAfter($trip),
+            'data' => $this->tripService->getCreditorAndDebtorDetails($trip)
+        ]);
+    }
+
     #[Route('/delete/{trip}', name: 'delete', requirements: ['trip' => '\d+'])]
     #[IsGranted('delete_trip', subject: 'trip')]
     public function delete(Trip $trip): Response

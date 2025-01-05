@@ -3,10 +3,13 @@
 {% block title %}{{ app_name }} - A propos de vous{% endblock %}
 
 {% block body %}
-    <div class="lg:bg-body dark:bg-body-dark flex items-center justify-center h-full">
+    <div class="lg:bg-body dark:bg-body-dark flex flex-col items-center justify-center h-full">
+        {% include '_flashes.html.twig' %}
+
         {{ form_start(form, {'attr': {
             'class': 'text-gray-900 dark:text-white'
         }}) }}
+
         <h1 class="px-8 lg:px-0 text-2xl font-poppins-semi-bold">Avant de continuer...</h1>
         <h2 class="px-8 lg:px-0 text-xl font-poppins">Nous avons besoin de quelques informations à propos de vous.</h2>
         <div class="w-full max-w-screen-lg mt-5 lg:h-auto lg:shadow lg:rounded-5xl overflow-hidden

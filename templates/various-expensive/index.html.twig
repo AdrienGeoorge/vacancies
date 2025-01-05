@@ -2,7 +2,7 @@
 
 {% block bodyTrip %}
     <div class="grid grid-cols-4 gap-4">
-        <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-3.5 px-6 col-span-3">
+        <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-3.5 px-6 col-span-4 md:col-span-3">
             <div class="mb-2 flex flex-row items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
                     <path d="M12 7.5a2.25 2.25 0 1 0 0 4.5 2.25 2.25 0 0 0 0-4.5Z"></path>
@@ -20,6 +20,7 @@
         </div>
 
         <a href="{{ path('trip_various_expensive_new', {'trip': trip.id}) }}" class="shadow rounded-3xl py-3.5 px-6 flex flex-col gap-2 items-center justify-center text-center
+                          col-span-4 md:col-span-1
                           tracking-wide bg-teal-500 text-white
                                     border border-teal-300 hover:bg-teal-600
                                     transition-all duration-300 ease-in-out focus:shadow-outline focus:outline-none">

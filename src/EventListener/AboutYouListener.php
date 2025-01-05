@@ -27,7 +27,7 @@ class AboutYouListener implements EventSubscriberInterface
             $user = $this->tokenStorage->getToken()->getUser();
 
             if (!$user->getFirstname() || !$user->getLastname()) {
-                if ('/user/about' !== $event->getRequest()->getPathInfo()) {
+                if ('/user/about' !== $event->getRequest()->getPathInfo() && !str_contains($event->getRequest()->getPathInfo(), '/trip/accept/')) {
                     $response = new RedirectResponse($this->router->generate('user_about'));
                     $event->setResponse($response);
                 }

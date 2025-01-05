@@ -155,7 +155,7 @@ class TripController extends AbstractController
         }
 
         $alreadyInvited = $this->managerRegistry->getRepository(ShareInvitation::class)
-            ->getInvitationByUser($userToShareWith);
+            ->getInvitationByUser($userToShareWith, $trip);
 
         if ($alreadyInvited) {
             $this->addFlash('warning', 'Vous avez déjà invité cet utilisateur à rejoindre ce séjour.');
@@ -163,7 +163,7 @@ class TripController extends AbstractController
         }
 
         $alreadyInTrip = $this->managerRegistry->getRepository(TripTraveler::class)
-            ->findOneBy(['invited' => $userToShareWith]);
+            ->findOneBy(['invited' => $userToShareWith, 'trip' => $trip]);
 
         if ($alreadyInTrip || $userToShareWith === $trip->getTraveler()) {
             $this->addFlash('warning', 'Cet utilisateur a déjà rejoint ce séjour.');
@@ -195,10 +195,20 @@ class TripController extends AbstractController
             return $this->redirectToRoute('app_home');
         }
 
+        if ($invitation->getUserToShareWith() !== $this->getUser()) {
+            $this->addFlash('error', 'Vous ne pouvez pas accepter une invitation qui ne vous est pas destinée.');
+            return $this->redirectToRoute('app_home');
+        }
+
+        if (!$invitation->getUserToShareWith()->getFirstname() || !$invitation->getUserToShareWith()->getLastname()) {
+            $this->addFlash('error', 'Vous devez remplir votre nom et prénom pour rejoindre ce voyage.');
+            return $this->redirectToRoute('user_about');
+        }
+
         $traveler = new TripTraveler();
         $traveler->setTrip($invitation->getTrip());
         $traveler->setName($invitation->getUserToShareWith()->getCompleteName());
-        $traveler->setInvited($invitation->getUserToShareWith()->getCompleteName());
+        $traveler->setInvited($invitation->getUserToShareWith());
 
         $this->managerRegistry->getManager()->persist($traveler);
         $this->managerRegistry->getManager()->remove($invitation);

@@ -43,7 +43,7 @@
     </div>
 
     <div class="flex flex-col xl:flex-row items-start gap-4 px-4 xl:px-8">
-        <div class="w-full xl:w-1/3 flex flex-col gap-4 relative xl:sticky top-6">
+        <div class="w-full xl:w-1/3 flex flex-col gap-4 relative xl:sticky {{ app.request.get('_route') != 'trip_show' ? 'top-0' : 'md:top-6' }}">
             {% if app.request.get('_route') != 'trip_show' %}
                 {% if app.request.get('_route') == 'trip_planning_new' or app.request.get('_route') == 'trip_planning_edit' %}
                     <a href="{{ path('trip_planning_index', {'trip': trip.id}) }}" class="shadow rounded-2xl py-2.5 px-5 bg-gray-700 text-white dark:bg-white dark:text-gray-700
@@ -71,123 +71,127 @@
                     </a>
                 {% endif %}
             {% endif %}
-            <div class="shadow rounded-3xl bg-box dark:bg-box-dark p-3 w-full">
-                <div class="w-full h-64 rounded-2xl overflow-hidden bg-no-repeat bg-cover bg-center trip-image relative
+            <div class="{{ app.request.get('_route') != 'trip_show' ? 'hidden md:flex' : 'flex' }} flex-col gap-4">
+                <div class="shadow rounded-3xl bg-box dark:bg-box-dark p-3 w-full">
+                    <div class="w-full h-64 rounded-2xl overflow-hidden bg-no-repeat bg-cover bg-center trip-image relative
                             before:dark:opacity-60 before:opacity-40 before:absolute before:top-0
                             before:right-0 before:bottom-0 before:left-0 before:bg-black"
-                     style="background-image:url({{ trip.image }});">
-                    <div class="py-3 px-5 absolute bottom-2.5 left-3 text-white">
-                        <div class="font-roboto text-2xl">Salut {{ app.user.firstname }}, en route pour...</div>
-                        <div class="font-roboto-medium text-3xl">{{ trip.name }}</div>
+                         style="background-image:url({{ trip.image }});">
+                        <div class="py-3 px-5 absolute bottom-2.5 left-3 text-white">
+                            <div class="font-roboto text-2xl">Salut {{ app.user.firstname }}, en route pour...</div>
+                            <div class="font-roboto-medium text-3xl">{{ trip.name }}</div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            {% if app.user == trip.traveler %}
-                <a href="{{ path('trip_edit', {'trip': trip.id}) }}" class="shadow rounded-2xl py-2.5 px-5 bg-blue-500 text-white
+                {% if app.user == trip.traveler %}
+                    <a href="{{ path('trip_edit', {'trip': trip.id}) }}" class="shadow rounded-2xl py-2.5 px-5 bg-blue-500 text-white
                         w-full font-bold text-center m-auto border-2 border-blue-400 hover:bg-blue-600
                         transition-all duration-300 ease-in-out focus:shadow-outline focus:outline-none">
-                    Editer le voyage
-                </a>
-            {% endif %}
-            <div class="flex gap-4 flex-row w-full">
-                <div class="rounded-3xl shadow bg-teal-500 text-white p-5 flex-1 flex items-center justify-center">
-                    <div class="text-center">
-                        <div class="font-poppins-semi-bold text-4xl">{{ trip.tripTravelers.count }}</div>
-                        <div class="font-poppins-semi-bold text-2xl">
-                            voyageur{{ trip.tripTravelers.count > 1 ? 's' }}</div>
-                        <div class="font-poppins-semi-bold text-sm">
-                            prêt{{ trip.tripTravelers.count > 1 ? 's' }} à partir
-                        </div>
-                        <a href="{{ path('trip_traveler_index', {'trip': trip.id}) }}" class="shadow block rounded-xl py-1.5 px-3
+                        Editer le voyage
+                    </a>
+                {% endif %}
+                <div class="flex gap-4 flex-row w-full">
+                    <div class="rounded-3xl shadow bg-teal-500 text-white p-5 flex-1 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="font-poppins-semi-bold text-4xl">{{ trip.tripTravelers.count }}</div>
+                            <div class="font-poppins-semi-bold text-2xl">
+                                voyageur{{ trip.tripTravelers.count > 1 ? 's' }}</div>
+                            <div class="font-poppins-semi-bold text-sm">
+                                prêt{{ trip.tripTravelers.count > 1 ? 's' }} à partir
+                            </div>
+                            <a href="{{ path('trip_traveler_index', {'trip': trip.id}) }}" class="shadow block rounded-xl py-1.5 px-3
                         w-fit mt-2.5 m-auto bg-white text-gray-700 border-gray-300 font-bold text-center border-2 text-sm
                         hover:bg-gray-200 transition-all duration-300 ease-in-out focus:shadow-outline focus:outline-none">
-                            Gérer les voyageurs
-                        </a>
+                                Gérer les voyageurs
+                            </a>
+                        </div>
                     </div>
-                </div>
-                <div class="rounded-3xl shadow bg-amber-400 text-white p-5 flex-1 flex items-center justify-center">
-                    <div class="text-center">
-                        {% if countDaysBeforeOrAfter is iterable %}
-                            <div class="font-poppins-semi-bold text-4xl">{{ countDaysBeforeOrAfter.days }}</div>
-                            <div class="font-poppins-semi-bold text-2xl">
-                                jour{{ countDaysBeforeOrAfter.days > 1 ? 's' }}
-                                {{ countDaysBeforeOrAfter.before ? 'passé' : 'restant' }}{{ countDaysBeforeOrAfter.days > 1 ? 's' }}
-                            </div>
-                            <div class="font-poppins-semi-bold text-sm">
-                                {{ countDaysBeforeOrAfter.before ? 'depuis cette aventure' : 'avant cette aventure' }}
-                            </div>
-                        {% else %}
-                            {% if countDaysBeforeOrAfter == 'ongoing' %}
-                                <div class="font-poppins-semi-bold text-2xl">C'est le moment...</div>
-                                <div class="font-poppins-semi-bold text-xl">Bon voyage!</div>
+                    <div class="rounded-3xl shadow bg-amber-400 text-white p-5 flex-1 flex items-center justify-center">
+                        <div class="text-center">
+                            {% if countDaysBeforeOrAfter is iterable %}
+                                <div class="font-poppins-semi-bold text-4xl">{{ countDaysBeforeOrAfter.days }}</div>
+                                <div class="font-poppins-semi-bold text-2xl">
+                                    jour{{ countDaysBeforeOrAfter.days > 1 ? 's' }}
+                                    {{ countDaysBeforeOrAfter.before ? 'passé' : 'restant' }}{{ countDaysBeforeOrAfter.days > 1 ? 's' }}
+                                </div>
+                                <div class="font-poppins-semi-bold text-sm">
+                                    {{ countDaysBeforeOrAfter.before ? 'depuis cette aventure' : 'avant cette aventure' }}
+                                </div>
                             {% else %}
-                                <div class="font-poppins-semi-bold text-4xl">...</div>
-                                <div class="font-poppins-semi-bold text-2xl">jours restant</div>
-                                <div class="font-poppins-semi-bold text-sm">avant cette aventure</div>
+                                {% if countDaysBeforeOrAfter == 'ongoing' %}
+                                    <div class="font-poppins-semi-bold text-2xl">C'est le moment...</div>
+                                    <div class="font-poppins-semi-bold text-xl">Bon voyage!</div>
+                                {% else %}
+                                    <div class="font-poppins-semi-bold text-4xl">...</div>
+                                    <div class="font-poppins-semi-bold text-2xl">jours restant</div>
+                                    <div class="font-poppins-semi-bold text-sm">avant cette aventure</div>
+                                {% endif %}
                             {% endif %}
-                        {% endif %}
 
-                        <div class="font-roboto text-sm mt-4">
-                            {% if trip.departureDate and trip.returnDate %}
-                                {{ trip.departureDate|date('j M. Y') }} - {{ trip.returnDate|date('j M. Y') }}
-                            {% elseif trip.departureDate %}
-                                Départ prévu le {{ trip.departureDate|date('j M. Y') }}
-                            {% else %}
-                                Dates de séjour non définies
-                            {% endif %}
+                            <div class="font-roboto text-sm mt-4">
+                                {% if trip.departureDate and trip.returnDate %}
+                                    {{ trip.departureDate|date('j M. Y') }} - {{ trip.returnDate|date('j M. Y') }}
+                                {% elseif trip.departureDate %}
+                                    Départ prévu le {{ trip.departureDate|date('j M. Y') }}
+                                {% else %}
+                                    Dates de séjour non définies
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            {% if app.user == trip.traveler %}
-                <div id="share-modal-button" class="cursor-pointer shadow rounded-2xl py-2.5 px-5 bg-rose-400 text-white
+                {% if app.user == trip.traveler %}
+                    <div id="share-modal-button" class="cursor-pointer shadow rounded-2xl py-2.5 px-5 bg-rose-400 text-white
                         w-full font-bold text-center m-auto border-2 border-rose-300 hover:bg-rose-500
                         transition-all duration-300 ease-in-out focus:shadow-outline focus:outline-none">
-                    Partager le voyage
-                </div>
-            {% endif %}
-            <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-3.5 px-6 flex flex-col justify-between gap-3 mb-6 xl:mb-0">
-                <div class="header">
-                    <div class="mb-2 flex flex-row items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-                            <path d="M7.5 3.375c0-1.036.84-1.875 1.875-1.875h.375a3.75 3.75 0 0 1 3.75 3.75v1.875C13.5 8.161 14.34 9 15.375 9h1.875A3.75 3.75 0 0 1 21 12.75v3.375C21 17.16 20.16 18 19.125 18h-9.75A1.875 1.875 0 0 1 7.5 16.125V3.375Z"></path>
-                            <path d="M15 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 17.25 7.5h-1.875A.375.375 0 0 1 15 7.125V5.25ZM4.875 6H6v10.125A3.375 3.375 0 0 0 9.375 19.5H16.5v1.125c0 1.035-.84 1.875-1.875 1.875h-9.75A1.875 1.875 0 0 1 3 20.625V7.875C3 6.839 3.84 6 4.875 6Z"></path>
-                        </svg>
-                        <div class="font-poppins-semi-bold text-xl">Documents</div>
+                        Partager le voyage
                     </div>
-                    <div class="text-sm font-bold leading-4 mt-3.5">Cliquez sur le nom d'un document pour le consulter.
-                    </div>
+                {% endif %}
+                <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-3.5 px-6 flex flex-col justify-between gap-3">
+                    <div class="header">
+                        <div class="mb-2 flex flex-row items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                 class="size-6">
+                                <path d="M7.5 3.375c0-1.036.84-1.875 1.875-1.875h.375a3.75 3.75 0 0 1 3.75 3.75v1.875C13.5 8.161 14.34 9 15.375 9h1.875A3.75 3.75 0 0 1 21 12.75v3.375C21 17.16 20.16 18 19.125 18h-9.75A1.875 1.875 0 0 1 7.5 16.125V3.375Z"></path>
+                                <path d="M15 5.25a5.23 5.23 0 0 0-1.279-3.434 9.768 9.768 0 0 1 6.963 6.963A5.23 5.23 0 0 0 17.25 7.5h-1.875A.375.375 0 0 1 15 7.125V5.25ZM4.875 6H6v10.125A3.375 3.375 0 0 0 9.375 19.5H16.5v1.125c0 1.035-.84 1.875-1.875 1.875h-9.75A1.875 1.875 0 0 1 3 20.625V7.875C3 6.839 3.84 6 4.875 6Z"></path>
+                            </svg>
+                            <div class="font-poppins-semi-bold text-xl">Documents</div>
+                        </div>
+                        <div class="text-sm font-bold leading-4 mt-3.5">Cliquez sur le nom d'un document pour le
+                            consulter.
+                        </div>
 
-                    {% if not trip.documents.empty %}
-                        <div class="flex flex-col gap-2 overflow-y-scroll mt-3">
-                            {% for document in trip.documents|sort((a, b) => a.id < b.id)|slice(0, 6) %}
-                                <a href="{{ path('trip_documents_show', {'trip': trip.id, 'document': document.id}) }}"
-                                   target="_blank"
-                                   class="text-blue-500 text-ellipsis overflow-hidden whitespace-nowrap">
-                                    {{ document.name }}
-                                </a>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="mt-4 mb-2 text-sm">Pour le moment vous n'avez déposé aucun document
-                            pour ce voyage.
-                        </div>
-                    {% endif %}
-                </div>
-                <div class="flex flex-col gap-2">
-                    <a href="{{ path('trip_documents_new', {'trip': trip.id}) }}" class="shadow rounded-2xl py-2.5 px-5 bg-teal-500
+                        {% if not trip.documents.empty %}
+                            <div class="flex flex-col gap-2 overflow-y-scroll mt-3">
+                                {% for document in trip.documents|sort((a, b) => a.id < b.id)|slice(0, 6) %}
+                                    <a href="{{ path('trip_documents_show', {'trip': trip.id, 'document': document.id}) }}"
+                                       target="_blank"
+                                       class="text-blue-500 text-ellipsis overflow-hidden whitespace-nowrap">
+                                        {{ document.name }}
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="mt-4 mb-2 text-sm">Pour le moment vous n'avez déposé aucun document
+                                pour ce voyage.
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <a href="{{ path('trip_documents_new', {'trip': trip.id}) }}" class="shadow rounded-2xl py-2.5 px-5 bg-teal-500
                         text-white font-bold text-center border-2 border-teal-400 hover:bg-teal-700 transition-all
                         duration-300 ease-in-out focus:shadow-outline focus:outline-none">
-                        Ajouter un document
-                    </a>
-                    {% if not trip.documents.empty %}
-                        <a href="{{ path('trip_documents_bag', {'trip': trip.id}) }}" class="shadow
+                            Ajouter un document
+                        </a>
+                        {% if not trip.documents.empty %}
+                            <a href="{{ path('trip_documents_bag', {'trip': trip.id}) }}" class="shadow
                         rounded-2xl py-2.5 px-5 bg-gray-700 text-white border-gray-500 hover:bg-gray-800 font-bold
                         text-center border-2 dark:bg-white dark:text-gray-700 dark:border-gray-300 hover:dark:bg-gray-200
                         block">
-                            Accéder aux documents
-                        </a>
-                    {% endif %}
+                                Accéder aux documents
+                            </a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>

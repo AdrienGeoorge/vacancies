@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\ShareInvitation;
+use App\Entity\Trip;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -22,11 +23,13 @@ class ShareInvitationRepository extends ServiceEntityRepository
         parent::__construct($registry, ShareInvitation::class);
     }
 
-    public function getInvitationByUser(User $user)
+    public function getInvitationByUser(User $user, Trip $trip)
     {
         return $this->createQueryBuilder('s')
             ->andWhere('s.userToShareWith = :user')
             ->setParameter('user', $user)
+            ->andWhere('s.trip = :trip')
+            ->setParameter('trip', $trip)
             ->andWhere('s.expireAt > :now')
             ->setParameter('now', new \DateTimeImmutable('now'))
             ->getQuery()

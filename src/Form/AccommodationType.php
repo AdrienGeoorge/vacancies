@@ -119,6 +119,8 @@ class AccommodationType extends AbstractType
                               dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
                               dark:placeholder-gray-300',
                     'placeholder' => 'Date d\'arrivée',
+                    'min' => $options['trip']->getDepartureDate()?->format('Y-m-d'),
+                    'max' => $options['trip']->getReturnDate()?->format('Y-m-d')
                 ]
             ])
             ->add('departureDate', DateType::class, [
@@ -132,6 +134,8 @@ class AccommodationType extends AbstractType
                               dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
                               dark:placeholder-gray-300',
                     'placeholder' => 'Date de départ',
+                    'min' => $options['trip']->getDepartureDate()?->format('Y-m-d'),
+                    'max' => $options['trip']->getReturnDate()?->format('Y-m-d')
                 ]
             ])
             ->add('additionalExpensive', CollectionType::class, [
@@ -172,6 +176,7 @@ class AccommodationType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Accommodation::class,
+            'trip' => null,
         ]);
     }
 }

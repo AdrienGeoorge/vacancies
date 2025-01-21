@@ -37,6 +37,12 @@ class PlanningEvent
     #[ORM\Column(nullable: true)]
     private ?int $timeToGo = null;
 
+    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
+    private ?Transport $transport = null;
+
+    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
+    private ?Activity $activity = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -122,6 +128,30 @@ class PlanningEvent
     public function setTimeToGo(?int $timeToGo): static
     {
         $this->timeToGo = $timeToGo;
+
+        return $this;
+    }
+
+    public function getTransport(): ?Transport
+    {
+        return $this->transport;
+    }
+
+    public function setTransport(?Transport $transport): static
+    {
+        $this->transport = $transport;
+
+        return $this;
+    }
+
+    public function getActivity(): ?Activity
+    {
+        return $this->activity;
+    }
+
+    public function setActivity(?Activity $activity): static
+    {
+        $this->activity = $activity;
 
         return $this;
     }

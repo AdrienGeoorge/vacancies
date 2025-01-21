@@ -51,7 +51,7 @@
                             {% if activity.description %}
                                 <div class="mt-4">
                                     <div class="font-poppins-semi-bold">Description de l'offre</div>
-                                    <span class="block">{{ activity.description }}</span>
+                                    <span class="line-clamp-5">{{ activity.description|nl2br }}</span>
                                 </div>
                             {% endif %}
 

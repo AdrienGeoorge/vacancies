@@ -46,7 +46,7 @@
                             {% if expensive.description %}
                                 <div class="mt-4">
                                     <div class="font-poppins-semi-bold">Description de la dépense</div>
-                                    <span class="block">{{ expensive.description }}</span>
+                                    <span class="line-clamp-5">{{ expensive.description|nl2br }}</span>
                                 </div>
                             {% endif %}
 

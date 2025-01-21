@@ -49,6 +49,8 @@ class PlanningEventType extends AbstractType
                               dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
                               dark:placeholder-gray-300',
                     'placeholder' => 'Date et heure de début',
+                    'min' => $options['trip']->getDepartureDate()?->format('Y-m-d H:i'),
+                    'max' => $options['trip']->getReturnDate()?->format('Y-m-d H:i')
                 ]
             ])
             ->add('end', DateTimeType::class, [
@@ -62,6 +64,8 @@ class PlanningEventType extends AbstractType
                               dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
                               dark:placeholder-gray-300',
                     'placeholder' => 'Date et heure de fin',
+                    'min' => $options['trip']->getDepartureDate()?->format('Y-m-d H:i'),
+                    'max' => $options['trip']->getReturnDate()?->format('Y-m-d H:i')
                 ]
             ])
             ->add('timeToGo', IntegerType::class, [
@@ -93,6 +97,7 @@ class PlanningEventType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => PlanningEvent::class,
+            'trip' => null
         ]);
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Entity\EventType;
+use App\Entity\PlanningEvent;
 use App\Entity\Transport;
 use App\Entity\Trip;
 use App\Form\TransportFormType;
@@ -50,7 +52,7 @@ class TransportController extends AbstractController
             return $this->redirectToRoute('app_home');
         }
 
-        $form = $this->createForm(TransportFormType::class, $transport);
+        $form = $this->createForm(TransportFormType::class, $transport, ['trip' => $trip]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -58,8 +60,6 @@ class TransportController extends AbstractController
                 $error = false;
 
                 if ($transport->getType()->getName() === 'Voiture') {
-                    $transport->setPaid(true);
-
                     if ($transport->getEstimatedToll() === null || $transport->getEstimatedGasoline() === null) {
                         $this->addFlash('warning', 'Vous avez sélectionné le mode de transport "voiture" : vous devez saisir une estimation du prix du péage et du carburant.');
                         $error = true;
@@ -83,13 +83,35 @@ class TransportController extends AbstractController
                         if ($transport->isPaid() && $transport->getType()->getName() !== 'Transports en commun' && !$transport->getPayedBy()) {
                             $this->addFlash('warning', 'Vous avez indiqué que la réservation a été effectuée mais n\'avez pas renseigné qui a payé.');
                         } else {
+                            $newEvent = false;
                             $this->managerRegistry->getManager()->persist($transport);
+
+                            if ($transport->getDepartureDate()) {
+                                $event = $this->managerRegistry->getRepository(PlanningEvent::class)->findOneBy(['transport' => $transport]);
+
+                                if (!$event) {
+                                    $eventType = $this->managerRegistry->getRepository(EventType::class)->findOneBy(['name' => 'Transport']);
+                                    $event = (new PlanningEvent())
+                                        ->setTrip($trip)
+                                        ->setTransport($transport)
+                                        ->setType($eventType);
+                                    $newEvent = true;
+                                }
+
+                                $event->setTitle(sprintf('%s - Destination : %s', $transport->getType()->getName(), $transport->getDestination()));
+                                $event->setStart($transport->getDepartureDate());
+                                if ($transport->getArrivalDate()) $event->setEnd($transport->getArrivalDate());
+
+                                $this->managerRegistry->getManager()->persist($event);
+                            }
+
                             $this->managerRegistry->getManager()->flush();
 
                             if ($request->get('_route') === 'trip_transports_edit') {
                                 $this->addFlash('success', 'Les détails de votre moyen de transport ont bien été modifiés.');
                             } else {
                                 $this->addFlash('success', 'Ce moyen de transport a bien été rattaché à votre voyage.');
+                                if ($newEvent) $this->addFlash('success', 'Un évènement a été ajouté à votre planning pour ce transport.');
                             }
 
                             return $this->redirectToRoute('trip_transports_index', ['trip' => $trip->getId()]);

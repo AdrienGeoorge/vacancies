@@ -51,7 +51,7 @@ class PlanningController extends AbstractController
             return $this->redirectToRoute('app_home');
         }
 
-        $form = $this->createForm(PlanningEventType::class, $event);
+        $form = $this->createForm(PlanningEventType::class, $event, ['trip' => $trip]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

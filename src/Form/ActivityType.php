@@ -53,6 +53,8 @@ class ActivityType extends AbstractType
                               dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
                               dark:placeholder-gray-300',
                     'placeholder' => 'Date de l\'activité',
+                    'min' => $options['trip']->getDepartureDate()?->format('Y-m-d H:i'),
+                    'max' => $options['trip']->getReturnDate()?->format('Y-m-d H:i')
                 ]
             ])
             ->add('price', NumberType::class, [
@@ -102,6 +104,7 @@ class ActivityType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Activity::class,
+            'trip' => null
         ]);
     }
 }

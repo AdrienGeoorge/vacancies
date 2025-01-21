@@ -65,10 +65,12 @@
                                 {% endif %}
                             </div>
 
-                            <div class="mt-4">
-                                <div class="font-poppins-semi-bold">Description de l'offre</div>
-                                <span class="block">{{ accommodation.description }}</span>
-                            </div>
+                            {% if accommodation.description %}
+                                <div class="mt-4">
+                                    <div class="font-poppins-semi-bold">Description de l'offre</div>
+                                    <span class="line-clamp-5">{{ accommodation.description|nl2br }}</span>
+                                </div>
+                            {% endif %}
 
                             <div class="mt-4">
                                 <div class="font-poppins-semi-bold">Prix du logement</div>

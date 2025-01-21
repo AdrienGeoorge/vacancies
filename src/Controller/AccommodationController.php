@@ -50,7 +50,7 @@ class AccommodationController extends AbstractController
             return $this->redirectToRoute('app_home');
         }
 
-        $form = $this->createForm(AccommodationType::class, $accommodation);
+        $form = $this->createForm(AccommodationType::class, $accommodation, ['trip' => $trip]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {

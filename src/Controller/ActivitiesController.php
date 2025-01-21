@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Activity;
+use App\Entity\EventType;
+use App\Entity\PlanningEvent;
 use App\Entity\Trip;
 use App\Form\ActivityType;
 use App\Service\TripService;
@@ -50,7 +52,7 @@ class ActivitiesController extends AbstractController
             return $this->redirectToRoute('app_home');
         }
 
-        $form = $this->createForm(ActivityType::class, $activity);
+        $form = $this->createForm(ActivityType::class, $activity, ['trip' => $trip]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -61,13 +63,34 @@ class ActivitiesController extends AbstractController
                     if ($activity->isBooked() && !$activity->getPayedBy()) {
                         $this->addFlash('warning', 'Vous avez indiqué que la réservation a été effectuée mais n\'avez pas renseigné qui a payé.');
                     } else {
+                        $newEvent = false;
                         $this->managerRegistry->getManager()->persist($activity);
+
+                        if ($activity->getDate()) {
+                            $event = $this->managerRegistry->getRepository(PlanningEvent::class)->findOneBy(['activity' => $activity]);
+
+                            if (!$event) {
+                                $eventType = $this->managerRegistry->getRepository(EventType::class)->findOneBy(['name' => 'Autre']);
+                                $event = (new PlanningEvent())
+                                    ->setTrip($trip)
+                                    ->setActivity($activity)
+                                    ->setType($eventType);
+                                $newEvent = true;
+                            }
+
+                            $event->setTitle($activity->getName());
+                            $event->setStart($activity->getDate());
+
+                            $this->managerRegistry->getManager()->persist($event);
+                        }
+
                         $this->managerRegistry->getManager()->flush();
 
                         if ($request->get('_route') === 'trip_activities_edit') {
-                            $this->addFlash('success', 'Les détails de votre activité ont bien été modifiés.');
+                            $this->addFlash('success', 'Les détails de votre activité et l\'évènement associé ont bien été modifiés.');
                         } else {
                             $this->addFlash('success', 'Cette activité a bien été rattachée à votre voyage.');
+                            if ($newEvent) $this->addFlash('success', 'Un évènement a été ajouté à votre planning pour cette activité.');
                         }
 
                         return $this->redirectToRoute('trip_activities_index', ['trip' => $trip->getId()]);
@@ -92,6 +115,9 @@ class ActivitiesController extends AbstractController
     #[IsGranted('edit_elements', subject: 'trip')]
     public function delete(Trip $trip, Activity $activity): Response
     {
+        $event = $this->managerRegistry->getRepository(PlanningEvent::class)->findOneBy(['activity' => $activity]);
+        if ($event) $this->managerRegistry->getManager()->remove($event);
+
         $this->managerRegistry->getManager()->remove($activity);
         $this->managerRegistry->getManager()->flush();
 

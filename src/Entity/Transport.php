@@ -35,7 +35,7 @@ class Transport
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?float $price = null;
 
     #[ORM\Column]

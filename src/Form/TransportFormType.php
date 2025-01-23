@@ -56,7 +56,7 @@ class TransportFormType extends AbstractType
                               dark:placeholder-gray-300',
                     'placeholder' => 'Date de départ',
                     'min' => $options['trip']->getDepartureDate()?->format('Y-m-d H:i'),
-                    'max' => $options['trip']->getReturnDate()?->format('Y-m-d H:i')
+                    'max' => $options['trip']->getReturnDate()?->setTime(23,59)->format('Y-m-d H:i')
                 ]
             ])
             ->add('arrivalDate', DateTimeType::class, [
@@ -71,7 +71,7 @@ class TransportFormType extends AbstractType
                               dark:placeholder-gray-300',
                     'placeholder' => 'Date d\'arrivée',
                     'min' => $options['trip']->getDepartureDate()?->format('Y-m-d H:i'),
-                    'max' => $options['trip']->getReturnDate()?->format('Y-m-d H:i')
+                    'max' => $options['trip']->getReturnDate()?->setTime(23,59)->format('Y-m-d H:i')
                 ]
             ])
             ->add('company', TextType::class, [

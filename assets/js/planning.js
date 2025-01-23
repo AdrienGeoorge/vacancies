@@ -4,6 +4,7 @@ import Routing from "fos-router"
 import {Calendar} from '@fullcalendar/core'
 import allLocales from '@fullcalendar/core/locales-all'
 import timeGridPlugin from '@fullcalendar/timegrid'
+import listPlugin from '@fullcalendar/list'
 import interactionPlugin from '@fullcalendar/interaction'
 import {getPlanningTitle, formatTime, formatDate} from "./components/dateFunctions"
 
@@ -18,7 +19,7 @@ if (tripId && calendarEl) {
     })
         .then(response => {
             let planning = new Calendar(calendarEl, {
-                plugins: [timeGridPlugin, interactionPlugin],
+                plugins: [timeGridPlugin, listPlugin, interactionPlugin],
                 locales: allLocales,
                 locale: 'fr',
                 datesSet: function (info) {
@@ -37,7 +38,7 @@ if (tripId && calendarEl) {
                     right: 'prev,next'
                 },
                 footerToolbar: {
-                    right: 'timeGridWeek,timeGridDay'
+                    right: 'timeGridWeek,listDay'
                 },
                 buttonText: {
                     week: 'Semaine',
@@ -50,21 +51,31 @@ if (tripId && calendarEl) {
                 editable: true,
                 events: response.data.events,
                 eventDidMount: info => {
-                    if (info.event.extendedProps.timeToGo) {
-                        let timeToGo = document.createElement('small')
-                        timeToGo.classList.add('font-bold', 'text-wrap', 'text-black', 'time-to-go')
-                        timeToGo.textContent = formatTime(info.event.extendedProps.timeToGo)
-                        info.el.querySelector('.fc-event-time').insertAdjacentElement('afterend', timeToGo)
-                    }
+                    if (info.view.type === 'timeGridWeek') {
+                        if (info.event.extendedProps.timeToGo) {
+                            let timeToGo = document.createElement('small')
+                            timeToGo.classList.add('font-bold', 'text-wrap', 'text-black', 'time-to-go')
+                            timeToGo.textContent = formatTime(info.event.extendedProps.timeToGo)
+                            info.el.querySelector('.fc-event-time').insertAdjacentElement('afterend', timeToGo)
+                        }
 
-                    let eventType = document.createElement('small')
-                    eventType.classList.add('font-bold', 'text-black', 'text-wrap', 'event-type')
-                    eventType.textContent = info.event.extendedProps.type
+                        let eventType = document.createElement('small')
+                        eventType.classList.add('font-bold', 'text-black', 'text-wrap', 'event-type')
+                        eventType.textContent = info.event.extendedProps.type
 
-                    if (info.event.extendedProps.timeToGo) {
-                        info.el.querySelector('.time-to-go').insertAdjacentElement('afterend', eventType)
+                        if (info.event.extendedProps.timeToGo) {
+                            info.el.querySelector('.time-to-go').insertAdjacentElement('afterend', eventType)
+                        } else {
+                            info.el.querySelector('.fc-event-time').insertAdjacentElement('afterend', eventType)
+                        }
                     } else {
-                        info.el.querySelector('.fc-event-time').insertAdjacentElement('afterend', eventType)
+                        if (info.event.extendedProps.description) {
+                            let timeToGoAndDesc = document.createElement('p')
+                            timeToGoAndDesc.classList.add('text-wrap', 'text-sm')
+                            if (info.event.extendedProps.timeToGo) timeToGoAndDesc.innerHTML += `<b>${formatTime(info.event.extendedProps.timeToGo)}</b><br><br>`
+                            timeToGoAndDesc.innerHTML += `${info.event.extendedProps.description.replace(/\n/g, '<br>')}`
+                            info.el.querySelector('.fc-list-event-title').insertAdjacentElement('beforeend', timeToGoAndDesc)
+                        }
                     }
                 },
                 eventClick: info => {
@@ -77,6 +88,7 @@ if (tripId && calendarEl) {
                     const params = new URLSearchParams()
                     params.append('id', info.event.id)
                     params.append('start', formatDate(info.event.start))
+                    if (info.event.end) params.append('end', formatDate(info.event.end))
 
                     axios({
                         method: 'post',

@@ -74,6 +74,7 @@ class ActivitiesController extends AbstractController
                                 $event = (new PlanningEvent())
                                     ->setTrip($trip)
                                     ->setActivity($activity)
+                                    ->setDescription($activity->getDescription())
                                     ->setType($eventType);
                                 $newEvent = true;
                             }

@@ -54,7 +54,7 @@ class ActivityType extends AbstractType
                               dark:placeholder-gray-300',
                     'placeholder' => 'Date de l\'activité',
                     'min' => $options['trip']->getDepartureDate()?->format('Y-m-d H:i'),
-                    'max' => $options['trip']->getReturnDate()?->format('Y-m-d H:i')
+                    'max' => $options['trip']->getReturnDate()?->setTime(23,59)->format('Y-m-d H:i')
                 ]
             ])
             ->add('price', NumberType::class, [

@@ -116,6 +116,7 @@ class PlanningController extends AbstractController
 
         try {
             $event->setStart(new \DateTime($request->request->get('start')));
+            if ($request->request->get('end')) $event->setEnd(new \DateTime($request->request->get('end')));
             $this->managerRegistry->getManager()->persist($event);
             $this->managerRegistry->getManager()->flush();
         } catch (\Exception) {

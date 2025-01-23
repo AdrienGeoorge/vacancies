@@ -98,7 +98,16 @@ class TransportController extends AbstractController
                                     $newEvent = true;
                                 }
 
-                                $event->setTitle(sprintf('%s - Destination : %s', $transport->getType()->getName(), $transport->getDestination()));
+                                $event->setTitle(sprintf('Voyage - %s', $transport->getType()->getName()));
+
+                                if ($transport->getDestination() && $transport->getDeparture()) {
+                                    $event->setDescription(sprintf('Voyage au départ de %s à destination de %s', $transport->getDeparture(), $transport->getDestination()));
+                                } else if ($transport->getDestination() && !$transport->getDeparture()) {
+                                    $event->setDescription(sprintf('Voyage à destination de %s', $transport->getDestination()));
+                                } else if ($transport->getDeparture() && !$transport->getDestination()) {
+                                    $event->setDescription(sprintf('Voyage au départ de %s', $transport->getDeparture()));
+                                }
+
                                 $event->setStart($transport->getDepartureDate());
                                 if ($transport->getArrivalDate()) $event->setEnd($transport->getArrivalDate());
 

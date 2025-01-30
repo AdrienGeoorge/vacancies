@@ -6,68 +6,50 @@
         <div class="col-1 flex flex-col gap-4">
             <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-6 px-8">
                 <div class="text-2xl font-poppins-semi-bold">
-                    Nom de l'évènement
+                    Nom de la dépense
                 </div>
                 <div class="mb-5 text-sm font-poppins">
-                    Renseignes le nom de l'évènement à ajouter au planning.
+                    Renseignes le nom de la dépense que tu souhaites ajouter.
                 </div>
-                {{ form_widget(form.title) }}
+                {{ form_widget(form.name) }}
             </div>
 
             <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-6 px-8">
                 <div class="text-2xl font-poppins-semi-bold">
-                    Date et heure de début
+                    Date et heure d'achat
                 </div>
                 <div class="mb-5 text-sm font-poppins">
-                    Quand débutera cet évènement ?
+                    Quand cette dépense a-t-elle été effectuée ?
                 </div>
-                {{ form_widget(form.start) }}
-            </div>
-
-            <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-6 px-8">
-                <div class="text-2xl font-poppins-semi-bold">
-                    Date et heure de fin
-                </div>
-                <div class="mb-5 text-sm font-poppins">
-                    Quand se terminera cet évènement ?<br>
-                    <span class="font-bold">La date de fin n'est pas obligatoire.</span>
-                </div>
-                {{ form_widget(form.end) }}
+                {{ form_widget(form.purchaseDate) }}
             </div>
         </div>
 
         <div class="col-2 flex flex-col gap-4">
             <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-6 px-8">
                 <div class="text-2xl font-poppins-semi-bold">
-                    Type d'évènement
+                    Informations tarifaires
                 </div>
                 <div class="mb-5 text-sm font-poppins">
-                    Quel est le type d'évènement que tu souhaites ajouter au planning ?
+                    Renseignes le montant de la dépense.
                 </div>
-                {{ form_widget(form.type) }}
+                <div class="flex flex-col md:flew-row gap-4">
+                    {{ form_widget(form.price) }}
+                </div>
             </div>
 
             <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-6 px-8">
                 <div class="text-2xl font-poppins-semi-bold">
-                    Description
+                    Achat
                 </div>
-                <div class="mb-5 text-sm font-poppins">
-                    Renseignes les formalités sur cet évènement.<br>
-                </div>
-                {{ form_widget(form.description) }}
-            </div>
 
-            <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-6 px-8">
-                <div class="text-2xl font-poppins-semi-bold">
-                    Temps de trajet
-                </div>
                 <div class="mb-5 text-sm font-poppins">
-                    Combien de temps faut-il pour se rendre à cet évènement (voiture, transports...) ?<br>
-                    <span class="font-bold">Le temps n'est pas obligatoire. Il doit être indiqué en minutes.</span>
+                    Qui est à l'origine du paiement de cette dépense ?
                 </div>
-                {{ form_widget(form.timeToGo) }}
+                <div class="flex flex-col md:flew-row gap-4">
+                    {{ form_widget(form.payedBy) }}
+                </div>
             </div>
-
 
             <div class="flex gap-4 flex-wrap justify-center">
                 <button class="tracking-wide bg-teal-500 border-2 border-teal-400 text-white py-4 px-7 rounded-full
@@ -76,12 +58,12 @@
                                     focus:shadow-outline focus:outline-none">
                     Enregistrer
                 </button>
-                {% if event.id %}
-                    <a href="{{ path('trip_planning_delete', {'trip': trip.id, 'event': event.id}) }}"
+                {% if expense.id %}
+                    <a href="{{ path('trip_on_site_delete', {'trip': trip.id, 'expense': expense.id}) }}"
                        class="tracking-wide bg-red-500 border-2 border-red-400 text-white py-4 px-7 rounded-full
-                                    flex items-center justify-center hover:bg-red-700
-                                    transition-all duration-300 ease-in-out
-                                    focus:shadow-outline focus:outline-none">
+                                                        flex items-center justify-center hover:bg-red-700
+                                                        transition-all duration-300 ease-in-out
+                                                        focus:shadow-outline focus:outline-none">
                         Supprimer
                     </a>
                 {% endif %}

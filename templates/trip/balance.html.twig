@@ -26,10 +26,32 @@
             </div>
             {% for traveler, amounts in data.balances %}
                 <div class="flex flex-col gap-2 my-2">
-                    <div class="leading-5">{{ traveler }}</div>
-                    <div class="flex flex-row gap-2">
+                    <div class="leading-5 text-xl mb-2">{{ traveler }}</div>
+                    <div class="flex flex-wrap gap-2">
                         <div class="w-fit bg-body rounded-xl px-3 py-0.5 flex items-center gap-1.5 text-black">
-                            <span class="font-bold">{{ amounts.paid }}€</span>
+                            LOGEMENTS <span
+                                    class="font-bold">{{ amounts.accommodations is defined ? amounts.accommodations : 0 }}€</span>
+                        </div>
+                        <div class="w-fit bg-body rounded-xl px-3 py-0.5 flex items-center gap-1.5 text-black">
+                            TRANSPORTS <span
+                                    class="font-bold">{{ amounts.transports is defined ? amounts.transports : 0 }}€</span>
+                        </div>
+                        <div class="w-fit bg-body rounded-xl px-3 py-0.5 flex items-center gap-1.5 text-black">
+                            ACTIVITES <span
+                                    class="font-bold">{{ amounts.activities is defined ? amounts.activities : 0 }}€</span>
+                        </div>
+                        <div class="w-fit bg-body rounded-xl px-3 py-0.5 flex items-center gap-1.5 text-black">
+                            DEPENSES DIVERSES <span
+                                    class="font-bold">{{ amounts.variousExpenses is defined ? amounts.variousExpenses : 0 }}€</span>
+                        </div>
+                        <div class="w-fit bg-body rounded-xl px-3 py-0.5 flex items-center gap-1.5 text-black">
+                            SUR PLACE <span
+                                    class="font-bold">{{ amounts.onSite is defined ? amounts.onSite : 0 }}€</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-row gap-2">
+                        <div class="w-fit bg-slate-400 rounded-xl px-3 py-0.5 flex items-center gap-1.5 text-white">
+                            <span class="font-bold">TOTAL {{ amounts.paid }}€</span>
                         </div>
                         <div class="w-fit rounded-xl px-3 py-0.5 flex items-center gap-1.5 text-white {{ amounts.amountDue < 0 ? 'bg-green-500' : amounts.amountDue > 0 ? 'bg-red-500' : 'bg-gray-400' }}">
                             <span class="font-bold">{{ amounts.amountDue|invert_sign }}€</span>

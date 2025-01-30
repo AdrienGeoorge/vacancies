@@ -329,7 +329,12 @@ class TripService
 
                 $balances[$traveler->getName()] = [
                     'paid' => $paid,
-                    'amountDue' => round($amountByPerson - $paid, 2)
+                    'amountDue' => round($amountByPerson - $paid, 2),
+                    'accommodations' => round($accommodations, 2),
+                    'transports' => round($transportPaid, 2),
+                    'activities' => round($activities, 2),
+                    'variousExpenses' => round($variousExpenses, 2),
+                    'onSite' => round($onSite, 2)
                 ];
             }
         }

@@ -18,11 +18,22 @@ const getPlanningTitle = (info) => {
         } else {
             title = `Semaine du ${startDay} ${startMonth} au ${endDay} ${endMonth}`
         }
-    } else if (viewType === 'listDay'  || viewType === 'timeGridDay') {
+    } else if (viewType === 'listDay' || viewType === 'timeGridDay') {
         const day = formatDate(startDate, {day: 'numeric'})
         const month = formatDate(startDate, {month: 'long'})
 
         title = `Journée du ${day} ${month}`
+    } else if (viewType === 'timeGridFiveDay') {
+        const startDay = formatDate(startDate, {day: 'numeric'})
+        const endDay = formatDate(endDate, {day: 'numeric'}) - 1
+        const startMonth = formatDate(startDate, {month: 'short'})
+        const endMonth = formatDate(endDate, {month: 'short'})
+
+        if (startMonth === endMonth) {
+            title = `Planning du ${startDay} au ${endDay} ${startMonth}`
+        } else {
+            title = `Planning du ${startDay} ${startMonth} au ${endDay} ${endMonth}`
+        }
     } else {
         title = info.view.title
     }

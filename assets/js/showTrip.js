@@ -12,8 +12,8 @@ const tripId = document.getElementById('tripId')
 const ctx = document.getElementById('budgetChart')
 let calendarEl = document.getElementById('mini-calendar')
 
-if (!ctx.classList.contains('initialized') && !calendarEl.classList.contains('initialized')) {
-    if (tripId && ctx) {
+if (tripId && ctx) {
+    if (!ctx.classList.contains('initialized') && !calendarEl.classList.contains('initialized')) {
         const budgetNone = document.getElementById('budgetNone')
 
         axios({

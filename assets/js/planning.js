@@ -32,13 +32,20 @@ if (tripId && calendarEl) {
                     titleElement.insertAdjacentElement('beforeend', infoText)
                 },
                 firstDay: 1,
-                initialView: 'timeGridWeek',
+                initialView: 'timeGridFiveDay',
                 headerToolbar: {
                     left: 'title',
                     right: 'prev,next'
                 },
                 footerToolbar: {
-                    right: 'timeGridWeek,listDay'
+                    right: 'timeGridFiveDay,listDay'
+                },
+                views: {
+                    timeGridFiveDay: {
+                        type: 'timeGrid',
+                        duration: { days: 5 },
+                        buttonText: '5 jours'
+                    }
                 },
                 buttonText: {
                     week: 'Semaine',
@@ -51,7 +58,7 @@ if (tripId && calendarEl) {
                 editable: true,
                 events: response.data.events,
                 eventDidMount: info => {
-                    if (info.view.type === 'timeGridWeek') {
+                    if (info.view.type === 'timeGridFiveDay') {
                         if (info.event.extendedProps.timeToGo) {
                             let timeToGo = document.createElement('small')
                             timeToGo.classList.add('font-bold', 'text-wrap', 'text-black', 'time-to-go')

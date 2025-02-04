@@ -2,10 +2,8 @@
 
 namespace App\Controller;
 
-use App\Entity\Accommodation;
 use App\Entity\OnSiteExpense;
 use App\Entity\Trip;
-use App\Form\AccommodationType;
 use App\Form\OnSiteExpenseType;
 use App\Service\TripService;
 use Doctrine\Persistence\ManagerRegistry;

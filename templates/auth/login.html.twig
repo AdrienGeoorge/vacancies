@@ -42,6 +42,14 @@
                                           dark:placeholder-gray-300"
                                        placeholder="Mot de passe" autocomplete="current-password" required/>
                             </div>
+                            <p class="my-5 text-sm text-gray-600 text-center dark:text-gray-200">
+                                Mot de passe oublié ? Changez-le
+                                {#                                TODO: forgot password #}
+                                <a href="#" class="border-b border-gray-500 border-dotted"
+                                   onclick="alert('Indisponible pour le moment.')">
+                                    en cliquant ici
+                                </a>
+                            </p>
                             <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
                             <button
                                     class="mt-5 tracking-wide bg-teal-500 border-2 border-teal-400 text-white w-full

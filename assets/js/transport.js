@@ -27,6 +27,7 @@ if (select) {
                 select.options[select.value].innerHTML !== 'Voiture') {
                 document.querySelector('.departure').classList.remove('hidden')
                 document.querySelector('.destination').classList.remove('hidden')
+                document.querySelector('.company').classList.remove('hidden')
             }
         }
     }

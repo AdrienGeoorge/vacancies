@@ -1,3 +1,5 @@
+import "quill/dist/quill.core.css"
+import "quill/dist/quill.snow.css"
 import './styles/app.css'
 import htmx from 'htmx.org'
 

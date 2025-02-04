@@ -1,5 +1,6 @@
 import Chart from 'chart.js/auto'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
+
 import axios from "axios"
 import Routing from "fos-router"
 
@@ -8,12 +9,15 @@ import allLocales from '@fullcalendar/core/locales-all'
 import listPlugin from '@fullcalendar/list'
 import {formatTime, getPlanningTitle} from "./components/dateFunctions"
 
+import Quill from 'quill'
+
 const tripId = document.getElementById('tripId')
 const ctx = document.getElementById('budgetChart')
-let calendarEl = document.getElementById('mini-calendar')
+const calendarEl = document.getElementById('mini-calendar')
+const editor = document.getElementById('editor')
 
-if (tripId && ctx) {
-    if (!ctx.classList.contains('initialized') && !calendarEl.classList.contains('initialized')) {
+if (tripId) {
+    if (ctx) {
         const budgetNone = document.getElementById('budgetNone')
 
         axios({
@@ -63,11 +67,9 @@ if (tripId && ctx) {
             })
             .catch(() => {
             })
-
-        ctx.classList.add('initialized')
     }
 
-    if (tripId && calendarEl) {
+    if (calendarEl) {
         axios({
             method: 'get',
             url: Routing.generate('trip_planning_get', {'trip': tripId.value}),
@@ -123,7 +125,27 @@ if (tripId && ctx) {
             })
             .catch(() => {
             })
+    }
 
-        calendarEl.classList.add('initialized')
+    if (editor) {
+        new Quill(editor, {
+            modules: {
+                toolbar: [
+                    ['bold', 'italic', 'underline', 'strike'],
+                    ['blockquote', 'link'],
+
+                    [{'size': ['small', false, 'large']}, {'header': 1}, {'header': 2}, {'header': 3}],
+                    [{'list': 'ordered'}, {'list': 'bullet'}, {'list': 'check'}],
+                    [{'indent': '-1'}, {'indent': '+1'}],
+
+                    [{'color': []}, {'background': []}],
+                    [{'align': []}],
+
+                    ['clean']
+                ]
+            },
+            placeholder: 'Ajoutez des notes communes avec tous les autres voyageurs prenant part à cette aventure : par exemple mettez à disposition les liens vers les restaurants à faire...',
+            theme: 'snow'
+        })
     }
 }

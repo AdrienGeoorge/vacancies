@@ -128,7 +128,8 @@ if (tripId) {
     }
 
     if (editor) {
-        new Quill(editor, {
+        let timer
+        const quill = new Quill(editor, {
             modules: {
                 toolbar: [
                     ['bold', 'italic', 'underline', 'strike'],
@@ -147,5 +148,24 @@ if (tripId) {
             placeholder: 'Ajoutez des notes communes avec tous les autres voyageurs prenant part à cette aventure : par exemple mettez à disposition les liens vers les restaurants à faire...',
             theme: 'snow'
         })
+        quill.on('text-change', (delta, oldDelta, source) => {
+            clearTimeout(timer)
+            timer = setTimeout(() => {
+                const params = new URLSearchParams()
+                params.append('blocNotes', quill.root.innerHTML)
+
+                axios({
+                    method: 'post',
+                    url: Routing.generate('trip_update_bloc_notes', {'trip': tripId.value}),
+                    data: params,
+                    headers: {'X-Requested-With': 'XMLHttpRequest'}
+                })
+                    .then(() => {})
+                    .catch(() => {
+                        location.reload()
+                    })
+            }, 2000)
+        });
+
     }
 }

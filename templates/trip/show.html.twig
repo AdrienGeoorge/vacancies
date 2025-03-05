@@ -248,8 +248,8 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-        <div class="shadow rounded-3xl bg-box dark:bg-box-dark">
+    <div class="grid grid-cols-1 gap-4 mt-4">
+        <div class="shadow rounded-3xl bg-box dark:bg-box-dark overflow-y-hidden">
             <div class="pt-3.5 px-6">
                 <div class="mb-2 flex flex-row items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -264,10 +264,9 @@
                 </div>
             </div>
             <div class="editor-container pb-3.5 px-4">
-                <div id="editor" class="h-36"></div>
+                <div id="editor" style="height: 30em;" data-trip="{{ trip.id }}">{{ trip.blocNotes|raw }}</div>
             </div>
         </div>
-{#        <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-3.5 px-6"></div>#}
     </div>
 {% endblock %}
 

@@ -18,7 +18,7 @@
         {{ encore_entry_link_tags('app') }}
     {% endblock %}
 </head>
-<body class="bg-body dark:bg-body-dark dark:text-white" hx-boost="true">
+<body class="bg-body dark:bg-body-dark dark:text-white">
 {% block body %}
     <div id="nav"
          class="w-full flex flex-col md:flex-row items-center justify-between gap-4 py-5 px-10">
@@ -52,7 +52,7 @@
             </a>
             <a href="{{ path('auth_logout') }}" class="tracking-wide bg-red-400 text-white w-40 py-3 rounded-full border border-red-200
                                     flex items-center justify-center hover:bg-red-600 transition-all duration-300
-                                    ease-in-out focus:shadow-outline focus:outline-none" hx-boost="false">Déconnexion</a>
+                                    ease-in-out focus:shadow-outline focus:outline-none">Déconnexion</a>
         </div>
     </div>
     <div id="content" class="p-2 pb-8">

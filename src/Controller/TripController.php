@@ -132,6 +132,22 @@ class TripController extends AbstractController
         return new JsonResponse($this->tripService->getBudget($trip));
     }
 
+    #[Route('/update-bloc-notes/{trip}', name: 'update_bloc_notes', requirements: ['trip' => '\d+'], options: ['expose' => true])]
+    #[IsGranted('view', 'trip')]
+    public function updateBlocNotes(Request $request, Trip $trip): Response
+    {
+        if (!$request->isXmlHttpRequest()) {
+            $this->addFlash('error', 'Une erreur est survenue. Veuillez recommencer.');
+            return new JsonResponse([], 500);
+        }
+
+        $trip->setBlocNotes($request->request->get('blocNotes'));
+        $this->managerRegistry->getManager()->persist($trip);
+        $this->managerRegistry->getManager()->flush();
+
+        return new JsonResponse([], 200);
+    }
+
     #[Route('/share/{trip}', name: 'share', requirements: ['trip' => '\d+'], options: ['expose' => true])]
     #[IsGranted('invite', subject: 'trip')]
     public function share(Request $request, Trip $trip): Response

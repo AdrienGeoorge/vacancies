@@ -62,6 +62,9 @@ class Trip
     #[ORM\OneToMany(targetEntity: TripTraveler::class, mappedBy: 'trip', orphanRemoval: true)]
     private Collection $tripTravelers;
 
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $blocNotes = null;
+
     public function __construct()
     {
         $this->accommodations = new ArrayCollection();
@@ -418,6 +421,18 @@ class Trip
                 $tripTraveler->setTrip(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getBlocNotes(): ?string
+    {
+        return $this->blocNotes;
+    }
+
+    public function setBlocNotes(?string $blocNotes): static
+    {
+        $this->blocNotes = $blocNotes;
 
         return $this;
     }

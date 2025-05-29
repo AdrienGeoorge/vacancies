@@ -11,6 +11,7 @@
                    lg:bg-box dark:lg:bg-box-dark">
                 <div class="lg:w-3/6 xl:w-6/12 p-6 sm:px-8 lg:py-5 flex lg:flex-none items-center">
                     <div class="flex flex-col px-10">
+                        {% include '_flashes.html.twig' with {'not_notif': true} %}
                         <h1 class="mt-12 mb-5 text-xl font-poppins-semi-bold">
                             Bienvenue sur <span class="text-teal-500">{{ app_name }}</span>
                         </h1>
@@ -44,9 +45,7 @@
                             </div>
                             <p class="my-5 text-sm text-gray-600 text-center dark:text-gray-200">
                                 Mot de passe oublié ? Changez-le
-                                {#                                TODO: forgot password #}
-                                <a href="#" class="border-b border-gray-500 border-dotted"
-                                   onclick="alert('Indisponible pour le moment.')">
+                                <a href="{{ path('password_claim') }}" class="border-b border-gray-500 border-dotted">
                                     en cliquant ici
                                 </a>
                             </p>

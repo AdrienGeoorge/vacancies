@@ -497,7 +497,7 @@ class TripService
         $invitation->setUserToShareWith($userToShareWith);
         $invitation->setTrip($trip);
         $invitation->setToken($token);
-        $invitation->setExpireAt(new \DateTimeImmutable('+30 minutes'));
+        $invitation->setExpireAt(new \DateTimeImmutable('+120 minutes'));
 
         $this->managerRegistry->getManager()->persist($invitation);
         $this->managerRegistry->getManager()->flush();

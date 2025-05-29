@@ -1,0 +1,44 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ app_name }} - Réinitialisez votre mot de passe{% endblock %}
+
+{% block body %}
+    <div class="lg:bg-body dark:bg-body-dark flex items-center justify-center h-full">
+        <form method="post"
+              class="text-gray-900 flex justify-center sm:items-center
+                dark:text-white w-full lg:w-10/12 xl:w-9/12">
+            <div class="w-full max-w-screen-lg m-0 lg:m-10 lg:h-auto lg:shadow lg:rounded-5xl overflow-hidden flex justify-center lg:flex-1 flex-none
+                   lg:bg-box dark:lg:bg-box-dark">
+                <div class="lg:w-3/6 xl:w-6/12 p-6 sm:px-8 lg:py-5 flex lg:flex-none items-center">
+                    <div class="flex flex-col px-10">
+                        {% include '_flashes.html.twig' with {'not_notif': true} %}
+                        <h1 class="mt-12 mb-5 text-xl font-poppins-semi-bold">
+                            Changement de <span class="text-teal-500">mot de passe</span>
+                        </h1>
+                        {{ form_start(resetForm, {attr: {class: 'w-full flex-1 mt-5'}}) }}
+                        {{ form_errors(resetForm) }}
+                        <div>
+                            {{ form_widget(resetForm.password.first) }}
+                        </div>
+                        <div>
+                            {{ form_widget(resetForm.password.second) }}
+                        </div>
+                        <button class="mt-5 mb-10 tracking-wide bg-teal-500 border-2 border-teal-400 text-white w-full py-4
+                                    rounded-full flex items-center justify-center hover:bg-teal-700
+                                    transition-all duration-300 ease-in-out
+                                    focus:shadow-outline focus:outline-none">
+                            Terminer la réinitialisation
+                        </button>
+                        {{ form_end(resetForm) }}
+                    </div>
+                </div>
+                <div class="flex-1 text-center hidden lg:flex">
+                    <div class="w-full bg-contain bg-center bg-no-repeat mr-14 my-8"
+                         style="background-image: url({{ asset('build/images/index.png') }});">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+

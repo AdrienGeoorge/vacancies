@@ -35,44 +35,33 @@
 
     <div class="mt-4">
         {% if not trip.onSiteExpenses.empty %}
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
-                {% for expense in trip.onSiteExpenses|sort((a, b) => a.purchaseDate > b.purchaseDate) %}
-                    <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-3.5 px-6 flex flex-col justify-between">
-                        <div class="infos">
-                            <div class="font-poppins-semi-bold text-xl">{{ expense.name }}</div>
-
-                                <div class="mt-4">
-                                    <div class="font-poppins-semi-bold">Date de la dépense</div>
-                                    <div class="block">Le {{ expense.purchaseDate|date('d/m/Y à H:i') }}</div>
-                                </div>
-
-                            <div class="mt-4">
-                                <div class="font-poppins-semi-bold">Payé par</div>
-                                <span class="block">{{ expense.payedBy.name }}</span>
+            <div class="flex flex-col gap-3">
+                {% for expense in trip.onSiteExpenses|sort((a, b) => a.purchaseDate < b.purchaseDate) %}
+                    <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-3.5 px-6 flex flex-col md:flex-row gap-4 justify-between sm:items-start md:items-center">
+                        <div class="flex flex-col">
+                            <div class="font-poppins-semi-bold text-lg">{{ expense.name }}</div>
+                            <div>
+                                <span class="font-poppins-semi-bold">Payé par</span>
+                                <span>{{ expense.payedBy.name }}</span><br>
+                                <span class="font-poppins-semi-bold">Le</span>
+                                <span>{{ expense.purchaseDate|date('d/m/Y à H:i') }}</span>
                             </div>
                         </div>
-
-                        <div class="footer">
-                            <div class="mt-4 flex flex-row flex-wrap gap-2 justify-center items-center">
-                                <div class="rounded-full bg-body dark:bg-body-dark w-fit px-3 py-1">
-                                    MONTANT <span class="font-bold">{{ expense.price }}€</span>
-                                </div>
+                        <div class="flex flex-row gap-4 items-center">
+                            <div class="rounded-full bg-body dark:bg-body-dark w-fit px-3 py-1">
+                                <span class="font-bold">{{ expense.price }}€</span>
                             </div>
-
                             <a href="{{ path('trip_on_site_edit', {'trip': trip.id, 'expense': expense.id}) }}"
-                               class="block mt-4 bg-blue-500 border-2 border-blue-400 text-white text-center py-2 px-5 rounded-full">Editer</a>
+                               class="bg-blue-500 border-2 border-blue-400 text-white text-center py-2 px-5 rounded-full">Editer</a>
                         </div>
                     </div>
                 {% endfor %}
             </div>
+
         {% else %}
             <div class="shadow rounded-3xl bg-red-400 text-white py-3.5 px-6">
                 Aucune dépense effectuée sur place n'a été trouvée pour ce voyage.
             </div>
         {% endif %}
     </div>
-{% endblock %}
-
-{% block javascripts %}
-    {{ parent() }}
 {% endblock %}

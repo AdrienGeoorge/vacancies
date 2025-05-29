@@ -43,26 +43,27 @@
                             <div class="font-poppins-semi-bold text-lg ">{{ traveler.name }}</div>
                             {% if creator %}
                                 <div class="leading-5">
-                                    Vous ne pouvez pas modifier les informations du créateur du séjour.
+                                    Vous ne pouvez pas modifier les informations de la personne à l'origine du séjour.
                                 </div>
                             {% elseif traveler.invited and traveler.invited.completeName != trip.traveler.completeName %}
-                                <div class="leading-5">Ce voyageur a été invité à rejoindre ce séjour.
-                                    {% if trip.traveler.completeName != app.user.completeName %}
-                                        <span class="text-center leading-5">Vous ne pouvez pas modifier ses informations.</span>
-                                    {% endif %}
-                                </div>
+                                <div class="leading-5">Ce voyageur a été invité à rejoindre ce séjour.</div>
                             {% elseif traveler.invited %}
-                                <div class="text-center leading-5">
+                                <div class="leading-5">
                                     Vous ne pouvez pas modifier les informations d'un utilisateur invité à rejoindre
                                     ce séjour.
                                 </div>
+                            {% else %}
+                                <div class="leading-5">Ce voyageur a été ajouté manuellement.</div>
                             {% endif %}
                         </div>
 
                         <div class="footer flex flex-row gap-2 items-center justify-center mt-3">
-                            {% if not creator and (not traveler.invited or trip.traveler.completeName == app.user.completeName) %}
+                            {% if not creator and not traveler.invited %}
                                 <a href="{{ path('trip_traveler_edit', {'trip': trip.id, 'traveler': traveler.id}) }}"
                                    class="block bg-blue-500 border-2 border-blue-400 text-white text-center py-2 px-5 rounded-full">Editer</a>
+                            {% endif %}
+
+                            {% if not creator and (not traveler.invited or trip.traveler.completeName == app.user.completeName) %}
                                 <a href="{{ path('trip_traveler_delete', {'trip': trip.id, 'traveler': traveler.id}) }}"
                                    class="block bg-red-500 border-2 border-red-400 text-white text-center
                                       py-2 px-5 rounded-full">
@@ -85,8 +86,4 @@
             </div>
         {% endif %}
     </div>
-{% endblock %}
-
-{% block javascripts %}
-    {{ parent() }}
 {% endblock %}

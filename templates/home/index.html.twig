@@ -14,11 +14,12 @@
         {% else %}
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-3">
                 {% for trip in futureTrips %}
-                    <div class="grid grid-cols-2 gap-3 bg-box dark:bg-box-dark p-3 rounded-3xl">
-                        <div class="bg-cover bg-center bg-no-repeat w-full h-full rounded-2xl trip-image"
+                    <a href="{{ path('trip_show', {'trip': trip.id}) }}"
+                       class="grid grid-cols-2 items-center gap-3 bg-box dark:bg-box-dark p-3 rounded-3xl">
+                        <div class="bg-cover bg-center bg-no-repeat w-full h-full min-h-28 rounded-2xl trip-image"
                              style="background-image: url({{ trip.image }})"></div>
                         <div class="flex flex-col justify-between gap-3">
-                            <div class="py-2.5 px-3 text-center">
+                            <div class="py-2.5 px-3 text-left">
                                 <div class="font-roboto-medium text-2xl trip-name">{{ trip.name }}</div>
                                 {% if trip.returnDate %}
                                     <div class="text-sm">{{ trip.departureDate|date('j M. Y') ~ ' - ' ~ trip.returnDate|date('j M. Y') }}</div>
@@ -28,12 +29,8 @@
                                     <div class="text-sm">Dates non définies</div>
                                 {% endif %}
                             </div>
-                            <a href="{{ path('trip_show', {'trip': trip.id}) }}"
-                               class="rounded-2xl py-2.5 px-5 bg-gray-700 text-white dark:bg-white dark:text-gray-700 w-fit m-auto border-2 border-gray-500 dark:border-gray-300">
-                                Consulter
-                            </a>
                         </div>
-                    </div>
+                    </a>
                 {% endfor %}
             </div>
         {% endif %}
@@ -48,20 +45,17 @@
         {% else %}
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-3">
                 {% for trip in passedTrips %}
-                    <div class="grid grid-cols-2 gap-3 bg-box dark:bg-box-dark p-3 rounded-3xl">
-                        <div class="bg-cover wbg-center bg-no-repeat w-full h-full rounded-2xl"
+                    <a href="{{ path('trip_show', {'trip': trip.id}) }}"
+                       class="grid grid-cols-2 items-center gap-3 bg-box dark:bg-box-dark p-3 rounded-3xl">
+                        <div class="bg-cover wbg-center bg-no-repeat w-full h-full min-h-28 rounded-2xl"
                              style="background-image: url({{ trip.image }})"></div>
                         <div class="flex flex-col justify-between gap-3">
-                            <div class="py-2.5 px-3 text-center">
+                            <div class="py-2.5 px-3 text-left">
                                 <div class="font-roboto-medium text-2xl trip-name">{{ trip.name }}</div>
                                 <div class="text-sm">{{ trip.departureDate|date('j M. Y') ~ ' - ' ~ trip.returnDate|date('j M. Y') }}</div>
                             </div>
-                            <a href="{{ path('trip_show', {'trip': trip.id}) }}"
-                               class="rounded-2xl py-2.5 px-5 bg-gray-700 text-white dark:bg-white dark:text-gray-700 w-fit m-auto border-2 border-gray-500 dark:border-gray-300">
-                                Consulter
-                            </a>
                         </div>
-                    </div>
+                    </a>
                 {% endfor %}
             </div>
         {% endif %}

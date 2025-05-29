@@ -82,7 +82,6 @@ class TripTravelerController extends AbstractController
 
         return $this->render('trip_travelers/form.html.twig', [
             'trip' => $trip,
-            'traveler' => $traveler,
             'countDaysBeforeOrAfter' => $this->tripService->countDaysBeforeOrAfter($trip),
             'form' => $form->createView()
         ]);

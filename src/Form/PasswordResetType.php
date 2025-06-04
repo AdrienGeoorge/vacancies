@@ -35,7 +35,7 @@ class PasswordResetType extends AbstractType
                                           focus:outline-none focus:border-gray-400 focus:bg-white mt-3
                                           dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
                                           dark:placeholder-gray-300',
-                        'placeholder' => 'Répétez votre nouveau mot de passe',
+                        'placeholder' => 'Répétez-le',
                         'minlength' => 6,
                     ]
                 ],

@@ -8,7 +8,6 @@ use App\Form\PasswordResetType;
 use App\Service\TokenService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,8 +30,10 @@ class PasswordClaimController extends AbstractController
     }
 
     #[Route('/claim', name: 'claim')]
-    public function claim(Request $request): RedirectResponse|JsonResponse|Response
+    public function claim(Request $request): RedirectResponse|Response
     {
+        if ($this->getUser()) return $this->redirectToRoute('app_home');
+
         $claimForm = $this->createForm(PasswordClaimType::class, []);
         $claimForm->handleRequest($request);
 
@@ -59,6 +60,8 @@ class PasswordClaimController extends AbstractController
     #[Route('/reset/{token}', name: 'reset', requirements: ['token' => '.+'])]
     public function reset(Request $request, UserPasswordHasherInterface $userPasswordHasher, string $token): RedirectResponse|Response
     {
+        if ($this->getUser()) return $this->redirectToRoute('app_home');
+
         $resetToken = $this->tokenService->getUserByToken($token);
 
         if (!$resetToken || ($resetToken->getTimestamp() < time())) {

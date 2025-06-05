@@ -24,7 +24,11 @@ class UserMustLoggedListener implements EventSubscriberInterface
     public function onKernelRequest(RequestEvent $event): void
     {
         if (!$this->tokenStorage->getToken()) {
-            if ('/login' !== $event->getRequest()->getPathInfo() && '/register' !== $event->getRequest()->getPathInfo() && !str_contains($event->getRequest()->getPathInfo(), '/password')) {
+            if ('/login' !== $event->getRequest()->getPathInfo() &&
+                '/register' !== $event->getRequest()->getPathInfo() &&
+                '/connect/google' !== $event->getRequest()->getPathInfo() &&
+                '/connect/google/check' !== $event->getRequest()->getPathInfo() &&
+                !str_contains($event->getRequest()->getPathInfo(), '/password')) {
                 $response = new RedirectResponse($this->router->generate('auth_login'));
                 $event->setResponse($response);
             }

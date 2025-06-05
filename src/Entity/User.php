@@ -48,6 +48,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: ShareInvitation::class, mappedBy: 'userToShareWith', orphanRemoval: true)]
     private Collection $shareInvitations;
 
+    #[ORM\Column(length: 255)]
+    private ?string $googleId = null;
+
     public function __construct()
     {
         $this->trips = new ArrayCollection();
@@ -214,6 +217,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $shareInvitation->setUserToShareWith(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getGoogleId(): ?string
+    {
+        return $this->googleId;
+    }
+
+    public function setGoogleId(string $googleId): static
+    {
+        $this->googleId = $googleId;
 
         return $this;
     }

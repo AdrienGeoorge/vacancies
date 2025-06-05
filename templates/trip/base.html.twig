@@ -78,8 +78,8 @@
                             before:right-0 before:bottom-0 before:left-0 before:bg-black"
                          style="background-image:url({{ trip.image }});">
                         <div class="py-3 px-5 absolute bottom-2.5 left-3 text-white">
-                            <div class="font-roboto text-2xl">Salut {{ app.user.firstname }}, en route pour...</div>
-                            <div class="font-roboto-medium text-3xl">{{ trip.name }}</div>
+                            <div class="font-roboto-medium text-3xl">{{ trip.countryCode|country_name }}</div>
+                            <div class="font-roboto-medium text-xl">{{ trip.name }}</div>
                         </div>
                     </div>
                 </div>

@@ -65,6 +65,9 @@ class Trip
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $blocNotes = null;
 
+    #[ORM\Column(length: 2, nullable: true)]
+    private ?string $countryCode = null;
+
     public function __construct()
     {
         $this->accommodations = new ArrayCollection();
@@ -433,6 +436,18 @@ class Trip
     public function setBlocNotes(?string $blocNotes): static
     {
         $this->blocNotes = $blocNotes;
+
+        return $this;
+    }
+
+    public function getCountryCode(): ?string
+    {
+        return $this->countryCode;
+    }
+
+    public function setCountryCode(?string $countryCode): static
+    {
+        $this->countryCode = $countryCode;
 
         return $this;
     }

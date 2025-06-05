@@ -31,7 +31,7 @@ module.exports = {
         },
         box: {
           DEFAULT: '#fff',
-          dark: '#3b435cc2'
+          dark: '#363C51'
         },
         shadow: {
           DEFAULT: '#fff',

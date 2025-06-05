@@ -18,7 +18,21 @@
         {{ encore_entry_link_tags('app') }}
     {% endblock %}
 </head>
-<body class="bg-body dark:bg-body-dark dark:text-white">
+<body class="flex flex-col bg-body dark:bg-body-dark dark:text-white">
+<div id="cookie-banner"
+     class="fixed bottom-0 inset-x-0 bg-white dark:bg-box-dark border-t border-gray-300 dark:border-b-gray-300 p-4 shadow z-50 opacity-95 hidden">
+    <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+        <p class="text-sm text-gray-700 dark:text-white">
+            Ce site ne dépose aucun cookie autre que ceux nécessaires à son fonctionnement. Aucune donnée personnelle
+            n’est collectée à des fins publicitaires ou statistiques. </p>
+        <div class="flex gap-2">
+            <button id="acceptCookies"
+                    class="bg-slate-500 dark:bg-white text-white dark:text-body-dark px-3 py-1 rounded-2xl hover:bg-slate-700 dark:hover:bg-gray-200 text-sm">
+                Fermer
+            </button>
+        </div>
+    </div>
+</div>
 {% block body %}
     <div id="nav"
          class="w-full flex flex-col md:flex-row items-center justify-between gap-4 py-5 px-10">

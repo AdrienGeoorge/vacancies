@@ -3,7 +3,7 @@
 {% block title %}Bienvenue sur {{ app_name }}{% endblock %}
 
 {% block body %}
-    <div class="lg:bg-body dark:bg-body-dark flex items-center justify-center h-full">
+    <div class="lg:bg-body dark:bg-body-dark flex items-center justify-center h-full flex-grow">
         <form method="post"
               class="text-gray-900 flex justify-center sm:items-center
                 dark:text-white w-full lg:w-10/12 xl:w-9/12">
@@ -56,7 +56,8 @@
                             </div>
                             <p class="my-5 text-sm text-gray-600 text-center dark:text-gray-200">
                                 Mot de passe oublié ? Changez-le
-                                <a href="{{ path('password_claim') }}" class="border-b border-gray-500 border-dotted">
+                                <a href="{{ path('password_claim') }}"
+                                   class="border-b border-gray-500 border-dotted">
                                     en cliquant ici
                                 </a>
                             </p>
@@ -70,7 +71,8 @@
                             </button>
                             <p class="mt-6 mb-10 text-sm text-gray-600 text-center dark:text-gray-200">
                                 Vous n'avez pas encore de compte? Créez-le
-                                <a href="{{ path('auth_register') }}" class="border-b border-gray-500 border-dotted">
+                                <a href="{{ path('auth_register') }}"
+                                   class="border-b border-gray-500 border-dotted">
                                     en cliquant ici
                                 </a>
                             </p>
@@ -85,4 +87,19 @@
             </div>
         </form>
     </div>
+    {#    TODO: ajouter quand mentions faites #}
+    {#    <footer class="z-20 w-full p-4 bg-white border-t border-gray-200 shadow-sm flex flex-col md:flex-row items-center md:justify-between md:p-6 dark:bg-gray-800 dark:border-gray-600"> #}
+    {#        <div class="text-sm text-center md:text-left text-gray-500 dark:text-gray-400 flex flex-col"> #}
+    {#            <span>© 2025 Vacancies - Tous droits réservés<br></span> #}
+    {#            <span>Un site créé par <a href="https://adriengeorge.fr/" class="hover:underline">Adrien GEORGE</a>.</span> #}
+    {#        </div> #}
+    {#        <ul class="flex flex-wrap items-center mt-3 text-sm font-medium text-gray-500 dark:text-gray-400 sm:mt-0"> #}
+    {#            <li> #}
+    {#                <a href="#" class="hover:underline me-4 md:me-6">Politique de confidentialité</a> #}
+    {#            </li> #}
+    {#            <li> #}
+    {#                <a href="#" class="hover:underline me-4 md:me-6">Mentions légales</a> #}
+    {#            </li> #}
+    {#        </ul> #}
+    {#    </footer> #}
 {% endblock %}

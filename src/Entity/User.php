@@ -55,6 +55,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->trips = new ArrayCollection();
         $this->shareInvitations = new ArrayCollection();
+        $this->setRoles(['ROLE_USER']);
     }
 
     public function getId(): ?int

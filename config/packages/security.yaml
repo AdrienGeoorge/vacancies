@@ -16,7 +16,9 @@ security:
         main:
             lazy: true
             provider: app_user_provider
-            custom_authenticator: App\Security\UserAuthenticator
+            custom_authenticators:
+                - App\Security\UserAuthenticator
+                - App\Security\GoogleAuthenticator
             logout:
                 path: auth_logout
                 target: auth_login
@@ -26,9 +28,6 @@ security:
                 lifetime: 604800
                 path: /
                 always_remember_me: true
-
-            custom_authenticators:
-                - App\Security\GoogleAuthenticator
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall

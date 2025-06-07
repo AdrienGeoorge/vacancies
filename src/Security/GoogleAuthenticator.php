@@ -24,11 +24,13 @@ class GoogleAuthenticator extends AbstractAuthenticator
     use TargetPathTrait;
 
     public function __construct(
-        private ClientRegistry $clientRegistry,
-        private UserRepository $userRepository,
+        private ClientRegistry         $clientRegistry,
+        private UserRepository         $userRepository,
         private EntityManagerInterface $em,
-        private RouterInterface $router
-    ) {}
+        private RouterInterface        $router
+    )
+    {
+    }
 
     public function supports(Request $request): ?bool
     {
@@ -65,6 +67,7 @@ class GoogleAuthenticator extends AbstractAuthenticator
                         $user->setEmail($email);
                         $user->setFirstname($firstname);
                         $user->setLastname($lastname);
+                        $user->setUsername(strtr(utf8_decode(strtolower($firstname . $lastname)), utf8_decode('àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ'), 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY'));
                         $user->setGoogleId($googleId);
                         $user->setRoles(['ROLE_USER']);
                         $user->setPassword('');

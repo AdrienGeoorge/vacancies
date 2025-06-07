@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Form\AboutYouType;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -37,6 +38,21 @@ class UserController extends AbstractController
 
         return $this->render('user/about.html.twig', [
             'form' => $form->createView()
+        ]);
+    }
+
+    #[Route('/profile', name: 'profile')]
+    #[Route('/profile/{user}', name: 'profile_for_user')]
+    public function profile(?string $user): Response
+    {
+        if ($user) {
+            $user = $this->managerRegistry->getRepository(User::class)->findOneBy(['username' => $user]);
+        } else {
+            $user = $this->getUser();
+        }
+
+        return $this->render('user/profile.html.twig', [
+            'user' => $user
         ]);
     }
 }

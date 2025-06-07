@@ -48,13 +48,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: ShareInvitation::class, mappedBy: 'userToShareWith', orphanRemoval: true)]
     private Collection $shareInvitations;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $googleId = null;
+
+    #[ORM\Column(length: 25, unique: true, nullable: false)]
+    private string $username;
+
+    #[ORM\Column(nullable: false)]
+    private bool $isPrivateProfile;
 
     public function __construct()
     {
         $this->trips = new ArrayCollection();
         $this->shareInvitations = new ArrayCollection();
+        $this->isPrivateProfile = false;
         $this->setRoles(['ROLE_USER']);
     }
 
@@ -230,6 +237,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setGoogleId(string $googleId): static
     {
         $this->googleId = $googleId;
+
+        return $this;
+    }
+
+    public function getUsername(): string
+    {
+        return $this->username;
+    }
+
+    public function setUsername(string $username): static
+    {
+        $this->username = $username;
+
+        return $this;
+    }
+
+    public function isIsPrivateProfile(): bool
+    {
+        return $this->isPrivateProfile;
+    }
+
+    public function setIsPrivateProfile(bool $isPrivateProfile): static
+    {
+        $this->isPrivateProfile = $isPrivateProfile;
 
         return $this;
     }

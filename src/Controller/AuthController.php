@@ -28,6 +28,9 @@ class AuthController extends AbstractController
         $this->requestStack = $requestStack;
     }
 
+    /**
+     * @throws \Exception
+     */
     #[Route('/register', name: 'register')]
     public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): Response
     {
@@ -44,6 +47,10 @@ class AuthController extends AbstractController
                     $form->get('plainPassword')->getData()
                 )
             );
+
+            $user->setUsername(strtr(utf8_decode(
+                strtolower($user->getFirstname() . $user->getLastname() . substr(bin2hex(random_bytes(3)), 0, 5))
+            ), utf8_decode('àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ'), 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY'));
 
             $entityManager->persist($user);
             $entityManager->flush();

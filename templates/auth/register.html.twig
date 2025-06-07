@@ -30,6 +30,8 @@
                                 </ul>
                             </div>
                         {% endif %}
+                        <div>{{ form_widget(registrationForm.firstname) }}</div>
+                        <div>{{ form_widget(registrationForm.lastname) }}</div>
                         <div>{{ form_widget(registrationForm.email) }}</div>
                         <div class="relative">
                             {{ form_widget(registrationForm.plainPassword) }}

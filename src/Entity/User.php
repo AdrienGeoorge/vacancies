@@ -57,10 +57,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(nullable: false)]
     private bool $isPrivateProfile;
 
+    #[ORM\OneToMany(targetEntity: Follows::class, mappedBy: 'followerId', orphanRemoval: true)]
+    private Collection $follows;
+
+    #[ORM\OneToMany(targetEntity: Follows::class, mappedBy: 'followedId', orphanRemoval: true)]
+    private Collection $followedBy;
+
     public function __construct()
     {
         $this->trips = new ArrayCollection();
         $this->shareInvitations = new ArrayCollection();
+        $this->follows = new ArrayCollection();
+        $this->followedBy = new ArrayCollection();
         $this->isPrivateProfile = false;
         $this->setRoles(['ROLE_USER']);
     }
@@ -261,6 +269,66 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setIsPrivateProfile(bool $isPrivateProfile): static
     {
         $this->isPrivateProfile = $isPrivateProfile;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Follows>
+     */
+    public function getFollows(): Collection
+    {
+        return $this->follows;
+    }
+
+    public function addFollow(Follows $follow): static
+    {
+        if (!$this->follows->contains($follow)) {
+            $this->follows->add($follow);
+            $follow->setFollowerId($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFollow(Follows $follow): static
+    {
+        if ($this->follows->removeElement($follow)) {
+            // set the owning side to null (unless already changed)
+            if ($follow->getFollowerId() === $this) {
+                $follow->setFollowerId(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Follows>
+     */
+    public function getFollowedBy(): Collection
+    {
+        return $this->followedBy;
+    }
+
+    public function addFollowedBy(Follows $followedBy): static
+    {
+        if (!$this->followedBy->contains($followedBy)) {
+            $this->followedBy->add($followedBy);
+            $followedBy->setFollowedId($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFollowedBy(Follows $followedBy): static
+    {
+        if ($this->followedBy->removeElement($followedBy)) {
+            // set the owning side to null (unless already changed)
+            if ($followedBy->getFollowedId() === $this) {
+                $followedBy->setFollowedId(null);
+            }
+        }
 
         return $this;
     }

@@ -69,4 +69,24 @@ class TripRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function countPassedCountries($user)
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->select('COUNT(DISTINCT t.countryCode)')
+            ->leftJoin('t.tripTravelers', 'tt');
+
+        return $qb->andWhere(
+            $qb->expr()->orX(
+                $qb->expr()->eq('t.traveler', ':traveler'),
+                $qb->expr()->eq('tt.invited', ':traveler')
+            )
+        )->setParameter('traveler', $user)
+            ->andWhere('t.departureDate IS NOT NULL')
+            ->andWhere('t.returnDate IS NOT NULL')
+            ->andWhere('t.returnDate < :today')
+            ->setParameter('today', (new \DateTime())->format('Y-m-d'))
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

@@ -68,6 +68,9 @@ class Trip
     #[ORM\Column(length: 2, nullable: true)]
     private ?string $countryCode = null;
 
+    #[ORM\Column(length: 9, nullable: true)]
+    private ?string $visibility = null;
+
     public function __construct()
     {
         $this->accommodations = new ArrayCollection();
@@ -448,6 +451,18 @@ class Trip
     public function setCountryCode(?string $countryCode): static
     {
         $this->countryCode = $countryCode;
+
+        return $this;
+    }
+
+    public function getVisibility(): ?string
+    {
+        return $this->visibility;
+    }
+
+    public function setVisibility(?string $visibility): static
+    {
+        $this->visibility = $visibility;
 
         return $this;
     }

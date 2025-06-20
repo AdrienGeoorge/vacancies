@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Trip;
 use App\Entity\User;
 use App\Form\AboutYouType;
 use Doctrine\Persistence\ManagerRegistry;
@@ -51,8 +52,13 @@ class UserController extends AbstractController
             $user = $this->getUser();
         }
 
+        $passedTrips = $this->managerRegistry->getRepository(Trip::class)->getPassedTrips($user);
+        $countPassedCountries = $this->managerRegistry->getRepository(Trip::class)->countPassedCountries($user);
+
         return $this->render('user/profile.html.twig', [
-            'user' => $user
+            'user' => $user,
+            'passedTrips' => count($passedTrips),
+            'countPassedCountries' => $countPassedCountries
         ]);
     }
 }

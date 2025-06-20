@@ -20,7 +20,8 @@ module.exports = {
       },
       borderRadius: {
         '4xl': '2rem',
-        '5xl': '2.5rem'
+        '5xl': '2.5rem',
+        '8xl': '4em'
       },
       colors: {
         transparent: 'transparent',
@@ -32,6 +33,10 @@ module.exports = {
         box: {
           DEFAULT: '#fff',
           dark: '#363C51'
+        },
+        'border-box': {
+          DEFAULT: '#fff',
+          dark: '#43495C'
         },
         shadow: {
           DEFAULT: '#fff',

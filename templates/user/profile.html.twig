@@ -1,7 +1,86 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ app_name }} - A propos de vous{% endblock %}
+{% block title %}{{ app_name }} - Profil de {{ user.firstname ~ ' ' ~ user.lastname }}{% endblock %}
 
 {% block content %}
-dmsdmdsm
+    {{ parent() }}
+    <div class="px-4 md:px-8 flex gap-4 items-start">
+        <div class="w-80 sticky top-4 flex flex-col gap-4">
+            <div class="shadow rounded-3xl bg-box dark:bg-box-dark">
+                <div class="h-40 w-full relative bg-cover rounded-t-3xl"
+                     style="background-image: url({{ asset('/build/images/profile-cover.png') }});">
+                    <div class="absolute left-1/2 -translate-x-1/2 -bottom-1/2 border-4 rounded-full overflow-hidden">
+                        {% if app.user.avatar %}
+                            <img src="{{ user.avatar }}" alt="Mon profil" class="w-40 h-40">
+                        {% else %}
+                            <div class="w-40 h-40 flex items-center justify-center text-white text-8xl font-poppins"
+                                 style="background-color: #495963;">
+                                {{ user.firstname|first }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="mt-20 py-6 px-8 text-center">
+                    <div class="flex flex-col gap-1 justify-center items-center">
+                        <div class="text-2xl font-poppins-semi-bold">{{ user.completeName }}</div>
+                        {% if user == app.user and user.isPrivateProfile %}
+                            <button class="bg-body dark:bg-body-dark flex gap-2 justify-center items-center px-3 py-1 rounded-full">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                     stroke-width="1.5" stroke="currentColor" class="size-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"></path>
+                                </svg>
+                                <span class="font-tenor">Profil privé</span>
+                            </button>
+                        {% endif %}
+                    </div>
+
+                    {% if user == app.user %}
+                        <button
+                                class="mt-4 tracking-wide bg-blue-500 border-2 border-blue-400 text-white w-fit m-auto
+                                    py-2 px-4 rounded-full flex items-center justify-center hover:bg-blue600
+                                    transition-all duration-300 ease-in-out focus:shadow-outline focus:outline-none">
+                            Modifier mon profil
+                        </button>
+                    {% elseif user.follows|filter(f => f.followedBy == app.user)|length == 1 %}
+                        <button
+                                class="mt-4 tracking-wide bg-gray-700 text-white border-gray-500 hover:bg-gray-800 w-fit m-auto
+                                    py-2 px-4 rounded-full flex items-center justify-center border-2
+                                    dark:bg-white dark:text-gray-700 dark:border-gray-300 hover:dark:bg-gray-200
+                                    transition-all duration-300 ease-in-out focus:shadow-outline focus:outline-none">
+                            Ne plus suivre
+                        </button>
+                    {% else %}
+                        <button
+                                class="mt-4 tracking-wide bg-gray-700 text-white border-gray-500 hover:bg-gray-800 w-fit m-auto
+                                    py-2 px-4 rounded-full flex items-center justify-center border-2
+                                    dark:bg-white dark:text-gray-700 dark:border-gray-300 hover:dark:bg-gray-200
+                                    transition-all duration-300 ease-in-out focus:shadow-outline focus:outline-none">
+                            {% if user.isPrivateProfile %}
+                                Demander à suivre
+                            {% else %}
+                                Suivre
+                            {% endif %}
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="shadow rounded-3xl bg-box dark:bg-box-dark p-4">
+                <div class="flex gap-5 justify-center">
+                    <div class="flex flex-1 flex-col items-center bg-teal-500 border-teal-400 border-4 text-white p-4 rounded-3xl justify-center text-center">
+                        <div class="font-roboto-medium text-2xl">{{ passedTrips }}</div>
+                        <div class="font-roboto-thin leading-5">{{ passedTrips > 1 ? 'Voyages réalisés' : 'Voyage réalisé' }}</div>
+                    </div>
+                    <div class="flex flex-1 flex-col items-center bg-amber-400 border-amber-300 border-4 text-white p-4 rounded-3xl justify-center text-center">
+                        <div class="font-roboto-medium text-2xl">{{ countPassedCountries }}</div>
+                        <div class="font-roboto-thin leading-5">{{ countPassedCountries > 1 ? 'Pays découverts' : 'Pays découvert' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="bg-blue-50 flex-1">
+
+        </div>
+    </div>
 {% endblock %}

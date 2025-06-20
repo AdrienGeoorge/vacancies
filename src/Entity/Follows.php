@@ -16,11 +16,11 @@ class Follows
 
     #[ORM\ManyToOne(inversedBy: 'follows')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?User $followerId = null;
+    private ?User $follower = null;
 
     #[ORM\ManyToOne(inversedBy: 'followedBy')]
     #[ORM\JoinColumn(nullable: false)]
-    private ?User $followedId = null;
+    private ?User $followedBy = null;
 
     #[ORM\Column]
     private ?bool $isApproved = null;
@@ -33,26 +33,26 @@ class Follows
         return $this->id;
     }
 
-    public function getFollowerId(): ?User
+    public function getFollower(): ?User
     {
-        return $this->followerId;
+        return $this->follower;
     }
 
-    public function setFollowerId(?User $followerId): static
+    public function setFollower(?User $follower): static
     {
-        $this->followerId = $followerId;
+        $this->follower = $follower;
 
         return $this;
     }
 
-    public function getFollowedId(): ?User
+    public function getFollowedBy(): ?User
     {
-        return $this->followedId;
+        return $this->followedBy;
     }
 
-    public function setFollowedId(?User $followedId): static
+    public function setFollowedBy(?User $followedBy): static
     {
-        $this->followedId = $followedId;
+        $this->followedBy = $followedBy;
 
         return $this;
     }

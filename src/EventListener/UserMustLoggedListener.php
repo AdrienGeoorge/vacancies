@@ -28,7 +28,6 @@ class UserMustLoggedListener implements EventSubscriberInterface
                 '/register' !== $event->getRequest()->getPathInfo() &&
                 '/connect/google' !== $event->getRequest()->getPathInfo() &&
                 '/connect/google/check' !== $event->getRequest()->getPathInfo() &&
-                '/countries.json' !== $event->getRequest()->getPathInfo() &&
                 !str_contains($event->getRequest()->getPathInfo(), '/password')) {
                 $response = new RedirectResponse($this->router->generate('auth_login'));
                 $event->setResponse($response);

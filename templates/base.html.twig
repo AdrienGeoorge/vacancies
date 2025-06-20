@@ -50,12 +50,22 @@
             <a href="{{ path('trip_new') }}" class="flex tracking-wide bg-amber-50 text-black p-3 rounded-full
                                     border border-amber-300 items-center justify-center gap-1.5 hover:bg-amber-100
                                     transition-all duration-300 ease-in-out focus:shadow-outline focus:outline-none">
-                <div class="rounded-full bg-amber-300 px-1">+</div>
+                <div class="rounded-full bg-amber-300 px-1 hidden md:block">+</div>
                 Nouveau voyage
             </a>
         </div>
 
-        <div class="flex flex-row gap-2">
+        <div class="flex flex-row gap-2 items-center">
+            <a href="{{ path('user_profile') }}" class="rounded-full overflow-hidden">
+                {% if app.user.avatar %}
+                    <img src="{{ app.user.avatar }}" alt="Mon profil" class="w-12 h-12">
+                {% else %}
+                    <div class="w-12 h-12 flex items-center justify-center text-white text-2xl font-poppins"
+                         style="background-color: #495963;">
+                        {{ app.user.firstname|first }}
+                    </div>
+                {% endif %}
+            </a>
             <a href="{{ path('auth_logout') }}" class="tracking-wide bg-red-400 text-white w-40 py-3 rounded-full border border-red-200
                                     flex items-center justify-center hover:bg-red-600 transition-all duration-300
                                     ease-in-out focus:shadow-outline focus:outline-none">Déconnexion</a>

@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -57,11 +58,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(nullable: false)]
     private bool $isPrivateProfile;
 
-    #[ORM\OneToMany(targetEntity: Follows::class, mappedBy: 'followerId', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Follows::class, mappedBy: 'follower', orphanRemoval: true)]
     private Collection $follows;
 
-    #[ORM\OneToMany(targetEntity: Follows::class, mappedBy: 'followedId', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Follows::class, mappedBy: 'followedBy', orphanRemoval: true)]
     private Collection $followedBy;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $avatar = null;
 
     public function __construct()
     {
@@ -285,7 +289,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if (!$this->follows->contains($follow)) {
             $this->follows->add($follow);
-            $follow->setFollowerId($this);
+            $follow->setFollower($this);
         }
 
         return $this;
@@ -295,8 +299,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if ($this->follows->removeElement($follow)) {
             // set the owning side to null (unless already changed)
-            if ($follow->getFollowerId() === $this) {
-                $follow->setFollowerId(null);
+            if ($follow->getFollower() === $this) {
+                $follow->setFollower(null);
             }
         }
 
@@ -315,7 +319,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if (!$this->followedBy->contains($followedBy)) {
             $this->followedBy->add($followedBy);
-            $followedBy->setFollowedId($this);
+            $followedBy->setFollowedBy($this);
         }
 
         return $this;
@@ -325,10 +329,22 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if ($this->followedBy->removeElement($followedBy)) {
             // set the owning side to null (unless already changed)
-            if ($followedBy->getFollowedId() === $this) {
-                $followedBy->setFollowedId(null);
+            if ($followedBy->getFollowedBy() === $this) {
+                $followedBy->setFollowedBy(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getAvatar(): ?string
+    {
+        return $this->avatar;
+    }
+
+    public function setAvatar(?string $avatar): static
+    {
+        $this->avatar = $avatar;
 
         return $this;
     }

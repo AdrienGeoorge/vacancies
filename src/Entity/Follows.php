@@ -23,7 +23,7 @@ class Follows
     private ?User $followedBy = null;
 
     #[ORM\Column]
-    private ?bool $isApproved = null;
+    private ?bool $isApproved = false;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $createdAt = null;

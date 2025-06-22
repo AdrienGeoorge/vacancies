@@ -117,5 +117,6 @@ if (tripId && calendarEl) {
             planning.render()
         })
         .catch(() => {
+            alert('error', 'Une erreur est survenue lors du chargement du planning.')
         })
 }

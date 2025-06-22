@@ -2,6 +2,7 @@ import "quill/dist/quill.core.css"
 import "quill/dist/quill.snow.css"
 import './styles/app.css'
 
+import './js/components/alert'
 import initializeCookies from './js/components/cookies.js'
 import initializePasswordIcons from './js/components/passwordIcon.js'
 

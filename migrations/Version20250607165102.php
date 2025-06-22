@@ -20,7 +20,7 @@ final class Version20250607165102 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE user ADD username VARCHAR(25) NOT NULL, ADD is_private_profile TINYINT(1) NOT NULL DEFAULT FALSE;');
+        $this->addSql('ALTER TABLE user ADD username VARCHAR(25) NOT NULL, ADD private_profile TINYINT(1) NOT NULL DEFAULT FALSE;');
         $this->addSql("UPDATE user
                             SET username = CASE
                                 WHEN firstname IS NOT NULL AND firstname != ''
@@ -36,6 +36,6 @@ final class Version20250607165102 extends AbstractMigration
     {
         // this down() migration is auto-generated, please modify it to your needs
         $this->addSql('DROP INDEX UNIQ_8D93D649F85E0677 ON `user`');
-        $this->addSql('ALTER TABLE `user` DROP username, DROP is_private_profile');
+        $this->addSql('ALTER TABLE `user` DROP username, DROP private_profile');
     }
 }

@@ -162,7 +162,7 @@ if (tripId) {
                 })
                     .then(() => {})
                     .catch(() => {
-                        location.reload()
+                        alert('error', 'Une erreur est survenue lors de la sauvegarde du bloc note.')
                     })
             }, 2000)
         });

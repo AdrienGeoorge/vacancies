@@ -2,11 +2,13 @@
 
 namespace App\Controller;
 
+use App\Entity\Follows;
 use App\Entity\Trip;
 use App\Entity\User;
 use App\Form\AboutYouType;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -59,6 +61,40 @@ class UserController extends AbstractController
             'user' => $user,
             'passedTrips' => count($passedTrips),
             'countPassedCountries' => $countPassedCountries
+        ]);
+    }
+
+    #[Route('/follow/{user}', name: 'follow', options: ['expose' => true], methods: ['POST'])]
+    public function followUser(Request $request, User $user): JsonResponse
+    {
+        if (!$request->isXmlHttpRequest()) return new JsonResponse([], 500);
+
+        $follow = $this->managerRegistry->getRepository(Follows::class)->findOneBy([
+            'followedBy' => $this->getUser(),
+            'follower' => $user
+        ]);
+
+        if ($follow) {
+            $this->managerRegistry->getManager()->remove($follow);
+            $this->managerRegistry->getManager()->flush();
+            return new JsonResponse([
+                'status' => 'deleted',
+                'privateProfile' => $user->isPrivateProfile()
+            ]);
+        }
+
+        $follow = (new Follows())
+            ->setFollowedBy($this->getUser())
+            ->setFollower($user)
+            ->setCreatedAt(new \DateTime());
+
+        if (!$user->isPrivateProfile()) $follow->setIsApproved(true);
+
+        $this->managerRegistry->getManager()->persist($follow);
+        $this->managerRegistry->getManager()->flush();
+
+        return new JsonResponse([
+            'status' => $user->isPrivateProfile() ? 'waiting' : 'followed'
         ]);
     }
 }

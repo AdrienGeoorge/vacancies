@@ -56,7 +56,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private string $username;
 
     #[ORM\Column(nullable: false)]
-    private bool $isPrivateProfile;
+    private bool $privateProfile;
 
     #[ORM\OneToMany(targetEntity: Follows::class, mappedBy: 'follower', orphanRemoval: true)]
     private Collection $follows;
@@ -73,7 +73,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->shareInvitations = new ArrayCollection();
         $this->follows = new ArrayCollection();
         $this->followedBy = new ArrayCollection();
-        $this->isPrivateProfile = false;
+        $this->privateProfile = false;
         $this->setRoles(['ROLE_USER']);
     }
 
@@ -265,14 +265,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function isIsPrivateProfile(): bool
+    public function isPrivateProfile(): bool
     {
-        return $this->isPrivateProfile;
+        return $this->privateProfile;
     }
 
-    public function setIsPrivateProfile(bool $isPrivateProfile): static
+    public function setPrivateProfile(bool $privateProfile): static
     {
-        $this->isPrivateProfile = $isPrivateProfile;
+        $this->privateProfile = $privateProfile;
 
         return $this;
     }

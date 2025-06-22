@@ -48,10 +48,7 @@ if (formShareButton) {
                     data: params,
                     headers: {'X-Requested-With': 'XMLHttpRequest'}
                 })
-                    .then(() => {
-                        location.reload()
-                    })
-                    .catch(() => {
+                    .finally(() => {
                         location.reload()
                     })
             } else {

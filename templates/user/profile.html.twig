@@ -4,6 +4,7 @@
 
 {% block content %}
     {{ parent() }}
+    <input type="hidden" value="{{ user.id }}" id="userId">
     <div class="px-4 md:px-8 flex gap-4 items-start">
         <div class="w-80 sticky top-4 flex flex-col gap-4">
             <div class="shadow rounded-3xl bg-box dark:bg-box-dark">
@@ -23,7 +24,7 @@
                 <div class="mt-20 py-6 px-8 text-center">
                     <div class="flex flex-col gap-1 justify-center items-center">
                         <div class="text-2xl font-poppins-semi-bold">{{ user.completeName }}</div>
-                        {% if user == app.user and user.isPrivateProfile %}
+                        {% if user == app.user and user.privateProfile %}
                             <button class="bg-body dark:bg-body-dark flex gap-2 justify-center items-center px-3 py-1 rounded-full">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                      stroke-width="1.5" stroke="currentColor" class="size-4">
@@ -35,6 +36,7 @@
                         {% endif %}
                     </div>
 
+                    {% set followStatus = user.follows|filter(f => f.followedBy == app.user) %}
                     {% if user == app.user %}
                         <button
                                 class="mt-4 tracking-wide bg-blue-500 border-2 border-blue-400 text-white w-fit m-auto
@@ -42,21 +44,31 @@
                                     transition-all duration-300 ease-in-out focus:shadow-outline focus:outline-none">
                             Modifier mon profil
                         </button>
-                    {% elseif user.follows|filter(f => f.followedBy == app.user)|length == 1 %}
-                        <button
-                                class="mt-4 tracking-wide bg-gray-700 text-white border-gray-500 hover:bg-gray-800 w-fit m-auto
+                    {% elseif followStatus|length == 1 %}
+                        {% if followStatus|first.isApproved %}
+                            <button
+                                    class="mt-4 tracking-wide bg-gray-700 text-white border-gray-500 hover:bg-gray-800 w-fit m-auto
                                     py-2 px-4 rounded-full flex items-center justify-center border-2
                                     dark:bg-white dark:text-gray-700 dark:border-gray-300 hover:dark:bg-gray-200
-                                    transition-all duration-300 ease-in-out focus:shadow-outline focus:outline-none">
-                            Ne plus suivre
-                        </button>
+                                    transition-all duration-300 ease-in-out focus:shadow-outline focus:outline-none followButton">
+                                Ne plus suivre
+                            </button>
+                        {% else %}
+                            <button
+                                    class="mt-4 tracking-wide bg-gray-700 text-white border-gray-500 hover:bg-gray-800 w-fit m-auto
+                                    py-2 px-4 rounded-full flex items-center justify-center border-2
+                                    dark:bg-white dark:text-gray-700 dark:border-gray-300 hover:dark:bg-gray-200
+                                    transition-all duration-300 ease-in-out focus:shadow-outline focus:outline-none followButton">
+                                Demande de suivi en attente
+                            </button>
+                        {% endif %}
                     {% else %}
                         <button
                                 class="mt-4 tracking-wide bg-gray-700 text-white border-gray-500 hover:bg-gray-800 w-fit m-auto
                                     py-2 px-4 rounded-full flex items-center justify-center border-2
                                     dark:bg-white dark:text-gray-700 dark:border-gray-300 hover:dark:bg-gray-200
-                                    transition-all duration-300 ease-in-out focus:shadow-outline focus:outline-none">
-                            {% if user.isPrivateProfile %}
+                                    transition-all duration-300 ease-in-out focus:shadow-outline focus:outline-none followButton">
+                            {% if user.privateProfile %}
                                 Demander à suivre
                             {% else %}
                                 Suivre
@@ -83,4 +95,9 @@
 
         </div>
     </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {{ encore_entry_script_tags('profile') }}
 {% endblock %}

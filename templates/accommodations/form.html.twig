@@ -142,5 +142,6 @@
 
 {% block javascripts %}
     {{ parent() }}
+    {{ encore_entry_script_tags('accommodationForm') }}
     {{ encore_entry_script_tags('accommodationAdditionalExpensive') }}
 {% endblock %}

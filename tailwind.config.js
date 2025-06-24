@@ -23,6 +23,10 @@ module.exports = {
         '5xl': '2.5rem',
         '8xl': '4em'
       },
+      leading: {
+        3: '0.8rem',
+        4: '1rem'
+      },
       colors: {
         transparent: 'transparent',
         current: 'currentColor',

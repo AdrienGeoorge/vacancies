@@ -5,8 +5,8 @@
 {% block content %}
     {{ parent() }}
     <input type="hidden" value="{{ user.id }}" id="userId">
-    <div class="px-4 md:px-8 flex gap-4 items-start">
-        <div class="w-80 sticky top-4 flex flex-col gap-4">
+    <div class="px-4 md:px-8 flex gap-4 items-start flex-col sm:flex-row">
+        <div class="w-full sm:sticky top-4 flex flex-col gap-4 sm:w-80">
             <div class="shadow rounded-3xl bg-box dark:bg-box-dark">
                 <div class="h-40 w-full relative bg-cover rounded-t-3xl"
                      style="background-image: url({{ asset('/build/images/profile-cover.png') }});">
@@ -91,8 +91,32 @@
                 </div>
             </div>
         </div>
-        <div class="bg-blue-50 flex-1">
-
+        <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-3.5 px-6">
+                <div class="mb-2 flex flex-row items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                         stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                              d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z"></path>
+                    </svg>
+                    <div class="font-poppins-semi-bold text-xl">Écussons de route</div>
+                </div>
+                <div class="mt-4">
+                    {% if user.userBadges|length > 0 %}
+                        <div class="grid gap-5 grid-cols-[repeat(auto-fill,minmax(135px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(110px,1fr))]">
+                            {% for badge in user.userBadges %}
+                                <div class="flex flex-col gap-3 text-center">
+                                    <img src="{{ asset('build/images/badges/' ~ badge.name ~ '_'~ badge.level ~ '.svg') }}" alt="{{ badge.title }}">
+                                    <div class="text-sm leading-3 font-roboto">{{ badge.description }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-lg">Aucun écussion sur son étendard... mais chaque aventure est un premier pas!</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-2">test</div>
         </div>
     </div>
 {% endblock %}

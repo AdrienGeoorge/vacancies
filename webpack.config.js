@@ -29,6 +29,10 @@ Encore
     .addEntry('planning', './assets/js/planning.js')
     .addEntry('shareTrip', './assets/js/shareTrip.js')
     .addEntry('profile', './assets/js/profile.js')
+    .addEntry('tripForm', './assets/js/tripForm.js')
+    .addEntry('accommodationForm', './assets/js/accommodationForm.js')
+    .addEntry('transportForm', './assets/js/transportForm.js')
+    .addEntry('planningForm', './assets/js/planningForm.js')
 
     .copyFiles({
         from: './assets/images',

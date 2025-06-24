@@ -3,7 +3,9 @@
 namespace App\Repository;
 
 use App\Entity\TripTraveler;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Exception;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -19,6 +21,48 @@ class TripTravelerRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, TripTraveler::class);
+    }
+
+    /**
+     * @param User $user
+     * @return false|mixed
+     * @throws Exception
+     */
+    public function countTripInSolo(User $user): mixed
+    {
+        return $this->getEntityManager()->getConnection()->executeQuery(
+            "SELECT COUNT(*)
+                FROM trip_traveler t1
+                LEFT JOIN trip on t1.trip_id = trip.id
+                WHERE invited_id = :userId
+                AND trip.return_date < :today
+                AND (SELECT COUNT(*)
+                       FROM trip_traveler t2
+                       WHERE t2.trip_id = t1.trip_id
+                       ) = 1",
+            ['userId' => $user->getId(), 'today' => (new \DateTime())->format('Y-m-d')]
+        )->fetchOne();
+    }
+
+    /**
+     * @param User $user
+     * @return false|mixed
+     * @throws Exception
+     */
+    public function countTripInDuo(User $user): mixed
+    {
+        return $this->getEntityManager()->getConnection()->executeQuery(
+            "SELECT COUNT(*)
+                FROM trip_traveler t1
+                LEFT JOIN trip on t1.trip_id = trip.id
+                WHERE invited_id = :userId
+                AND trip.return_date < :today
+                AND (SELECT COUNT(*)
+                       FROM trip_traveler t2
+                       WHERE t2.trip_id = t1.trip_id
+                       ) = 2",
+            ['userId' => $user->getId(), 'today' => (new \DateTime())->format('Y-m-d')]
+        )->fetchOne();
     }
 
     //    /**

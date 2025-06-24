@@ -158,5 +158,6 @@
 
 {% block javascripts %}
     {{ parent() }}
+    {{ encore_entry_script_tags('transportForm') }}
     {{ encore_entry_script_tags('transport') }}
 {% endblock %}

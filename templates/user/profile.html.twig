@@ -101,18 +101,24 @@
                     </svg>
                     <div class="font-poppins-semi-bold text-xl">Écussons de route</div>
                 </div>
-                <div class="mt-4">
+                <div class="mt-7">
                     {% if user.userBadges|length > 0 %}
                         <div class="grid gap-5 grid-cols-[repeat(auto-fill,minmax(135px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(110px,1fr))]">
-                            {% for badge in user.userBadges %}
+                            {% for badge in user.userBadges|slice(0,6) %}
                                 <div class="flex flex-col gap-3 text-center">
-                                    <img src="{{ asset('build/images/badges/' ~ badge.name ~ '_'~ badge.level ~ '.svg') }}" alt="{{ badge.title }}">
-                                    <div class="text-sm leading-3 font-roboto">{{ badge.description }}</div>
+                                    <img src="{{ asset('build/images/badges/' ~ badge.name ~ '_'~ badge.level ~ '.svg') }}"
+                                         alt="{{ badge.title }}">
+                                    <div class="flex flex-col gap-2 text-sm font-roboto leading-4">
+                                        <div class="font-bold">{{ badge.title }}</div>
+                                        <div>{{ badge.description }}</div>
+                                    </div>
                                 </div>
                             {% endfor %}
                         </div>
                     {% else %}
-                        <div class="text-lg">Aucun écussion sur son étendard... mais chaque aventure est un premier pas!</div>
+                        <div class="text-lg">Aucun écussion sur son étendard... mais chaque aventure est un premier
+                            pas!
+                        </div>
                     {% endif %}
                 </div>
             </div>

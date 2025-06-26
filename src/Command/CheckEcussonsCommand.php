@@ -76,35 +76,35 @@ class CheckEcussonsCommand extends Command
             switch ($tripInSolo) {
                 case 1:
                     $badgeData = [
-                        'title' => 'Explorateur discret',
+                        'title' => 'Premier voyage en solitaire',
                         'description' => 'Premiers pas vers l\'aventure en solo.',
                         'level' => 1
                     ];
                     break;
                 case 5:
                     $badgeData = [
-                        'title' => 'Touriste indépendant',
+                        'title' => '5 voyages solo',
                         'description' => 'A l\'aise sans personne, même à l\'étranger.',
                         'level' => 2
                     ];
                     break;
                 case 10:
                     $badgeData = [
-                        'title' => 'Aventurer solitaire',
+                        'title' => '10 voyages solo',
                         'description' => 'Le monde est mieux sans guide.',
                         'level' => 3
                     ];
                     break;
                 case 20:
                     $badgeData = [
-                        'title' => 'Loup solitaire',
+                        'title' => '20 voyages solo',
                         'description' => 'Voyage seul, mais jamais perdu.',
                         'level' => 4
                     ];
                     break;
                 case 50:
                     $badgeData = [
-                        'title' => 'Globe-trotter libre',
+                        'title' => '50 voyages solo',
                         'description' => 'Libre comme l\'air, partout sur Terre.',
                         'level' => 5
                     ];
@@ -137,35 +137,35 @@ class CheckEcussonsCommand extends Command
             switch ($tripInDuo) {
                 case 1:
                     $badgeData = [
-                        'title' => 'Binôme naissant',
+                        'title' => 'Premier voyage en duo',
                         'description' => 'Un premier voyage à deux, tout commence ici.',
                         'level' => 1
                     ];
                     break;
                 case 5:
                     $badgeData = [
-                        'title' => 'Complice d\'escapade',
+                        'title' => '5 voyages à deux',
                         'description' => 'Partir à deux devient une belle habitude.',
                         'level' => 2
                     ];
                     break;
                 case 10:
                     $badgeData = [
-                        'title' => 'Partenaire de route',
+                        'title' => '10 voyages à deux',
                         'description' => 'Le duo avance, main dans la main.',
                         'level' => 3
                     ];
                     break;
                 case 20:
                     $badgeData = [
-                        'title' => 'Duo vagabond',
+                        'title' => '20 voyages à deux',
                         'description' => 'Deux personnes, mille destinations, une même envie d\'ailleurs.',
                         'level' => 2
                     ];
                     break;
                 case 50:
                     $badgeData = [
-                        'title' => 'Compagnon d\'évasion',
+                        'title' => '50 voyages à deux',
                         'description' => 'L\'évasion, c\'est toujours mieux à deux.',
                         'level' => 2
                     ];
@@ -198,35 +198,35 @@ class CheckEcussonsCommand extends Command
             switch ($tripInGroup) {
                 case 1:
                     $badgeData = [
-                        'title' => 'Compagnon de route',
+                        'title' => 'Premier voyage en groupe',
                         'description' => 'Un premier trip collectif, et personne ne s’est perdu ? Bravo.',
                         'level' => 1
                     ];
                     break;
                 case 5:
                     $badgeData = [
-                        'title' => 'Complices de voyage',
+                        'title' => '5 voyages en groupe',
                         'description' => 'Déjà plusieurs trajets partagés. Tu aimes voyager entouré.',
                         'level' => 2
                     ];
                     break;
                 case 10:
                     $badgeData = [
-                        'title' => 'Explorateur en groupe',
+                        'title' => '10 voyages en groupe',
                         'description' => 'Tu sais te fondre dans un groupe sans perdre ton sac à dos.',
                         'level' => 3
                     ];
                     break;
                 case 20:
                     $badgeData = [
-                        'title' => 'Co-voyageur aguerri',
+                        'title' => '20 voyages en groupe',
                         'description' => 'Le cœur du groupe, c’est toi. Aucun trip sans ton nom dans la liste.',
                         'level' => 4
                     ];
                     break;
                 case 50:
                     $badgeData = [
-                        'title' => 'Pilier du groupe',
+                        'title' => '50 voyages en groupe',
                         'description' => 'Sans toi, les voyages de groupe n’auraient pas la même saveur.',
                         'level' => 5
                     ];
@@ -245,6 +245,59 @@ class CheckEcussonsCommand extends Command
                         ->setLevel($badgeData['level']);
 
                     $this->managerRegistry->getManager()->persist($badgeGroup);
+                }
+            }
+        }
+
+        /**
+         * Objectif : voyages autour du monde
+         */
+        $countVisitedCountries = $this->managerRegistry->getRepository(TripTraveler::class)->countVisitedCountries($user);
+        if ($countVisitedCountries) {
+            $badgeData = [];
+            switch ($countVisitedCountries) {
+                case $countVisitedCountries < 5:
+                    $badgeData = [
+                        'title' => 'Premier pays visité',
+                        'description' => 'Tu viens d\'ouvrir ton passeport au monde.',
+                        'level' => 1
+                    ];
+                    break;
+                case $countVisitedCountries >= 5 && $countVisitedCountries < 10:
+                    $badgeData = [
+                        'title' => '5 pays visités',
+                        'description' => 'Ton passeport commence à noircir, et ta soif de découverte grandit.',
+                        'level' => 2
+                    ];
+                    break;
+                case $countVisitedCountries >= 10 && $countVisitedCountries < 20:
+                    $badgeData = [
+                        'title' => '10 pays visités',
+                        'description' => 'Tu explores le monde avec aisance.',
+                        'level' => 3
+                    ];
+                    break;
+                case $countVisitedCountries >= 20:
+                    $badgeData = [
+                        'title' => 'Plus de 20 pays visités',
+                        'description' => 'Le monde n\'a plus de secret pour toi.',
+                        'level' => 4
+                    ];
+                    break;
+            }
+
+            if ($badgeData) {
+                $badgeCountry = $this->managerRegistry->getRepository(UserBadges::class)->findOneBy(['name' => 'monde', 'user' => $user, 'level' => $badgeData['level']]);
+
+                if (!$badgeCountry) {
+                    $badgeCountry = (new UserBadges())
+                        ->setName('monde')
+                        ->setUser($user)
+                        ->setTitle($badgeData['title'])
+                        ->setDescription($badgeData['description'])
+                        ->setLevel($badgeData['level']);
+
+                    $this->managerRegistry->getManager()->persist($badgeCountry);
                 }
             }
         }

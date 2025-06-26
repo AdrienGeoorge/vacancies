@@ -86,6 +86,23 @@ class TripTravelerRepository extends ServiceEntityRepository
         )->fetchOne();
     }
 
+    /**
+     * @param User $user
+     * @return false|mixed
+     * @throws Exception
+     */
+    public function countVisitedCountries(User $user): mixed
+    {
+        return $this->getEntityManager()->getConnection()->executeQuery(
+            "SELECT count(DISTINCT country_code) as nbCountries
+                FROM trip
+                LEFT JOIN trip_traveler tt on trip.id = tt.trip_id
+                WHERE tt.invited_id = :userId
+                AND trip.return_date < :today",
+            ['userId' => $user->getId(), 'today' => (new \DateTime())->format('Y-m-d')]
+        )->fetchOne();
+    }
+
     //    /**
     //     * @return OnSitePerson[] Returns an array of OnSitePerson objects
     //     */

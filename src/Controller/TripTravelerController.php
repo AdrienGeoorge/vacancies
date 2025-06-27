@@ -27,7 +27,7 @@ class TripTravelerController extends AbstractController
 
     #[Route('/', name: 'index')]
     #[IsGranted('view', subject: 'trip')]
-    public function accommodations(Trip $trip): Response
+    public function showList(Trip $trip): Response
     {
         return $this->render('trip_travelers/index.html.twig', [
             'trip' => $trip,

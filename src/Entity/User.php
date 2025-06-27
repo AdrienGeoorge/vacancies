@@ -71,6 +71,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OrderBy(['id' => 'DESC'])]
     private Collection $userBadges;
 
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $biography = null;
+
     public function __construct()
     {
         $this->trips = new ArrayCollection();
@@ -290,6 +293,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->follows;
     }
 
+    /**
+     * @return Collection<int, Follows>
+     */
+    public function getApprovedFollows(): Collection
+    {
+        return $this->follows->filter(function ($follow) {
+            return $follow->isIsApproved();
+        });
+    }
+
     public function addFollow(Follows $follow): static
     {
         if (!$this->follows->contains($follow)) {
@@ -318,6 +331,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getFollowedBy(): Collection
     {
         return $this->followedBy;
+    }
+
+    /**
+     * @return Collection<int, Follows>
+     */
+    public function getApprovedFollowedBy(): Collection
+    {
+        return $this->followedBy->filter(function ($followed) {
+            return $followed->isIsApproved();
+        });
     }
 
     public function addFollowedBy(Follows $followedBy): static
@@ -380,6 +403,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $userBadge->setUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getBiography(): ?string
+    {
+        return $this->biography;
+    }
+
+    public function setBiography(?string $biography): static
+    {
+        $this->biography = $biography;
 
         return $this;
     }

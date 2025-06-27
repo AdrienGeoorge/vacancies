@@ -89,4 +89,27 @@ class TripRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    public function getCountryMostVisited($user)
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->select('t.countryCode, COUNT(DISTINCT t.countryCode) AS visitCount')
+            ->leftJoin('t.tripTravelers', 'tt');
+
+        return $qb->andWhere(
+            $qb->expr()->orX(
+                $qb->expr()->eq('t.traveler', ':traveler'),
+                $qb->expr()->eq('tt.invited', ':traveler')
+            )
+        )->setParameter('traveler', $user)
+            ->andWhere('t.departureDate IS NOT NULL')
+            ->andWhere('t.returnDate IS NOT NULL')
+            ->andWhere('t.returnDate < :today')
+            ->setParameter('today', (new \DateTime())->format('Y-m-d'))
+            ->groupBy('t.countryCode')
+            ->orderBy('visitCount', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

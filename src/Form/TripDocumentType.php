@@ -38,7 +38,7 @@ class TripDocumentType extends AbstractType
                 ],
                 'constraints' => [
                     new File([
-                        'maxSize' => '128M',
+                        'maxSize' => '500M',
                         'mimeTypes' => [
                             'image/jpeg',
                             'image/png',

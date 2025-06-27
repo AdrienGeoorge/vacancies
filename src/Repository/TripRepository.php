@@ -108,6 +108,7 @@ class TripRepository extends ServiceEntityRepository
             ->setParameter('today', (new \DateTime())->format('Y-m-d'))
             ->groupBy('t.countryCode')
             ->orderBy('visitCount', 'DESC')
+            ->addOrderBy('t.departureDate', 'ASC')
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();

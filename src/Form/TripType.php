@@ -7,7 +7,6 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CountryType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
-use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -52,7 +51,6 @@ class TripType extends AbstractType
                               dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
                               dark:placeholder-gray-300',
                     'placeholder' => 'Date de départ',
-                    'min' => (new \DateTime('yesterday'))->format('Y-m-d')
                 ]
             ])
             ->add('returnDate', DateType::class, [
@@ -66,7 +64,6 @@ class TripType extends AbstractType
                               dark:bg-transparent dark:border-gray-300 dark:focus:bg-transparent
                               dark:placeholder-gray-300',
                     'placeholder' => 'Date de retour',
-                    'min' => (new \DateTime('yesterday'))->format('Y-m-d')
                 ]
             ])
             ->add('image', FileType::class, [

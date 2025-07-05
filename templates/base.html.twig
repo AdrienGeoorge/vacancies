@@ -56,19 +56,34 @@
         </div>
 
         <div class="flex flex-row gap-2 items-center">
-            <a href="{{ path('user_profile') }}" class="rounded-full overflow-hidden">
+            <div class="flex gap-3 bg-box dark:bg-box-dark rounded-full border dark:border-gray-600 w-12 h-12
+                        justify-center items-center cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                     stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"></path>
+                </svg>
+            </div>
+            <div class="rounded-full showUserMenu relative cursor-pointer">
                 {% if app.user.avatar %}
-                    <img src="{{ app.user.avatar }}" alt="Mon profil" class="w-12 h-12">
+                    <img src="{{ app.user.avatar }}" alt="Mon profil" class="w-12 h-12 rounded-full">
                 {% else %}
-                    <div class="w-12 h-12 flex items-center justify-center text-white text-2xl font-poppins"
+                    <div class="w-12 h-12 flex items-center justify-center text-white text-2xl font-poppins rounded-full"
                          style="background-color: #495963;">
                         {{ app.user.firstname|first }}
                     </div>
                 {% endif %}
-            </a>
-            <a href="{{ path('auth_logout') }}" class="tracking-wide bg-red-400 text-white w-40 py-3 rounded-full border border-red-200
+                <div class="absolute hidden userMenu -right-4 top-14 shadow rounded-3xl bg-box dark:bg-box-dark p-3 flex-col gap-2 z-20">
+                    <a href="{{ path('user_profile') }}" class="tracking-wide w-40 py-3 rounded-2xl border-2
+                                    bg-gray-700 text-white border-gray-500 hover:bg-gray-800
+                                    dark:bg-white dark:text-gray-700 dark:border-gray-300 hover:dark:bg-gray-200
+                                    flex items-center justify-center transition-all duration-300
+                                    ease-in-out focus:shadow-outline focus:outline-none">Mon profil</a>
+                    <a href="{{ path('auth_logout') }}" class="tracking-wide bg-red-400 text-white w-40 py-3 rounded-2xl border-2 border-red-200
                                     flex items-center justify-center hover:bg-red-600 transition-all duration-300
                                     ease-in-out focus:shadow-outline focus:outline-none">Déconnexion</a>
+                </div>
+            </div>
         </div>
     </div>
     <div id="content" class="p-2 pb-8">

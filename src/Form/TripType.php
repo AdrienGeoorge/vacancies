@@ -2,9 +2,10 @@
 
 namespace App\Form;
 
+use App\Entity\Country;
 use App\Entity\Trip;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\CountryType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -27,11 +28,12 @@ class TripType extends AbstractType
                     'placeholder' => 'Nom du voyage',
                 ]
             ])
-            ->add('countryCode', CountryType::class, [
+            ->add('country', EntityType::class, [
+                'class' => Country::class,
+                'choice_label' => 'name',
                 'label' => 'Pays du voyage',
                 'placeholder' => 'Sélectionnez un pays',
                 'required' => true,
-                'choice_translation_locale' => 'fr',
                 'attr' => [
                     'class' => 'w-full px-8 py-4 rounded-2xl font-medium bg-gray-100 border border-gray-200
                               placeholder-gray-400 text-sm

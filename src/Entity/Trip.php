@@ -65,11 +65,11 @@ class Trip
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $blocNotes = null;
 
-    #[ORM\Column(length: 2, nullable: true)]
-    private ?string $countryCode = null;
-
     #[ORM\Column(length: 9, nullable: true)]
     private ?string $visibility = null;
+
+    #[ORM\ManyToOne(inversedBy: 'trips')]
+    private ?Country $country = null;
 
     public function __construct()
     {
@@ -443,18 +443,6 @@ class Trip
         return $this;
     }
 
-    public function getCountryCode(): ?string
-    {
-        return $this->countryCode;
-    }
-
-    public function setCountryCode(?string $countryCode): static
-    {
-        $this->countryCode = $countryCode;
-
-        return $this;
-    }
-
     public function getVisibility(): ?string
     {
         return $this->visibility;
@@ -463,6 +451,18 @@ class Trip
     public function setVisibility(?string $visibility): static
     {
         $this->visibility = $visibility;
+
+        return $this;
+    }
+
+    public function getCountry(): ?Country
+    {
+        return $this->country;
+    }
+
+    public function setCountry(?Country $country): static
+    {
+        $this->country = $country;
 
         return $this;
     }

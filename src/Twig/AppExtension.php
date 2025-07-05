@@ -2,7 +2,6 @@
 
 namespace App\Twig;
 
-use Symfony\Component\Intl\Countries;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFilter;
 
@@ -12,7 +11,6 @@ class AppExtension extends AbstractExtension
     {
         return [
             new TwigFilter('invert_sign', [$this, 'invertSign']),
-            new TwigFilter('country_name', [$this, 'getCountryName']),
         ];
     }
 
@@ -20,14 +18,5 @@ class AppExtension extends AbstractExtension
     {
         $inverted = $value != 0 ? -$value : $value;
         return $inverted > 0 ? "+$inverted" : (string) $inverted;
-    }
-
-    public function getCountryName(?string $countryCode, string $locale = 'fr'): string
-    {
-        if (!$countryCode) {
-            return '';
-        }
-
-        return Countries::getName($countryCode, $locale);
     }
 }

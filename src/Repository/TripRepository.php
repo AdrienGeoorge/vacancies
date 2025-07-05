@@ -73,7 +73,7 @@ class TripRepository extends ServiceEntityRepository
     public function countPassedCountries($user)
     {
         $qb = $this->createQueryBuilder('t')
-            ->select('COUNT(DISTINCT t.countryCode)')
+            ->select('COUNT(DISTINCT t.country)')
             ->leftJoin('t.tripTravelers', 'tt');
 
         return $qb->andWhere(
@@ -93,22 +93,24 @@ class TripRepository extends ServiceEntityRepository
     public function getCountryMostVisited($user)
     {
         $qb = $this->createQueryBuilder('t')
-            ->select('t.countryCode, COUNT(DISTINCT t.countryCode) AS visitCount')
-            ->leftJoin('t.tripTravelers', 'tt');
+            ->select('country.name AS countryName, COUNT(DISTINCT country.code) AS visitCount, MIN(t.departureDate) AS firstVisitDate')
+            ->leftJoin('t.tripTravelers', 'tt')
+            ->leftJoin('t.country', 'country');
 
         return $qb->andWhere(
             $qb->expr()->orX(
                 $qb->expr()->eq('t.traveler', ':traveler'),
                 $qb->expr()->eq('tt.invited', ':traveler')
             )
-        )->setParameter('traveler', $user)
+        )
+            ->setParameter('traveler', $user)
             ->andWhere('t.departureDate IS NOT NULL')
             ->andWhere('t.returnDate IS NOT NULL')
             ->andWhere('t.returnDate < :today')
             ->setParameter('today', (new \DateTime())->format('Y-m-d'))
-            ->groupBy('t.countryCode')
+            ->groupBy('country.name')
             ->orderBy('visitCount', 'DESC')
-            ->addOrderBy('t.departureDate', 'ASC')
+            ->addOrderBy('firstVisitDate', 'ASC')
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();

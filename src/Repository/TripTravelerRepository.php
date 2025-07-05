@@ -94,7 +94,7 @@ class TripTravelerRepository extends ServiceEntityRepository
     public function countVisitedCountries(User $user): mixed
     {
         return $this->getEntityManager()->getConnection()->executeQuery(
-            "SELECT count(DISTINCT country_code) as nbCountries
+            "SELECT count(DISTINCT country_id) as nbCountries
                 FROM trip
                 LEFT JOIN trip_traveler tt on trip.id = tt.trip_id
                 WHERE tt.invited_id = :userId

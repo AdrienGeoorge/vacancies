@@ -30,6 +30,9 @@ class UserBadges
     #[ORM\Column]
     private ?int $level = null;
 
+    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    private ?\DateTimeInterface $receivedAt = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -91,6 +94,18 @@ class UserBadges
     public function setLevel(int $level): static
     {
         $this->level = $level;
+
+        return $this;
+    }
+
+    public function getReceivedAt(): ?\DateTimeInterface
+    {
+        return $this->receivedAt;
+    }
+
+    public function setReceivedAt(\DateTimeInterface $receivedAt): static
+    {
+        $this->receivedAt = $receivedAt;
 
         return $this;
     }

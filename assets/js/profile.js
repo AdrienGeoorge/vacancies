@@ -26,7 +26,7 @@ if (followButton) {
                         if (data.privateProfile === true) {
                             followButton.innerHTML = 'Demander à suivre'
                         } else {
-                            followButton.innerHTML = 'Suivre'
+                            followButton.innerHTML = 'Suivre ce voyageur'
                         }
                         break
                 }

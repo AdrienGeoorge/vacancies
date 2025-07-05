@@ -35,6 +35,8 @@ class TripTravelerRepository extends ServiceEntityRepository
                 FROM trip_traveler t1
                 LEFT JOIN trip on t1.trip_id = trip.id
                 WHERE invited_id = :userId
+                AND trip.departure_date IS NOT NULL
+                AND trip.return_date IS NOT NULL
                 AND trip.return_date < :today
                 AND (SELECT COUNT(*)
                        FROM trip_traveler t2
@@ -56,6 +58,8 @@ class TripTravelerRepository extends ServiceEntityRepository
                 FROM trip_traveler t1
                 LEFT JOIN trip on t1.trip_id = trip.id
                 WHERE invited_id = :userId
+                AND trip.departure_date IS NOT NULL
+                AND trip.return_date IS NOT NULL
                 AND trip.return_date < :today
                 AND (SELECT COUNT(*)
                        FROM trip_traveler t2
@@ -77,6 +81,8 @@ class TripTravelerRepository extends ServiceEntityRepository
                 FROM trip_traveler t1
                 LEFT JOIN trip on t1.trip_id = trip.id
                 WHERE invited_id = :userId
+                AND trip.departure_date IS NOT NULL
+                AND trip.return_date IS NOT NULL
                 AND trip.return_date < :today
                 AND (SELECT COUNT(*)
                        FROM trip_traveler t2
@@ -98,33 +104,29 @@ class TripTravelerRepository extends ServiceEntityRepository
                 FROM trip
                 LEFT JOIN trip_traveler tt on trip.id = tt.trip_id
                 WHERE tt.invited_id = :userId
+                AND trip.departure_date IS NOT NULL
+                AND trip.return_date IS NOT NULL
                 AND trip.return_date < :today",
             ['userId' => $user->getId(), 'today' => (new \DateTime())->format('Y-m-d')]
         )->fetchOne();
     }
 
-    //    /**
-    //     * @return OnSitePerson[] Returns an array of OnSitePerson objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('o')
-    //            ->andWhere('o.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('o.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?OnSitePerson
-    //    {
-    //        return $this->createQueryBuilder('o')
-    //            ->andWhere('o.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    /**
+     * @param User $user
+     * @return array
+     * @throws Exception
+     */
+    public function getVisitedContinents(User $user): array
+    {
+        return $this->getEntityManager()->getConnection()->executeQuery(
+            "SELECT DISTINCT c.continent
+                FROM trip t
+                LEFT JOIN country c ON c.id = t.country_id
+                WHERE t.traveler_id = :userId
+                AND t.departure_date IS NOT NULL
+                AND t.return_date IS NOT NULL
+                AND t.return_date < :today",
+            ['userId' => $user->getId(), 'today' => (new \DateTime())->format('Y-m-d')]
+        )->fetchFirstColumn();
+    }
 }

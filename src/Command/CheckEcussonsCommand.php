@@ -66,56 +66,65 @@ class CheckEcussonsCommand extends Command
     private function treatmentByUser($user): void
     {
         /**
-         * Objectif : voyages autour du monde
+         * Objectif : nombre de pays visités
          */
         $countVisitedCountries = $this->managerRegistry->getRepository(TripTraveler::class)->countVisitedCountries($user);
         if ($countVisitedCountries) {
-            $badgeData = [];
+            $badgeData = ['name' => 'monde'];
+
             switch ($countVisitedCountries) {
                 case $countVisitedCountries < 5:
-                    $badgeData = [
+                    $badgeData = array_merge($badgeData, [
                         'title' => 'Premier pays visité',
                         'description' => 'Tu viens d\'ouvrir ton passeport au monde.',
                         'level' => 1
-                    ];
+                    ]);
                     break;
                 case $countVisitedCountries >= 5 && $countVisitedCountries < 10:
-                    $badgeData = [
+                    $badgeData = array_merge($badgeData, [
                         'title' => '5 pays visités',
                         'description' => 'Ton passeport commence à noircir, et ta soif de découverte grandit.',
                         'level' => 2
-                    ];
+                    ]);
                     break;
                 case $countVisitedCountries >= 10 && $countVisitedCountries < 20:
-                    $badgeData = [
+                    $badgeData = array_merge($badgeData, [
                         'title' => '10 pays visités',
                         'description' => 'Tu explores le monde avec aisance.',
                         'level' => 3
-                    ];
+                    ]);
                     break;
                 case $countVisitedCountries >= 20:
-                    $badgeData = [
+                    $badgeData = array_merge($badgeData, [
                         'title' => 'Plus de 20 pays visités',
                         'description' => 'Le monde n\'a plus de secret pour toi.',
-                        'level' => 4
-                    ];
+                        'level' => 5
+                    ]);
                     break;
             }
 
-            if ($badgeData) {
-                $badgeCountry = $this->managerRegistry->getRepository(UserBadges::class)->findOneBy(['name' => 'monde', 'user' => $user, 'level' => $badgeData['level']]);
+            $this->addBadge($user, $badgeData);
+        }
 
-                if (!$badgeCountry) {
-                    $badgeCountry = (new UserBadges())
-                        ->setName('monde')
-                        ->setUser($user)
-                        ->setTitle($badgeData['title'])
-                        ->setDescription($badgeData['description'])
-                        ->setLevel($badgeData['level']);
+        $visitedContinents = $this->managerRegistry->getRepository(TripTraveler::class)->getVisitedContinents($user);
+        if (count($visitedContinents) === 3) {
+            $this->addBadge($user, [
+                'name' => 'monde',
+                'title' => 'Explorateur de continents',
+                'description' => 'Tu as foulé le sol de trois continents différents.',
+                'level' => 4
+            ]);
+        }
 
-                    $this->managerRegistry->getManager()->persist($badgeCountry);
-                }
-            }
+        $requiredContinents = ['Europe', 'Asie', 'Amérique', 'Afrique', 'Océanie'];
+        $hasDoneWorldTour = count(array_intersect($visitedContinents, $requiredContinents)) === count($requiredContinents);
+        if ($hasDoneWorldTour) {
+            $this->addBadge($user, [
+                'name' => 'monde',
+                'title' => 'Tour du monde',
+                'description' => 'Tu as visité au moins un pays sur chaque continent habité. Un vrai globe-trotteur!',
+                'level' => 6
+            ]);
         }
 
         /**
@@ -123,60 +132,47 @@ class CheckEcussonsCommand extends Command
          */
         $tripInSolo = $this->managerRegistry->getRepository(TripTraveler::class)->countTripInSolo($user);
         if ($tripInSolo) {
-            $badgeData = [];
+            $badgeData = ['name' => 'solo'];
 
             switch ($tripInSolo) {
                 case $tripInSolo < 5:
-                    $badgeData = [
+                    $badgeData = array_merge($badgeData, [
                         'title' => 'Premier voyage en solitaire',
                         'description' => 'Premiers pas vers l\'aventure en solo.',
                         'level' => 1
-                    ];
+                    ]);
                     break;
                 case $tripInSolo >= 5 && $tripInSolo < 10:
-                    $badgeData = [
+                    $badgeData = array_merge($badgeData, [
                         'title' => '5 voyages solo',
                         'description' => 'A l\'aise sans personne, même à l\'étranger.',
                         'level' => 2
-                    ];
+                    ]);
                     break;
                 case $tripInSolo >= 10 && $tripInSolo < 20:
-                    $badgeData = [
+                    $badgeData = array_merge($badgeData, [
                         'title' => '10 voyages solo',
                         'description' => 'Le monde est mieux sans guide.',
                         'level' => 3
-                    ];
+                    ]);
                     break;
                 case $tripInSolo >= 20 && $tripInSolo < 50:
-                    $badgeData = [
+                    $badgeData = array_merge($badgeData, [
                         'title' => '20 voyages solo',
                         'description' => 'Voyage seul, mais jamais perdu.',
                         'level' => 4
-                    ];
+                    ]);
                     break;
                 case $tripInSolo >= 50:
-                    $badgeData = [
+                    $badgeData = array_merge($badgeData, [
                         'title' => '50 voyages solo',
                         'description' => 'Libre comme l\'air, partout sur Terre.',
                         'level' => 5
-                    ];
+                    ]);
                     break;
             }
 
-            if ($badgeData) {
-                $badgeSolo = $this->managerRegistry->getRepository(UserBadges::class)->findOneBy(['name' => 'solo', 'user' => $user, 'level' => $badgeData['level']]);
-
-                if (!$badgeSolo) {
-                    $badgeSolo = (new UserBadges())
-                        ->setName('solo')
-                        ->setUser($user)
-                        ->setTitle($badgeData['title'])
-                        ->setDescription($badgeData['description'])
-                        ->setLevel($badgeData['level']);
-
-                    $this->managerRegistry->getManager()->persist($badgeSolo);
-                }
-            }
+            $this->addBadge($user, $badgeData);
         }
 
         /**
@@ -184,60 +180,47 @@ class CheckEcussonsCommand extends Command
          */
         $tripInDuo = $this->managerRegistry->getRepository(TripTraveler::class)->countTripInDuo($user);
         if ($tripInDuo) {
-            $badgeData = [];
+            $badgeData = ['name' => 'duo'];
 
             switch ($tripInDuo) {
                 case $tripInDuo < 5:
-                    $badgeData = [
+                    $badgeData = array_merge($badgeData, [
                         'title' => 'Premier voyage en duo',
                         'description' => 'Un premier voyage à deux, tout commence ici.',
                         'level' => 1
-                    ];
+                    ]);
                     break;
                 case $tripInDuo >= 5 && $tripInDuo < 10:
-                    $badgeData = [
+                    $badgeData = array_merge($badgeData, [
                         'title' => '5 voyages à deux',
                         'description' => 'Partir à deux devient une belle habitude.',
                         'level' => 2
-                    ];
+                    ]);
                     break;
                 case $tripInDuo >= 10 && $tripInDuo < 20:
-                    $badgeData = [
+                    $badgeData = array_merge($badgeData, [
                         'title' => '10 voyages à deux',
                         'description' => 'Le duo avance, main dans la main.',
                         'level' => 3
-                    ];
+                    ]);
                     break;
                 case $tripInDuo >= 20 && $tripInDuo < 50:
-                    $badgeData = [
+                    $badgeData = array_merge($badgeData, [
                         'title' => '20 voyages à deux',
                         'description' => 'Deux personnes, mille destinations, une même envie d\'ailleurs.',
                         'level' => 2
-                    ];
+                    ]);
                     break;
                 case $tripInDuo >= 50:
-                    $badgeData = [
+                    $badgeData = array_merge($badgeData, [
                         'title' => '50 voyages à deux',
                         'description' => 'L\'évasion, c\'est toujours mieux à deux.',
                         'level' => 2
-                    ];
+                    ]);
                     break;
             }
 
-            if ($badgeData) {
-                $badgeDuo = $this->managerRegistry->getRepository(UserBadges::class)->findOneBy(['name' => 'duo', 'user' => $user, 'level' => $badgeData['level']]);
-
-                if (!$badgeDuo) {
-                    $badgeDuo = (new UserBadges())
-                        ->setName('duo')
-                        ->setUser($user)
-                        ->setTitle($badgeData['title'])
-                        ->setDescription($badgeData['description'])
-                        ->setLevel($badgeData['level']);
-
-                    $this->managerRegistry->getManager()->persist($badgeDuo);
-                }
-            }
+            $this->addBadge($user, $badgeData);
         }
 
         /**
@@ -245,59 +228,65 @@ class CheckEcussonsCommand extends Command
          */
         $tripInGroup = $this->managerRegistry->getRepository(TripTraveler::class)->countTripInGroup($user);
         if ($tripInGroup) {
-            $badgeData = [];
+            $badgeData = ['name' => 'group'];
 
             switch ($tripInGroup) {
                 case $tripInGroup < 5:
-                    $badgeData = [
+                    $badgeData = array_merge($badgeData, [
                         'title' => 'Premier voyage en groupe',
                         'description' => 'Un premier trip collectif, et personne ne s’est perdu ? Bravo.',
                         'level' => 1
-                    ];
+                    ]);
                     break;
                 case $tripInGroup >= 5 && $tripInGroup < 10:
-                    $badgeData = [
+                    $badgeData = array_merge($badgeData, [
                         'title' => '5 voyages en groupe',
                         'description' => 'Déjà plusieurs trajets partagés. Tu aimes voyager entouré.',
                         'level' => 2
-                    ];
+                    ]);
                     break;
                 case $tripInGroup >= 10 && $tripInGroup < 20:
-                    $badgeData = [
+                    $badgeData = array_merge($badgeData, [
                         'title' => '10 voyages en groupe',
                         'description' => 'Tu sais te fondre dans un groupe sans perdre ton sac à dos.',
                         'level' => 3
-                    ];
+                    ]);
                     break;
                 case $tripInGroup >= 20 && $tripInGroup < 50:
-                    $badgeData = [
+                    $badgeData = array_merge($badgeData, [
                         'title' => '20 voyages en groupe',
                         'description' => 'Le cœur du groupe, c’est toi. Aucun trip sans ton nom dans la liste.',
                         'level' => 4
-                    ];
+                    ]);
                     break;
                 case $tripInGroup >= 50:
-                    $badgeData = [
+                    $badgeData = array_merge($badgeData, [
                         'title' => '50 voyages en groupe',
                         'description' => 'Sans toi, les voyages de groupe n’auraient pas la même saveur.',
                         'level' => 5
-                    ];
+                    ]);
                     break;
             }
 
-            if ($badgeData) {
-                $badgeGroup = $this->managerRegistry->getRepository(UserBadges::class)->findOneBy(['name' => 'group', 'user' => $user, 'level' => $badgeData['level']]);
+            $this->addBadge($user, $badgeData);
+        }
+    }
 
-                if (!$badgeGroup) {
-                    $badgeGroup = (new UserBadges())
-                        ->setName('group')
-                        ->setUser($user)
-                        ->setTitle($badgeData['title'])
-                        ->setDescription($badgeData['description'])
-                        ->setLevel($badgeData['level']);
+    private function addBadge(User $user, array $data): void
+    {
+        if (count($data) == 4) {
+            $badge = $this->managerRegistry->getRepository(UserBadges::class)->findOneBy(['name' => $data['name'], 'user' => $user, 'level' => $data['level']]);
 
-                    $this->managerRegistry->getManager()->persist($badgeGroup);
-                }
+            if (!$badge) {
+                $badge = (new UserBadges())
+                    ->setName($data['name'])
+                    ->setUser($user)
+                    ->setTitle($data['title'])
+                    ->setDescription($data['description'])
+                    ->setLevel($data['level'])
+                    ->setReceivedAt(new \DateTime());
+
+                $this->managerRegistry->getManager()->persist($badge);
             }
         }
     }

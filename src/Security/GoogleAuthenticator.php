@@ -52,10 +52,9 @@ class GoogleAuthenticator extends AbstractAuthenticator
         $email = $googleUser->getEmail();
         $firstname = $googleUser->getFirstName();
         $lastname = $googleUser->getLastName();
-        $avatar = $googleUser->getAvatar();
 
         return new SelfValidatingPassport(
-            new UserBadge($email, function () use ($avatar, $googleId, $email, $firstname, $lastname) {
+            new UserBadge($email, function () use ($googleId, $email, $firstname, $lastname) {
                 $user = $this->userRepository->findOneBy(['googleId' => $googleId]);
 
                 if (!$user) {
@@ -68,7 +67,6 @@ class GoogleAuthenticator extends AbstractAuthenticator
                         $user->setEmail($email);
                         $user->setFirstname($firstname);
                         $user->setLastname($lastname);
-                        $user->setAvatar($avatar);
                         $user->setUsername(strtr(utf8_decode(
                             strtolower($firstname . $lastname . substr(bin2hex(random_bytes(3)), 0, 5))
                         ), utf8_decode('àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ'), 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY'));

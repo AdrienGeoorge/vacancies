@@ -3,6 +3,7 @@
 namespace App\EventListener;
 
 use App\Entity\ShareInvitation;
+use App\Entity\UserNotifications;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -26,9 +27,9 @@ class TwigGlobalsListener implements EventSubscriberInterface
     public function onKernelRequest(RequestEvent $event): void
     {
         if ($this->tokenStorage->getToken()) {
-            $invitations = $this->managerRegistry->getRepository(ShareInvitation::class)
-                ->count(['userToShareWith' => $this->tokenStorage->getToken()->getUser()->getId()]);
-            $this->twig->addGlobal('invitations', $invitations);
+            $notifications = $this->managerRegistry->getRepository(UserNotifications::class)
+                ->findBy(['user' => $this->tokenStorage->getToken()->getUser()->getId(), 'view' => false], ['receivedAt' => 'ASC']);
+            $this->twig->addGlobal('notifications', $notifications);
         }
     }
 

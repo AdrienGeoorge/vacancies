@@ -468,14 +468,16 @@ class TripService
         return null;
     }
 
-    /** Envoi du mail de partage de voyage
+    /**
+     * Envoi du mail de partage de voyage
+     *
      * @param Trip $trip
      * @param User $userToShareWith
      * @param string $invitedBy
-     * @return string|null
+     * @return false|ByteString
      * @throws TransportExceptionInterface
      */
-    public function sendSharingMail(Trip $trip, User $userToShareWith, string $invitedBy): ?string
+    public function sendSharingMail(Trip $trip, User $userToShareWith, string $invitedBy): bool|ByteString
     {
         try {
             $token = ByteString::fromRandom(50);
@@ -502,6 +504,6 @@ class TripService
         $this->managerRegistry->getManager()->persist($invitation);
         $this->managerRegistry->getManager()->flush();
 
-        return true;
+        return $token;
     }
 }

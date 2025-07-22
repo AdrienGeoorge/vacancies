@@ -74,6 +74,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $biography = null;
 
+    #[ORM\OneToMany(targetEntity: UserNotifications::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $userNotifications;
+
     public function __construct()
     {
         $this->trips = new ArrayCollection();
@@ -83,6 +86,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->privateProfile = false;
         $this->setRoles(['ROLE_USER']);
         $this->userBadges = new ArrayCollection();
+        $this->userNotifications = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -415,6 +419,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setBiography(?string $biography): static
     {
         $this->biography = $biography;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, UserNotifications>
+     */
+    public function getUserNotifications(): Collection
+    {
+        return $this->userNotifications;
+    }
+
+    public function addUserNotification(UserNotifications $userNotification): static
+    {
+        if (!$this->userNotifications->contains($userNotification)) {
+            $this->userNotifications->add($userNotification);
+            $userNotification->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUserNotification(UserNotifications $userNotification): static
+    {
+        if ($this->userNotifications->removeElement($userNotification)) {
+            // set the owning side to null (unless already changed)
+            if ($userNotification->getUser() === $this) {
+                $userNotification->setUser(null);
+            }
+        }
 
         return $this;
     }

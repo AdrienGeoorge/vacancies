@@ -42,6 +42,13 @@ module.exports = {
           DEFAULT: '#fff',
           dark: '#43495C'
         },
+        notification: {
+          DEFAULT: '#f7f7f7',
+          dark: '#23283A'
+        },
+        'notification-border': {
+          dark: '#747A93'
+        },
         shadow: {
           DEFAULT: '#fff',
           dark: '#363d54'

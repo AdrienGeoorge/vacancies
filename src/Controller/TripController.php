@@ -6,6 +6,7 @@ use App\Entity\ShareInvitation;
 use App\Entity\Trip;
 use App\Entity\TripTraveler;
 use App\Entity\User;
+use App\Entity\UserNotifications;
 use App\Form\TripType;
 use App\Service\FileUploaderService;
 use App\Service\TripService;
@@ -14,6 +15,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -148,6 +150,9 @@ class TripController extends AbstractController
         return new JsonResponse([], 200);
     }
 
+    /**
+     * @throws TransportExceptionInterface
+     */
     #[Route('/share/{trip}', name: 'share', requirements: ['trip' => '\d+'], options: ['expose' => true])]
     #[IsGranted('invite', subject: 'trip')]
     public function share(Request $request, Trip $trip): Response
@@ -186,10 +191,19 @@ class TripController extends AbstractController
             return new JsonResponse([], 200);
         }
 
-        if (!$this->tripService->sendSharingMail($trip, $userToShareWith, $this->getUser()->getFirstname() . ' ' . $this->getUser()->getLastname())) {
+        $token = $this->tripService->sendSharingMail($trip, $userToShareWith, $this->getUser()->getFirstname() . ' ' . $this->getUser()->getLastname());
+
+        if ($token === false) {
             $this->addFlash('error', 'L\'email n\'a pas pu être envoyé en raison d\'une anomalie.');
             return new JsonResponse([], 500);
         }
+
+        $this->managerRegistry->getRepository(UserNotifications::class)->sendNotification(
+            $userToShareWith,
+            sprintf('vous a invité à prendre part au voyage : %s', $trip->getName()),
+            $this->getUser(),
+            $this->generateUrl('trip_accept', ['token' => $token])
+        );
 
         $this->addFlash('success', 'L\'invitation à prendre part à ce voyage a bien été transmise.');
         return new JsonResponse([], 201);
@@ -229,6 +243,15 @@ class TripController extends AbstractController
         $this->managerRegistry->getManager()->persist($traveler);
         $this->managerRegistry->getManager()->remove($invitation);
         $this->managerRegistry->getManager()->flush();
+
+        foreach ($invitation->getTrip()->getTripTravelers() as $tripTraveler) {
+            $this->managerRegistry->getRepository(UserNotifications::class)->sendNotification(
+                $tripTraveler->getInvited(),
+                sprintf('a rejoint le voyage : %s', $invitation->getTrip()->getName()),
+                $this->getUser(),
+                $this->generateUrl('trip_show', ['trip' => $invitation->getTrip()->getId()])
+            );
+        }
 
         $this->addFlash('success', sprintf('Vous avez rejoint le voyage %s.', $invitation->getTrip()->getName()));
         return $this->redirectToRoute('trip_show', ['trip' => $invitation->getTrip()->getId()]);

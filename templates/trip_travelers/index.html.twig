@@ -44,9 +44,23 @@
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
                 {% for traveler in trip.tripTravelers %}
                     {% set creator = traveler.invited and trip.traveler.completeName == traveler.invited.completeName %}
-                    <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-3.5 px-6 flex flex-col justify-between">
+                    <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-3.5 px-6 flex flex-col justify-between items-center gap-4">
                         <div class="text-center">
-                            <div class="font-poppins-semi-bold text-lg ">{{ traveler.name }}</div>
+                            <div class="flex flex-row justify-center items-center gap-2 mb-4">
+                                <div class="border-4 rounded-2xl overflow-hidden w-12 h-12">
+                                    {% if traveler.invited and traveler.invited.avatar %}
+                                        <img src="{{ traveler.invited.avatar }}" alt="Mon profil" class="w-12 h-12">
+                                    {% else %}
+                                        <div class="w-10 h-10 text-white text-xl font-poppins relative"
+                                             style="background-color: #495963;">
+                                    <span class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                                        {{ traveler.name|first }}
+                                    </span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="font-poppins-semi-bold text-lg">{{ traveler.name }}</div>
+                            </div>
                             {% if creator %}
                                 <div class="leading-5">
                                     Vous ne pouvez pas modifier les informations de la personne à l'origine du séjour.

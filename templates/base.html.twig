@@ -74,7 +74,7 @@
                     </div>
                 {% endif %}
             </div>
-            <div class="absolute hidden user-menu right-8 top-20 shadow rounded-3xl bg-box dark:bg-box-dark p-3 flex-col gap-2 z-20">
+            <div class="absolute hidden user-menu left-1/2 -translate-x-1/2 top-36 md:translate-x-[unset] md:left-[unset] md:right-8 md:top-20 shadow rounded-3xl bg-box dark:bg-box-dark p-3 flex-col gap-2 z-20">
                 <div class="flex flex-row gap-2 items-center">
                     {% if app.user.avatar %}
                         <img src="{{ app.user.avatar }}" alt="Mon profil" class="w-10 h-10 rounded-full">
@@ -102,7 +102,7 @@
                                     flex items-center justify-center hover:bg-red-600 transition-all duration-300
                                     ease-in-out focus:shadow-outline focus:outline-none">Déconnexion</a>
             </div>
-            <div class="absolute hidden user-notifications right-8 top-20 shadow rounded-3xl bg-box dark:bg-box-dark p-3 flex-col gap-2 z-30 w-96">
+            <div class="absolute hidden user-notifications left-1/2 -translate-x-1/2 top-36 md:translate-x-[unset] md:left-[unset] md:right-8 md:top-20 shadow rounded-3xl bg-box dark:bg-box-dark p-3 flex-col gap-2 z-30 w-96">
                 <div class="text-lg font-roboto-medium text-center">Centre de notifications</div>
                 {% if not notifications %}
                     <div class="text-sm text-center">Vous n'avez aucune notification non lue</div>

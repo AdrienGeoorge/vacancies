@@ -28,11 +28,6 @@ services:
         autowire: true
         tags:
             - { name: kernel.event_listener, event: kernel.request }
-    App\EventListener\UserMustLoggedListener:
-        autowire: true
-        tags:
-            - { name: kernel.event_listener, event: kernel.request }
-
     App\Service\FileUploaderService:
         arguments:
             $targetDirectory: '%upload_directory%'

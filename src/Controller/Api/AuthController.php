@@ -66,7 +66,14 @@ class AuthController extends AbstractController
         $token = $jwtManager->create($user);
 
         return new JsonResponse([
-            'token' => $token
+            'token' => $token,
+            'user' => [
+                'email' => $user->getEmail(),
+                'firstname' => $user->getFirstname(),
+                'lastname' => $user->getLastname(),
+                'username' => $user->getUsername(),
+                'avatar' => $user->getAvatar()
+            ]
         ], 201);
     }
 }

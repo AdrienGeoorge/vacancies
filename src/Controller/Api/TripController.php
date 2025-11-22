@@ -16,7 +16,6 @@ class TripController extends AbstractController
 {
     public function __construct(private readonly ManagerRegistry $managerRegistry)
     {
-
     }
 
     #[Route('/future/user/{user}', name: 'api_future_trip_by_user')]

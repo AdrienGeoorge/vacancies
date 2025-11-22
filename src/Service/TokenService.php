@@ -8,24 +8,22 @@ use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Routing\RouterInterface;
 
 class TokenService
 {
 
     protected ManagerRegistry $managerRegistry;
-    protected RouterInterface $router;
     protected MailerInterface $mailer;
     protected string $token;
     protected string $appSecret;
+    protected string $domain;
 
-    public function __construct(ManagerRegistry $managerRegistry, RouterInterface $router, MailerInterface $mailer, string $appSecret, ?string $token_value = null)
+    public function __construct(ManagerRegistry $managerRegistry, MailerInterface $mailer, string $appSecret, string $domain, ?string $token_value = null)
     {
         $this->appSecret = $appSecret;
         $this->managerRegistry = $managerRegistry;
-        $this->router = $router;
         $this->mailer = $mailer;
+        $this->domain = $domain;
 
         try {
             $this->token = bin2hex(random_bytes(16));
@@ -37,28 +35,28 @@ class TokenService
 
     public function create(User $user): bool
     {
+        $hash = $this->getHash();
+        dump($hash);
         $passwordReset = (new PasswordReset())
             ->setUser($user)
             ->setEmail($user->getEmail())
-            ->setToken($this->getHash())
+            ->setToken($hash)
             ->setTimestamp(time() + 900);
 
         $this->managerRegistry->getManager()->persist($passwordReset);
         $this->managerRegistry->getManager()->flush();
 
-        return $this->sendMail($user);
+        return $this->sendMail($user, $hash);
     }
 
-    private function sendMail(User $user): bool
+    private function sendMail(User $user, string $hash): bool
     {
-        $url = $this->router->generate('password_reset', ['token' => $this->token], UrlGeneratorInterface::ABSOLUTE_URL);
-
         $email = (new TemplatedEmail())
             ->from('no-reply@adriengeorge.fr')
             ->to($user->getEmail())
             ->subject('Vacancies : réinitialisation de votre mot de passe')
             ->htmlTemplate('password-claim/mail.html.twig')
-            ->context(['url' => $url]);
+            ->context(['url' => $this->domain . '/password/reset/' . $hash]);
 
         try {
             $this->mailer->send($email);
@@ -78,6 +76,6 @@ class TokenService
 
     public function getUserByToken(string $token)
     {
-        return $this->managerRegistry->getRepository(PasswordReset::class)->findOneBy(['token' => $this->getHash($token)]);
+        return $this->managerRegistry->getRepository(PasswordReset::class)->findOneBy(['token' => $token]);
     }
 }

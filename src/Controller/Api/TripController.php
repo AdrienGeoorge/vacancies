@@ -11,14 +11,14 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/api/trips')]
+#[Route('/api/trips', name: 'api_trip_')]
 class TripController extends AbstractController
 {
     public function __construct(private readonly ManagerRegistry $managerRegistry)
     {
     }
 
-    #[Route('/future/user/{user}', name: 'api_future_trip_by_user')]
+    #[Route('/future/user/{user}', name: 'future_trip_by_user', methods: ['GET'])]
     public function future(User $user): JsonResponse
     {
         if ($this->getUser() !== $user) {
@@ -30,7 +30,7 @@ class TripController extends AbstractController
         return $this->json($trips);
     }
 
-    #[Route('/passed/user/{user}', name: 'api_passed_trip_by_user')]
+    #[Route('/passed/user/{user}', name: 'passed_trip_by_user', methods: ['GET'])]
     public function passed(User $user): JsonResponse
     {
         if ($this->getUser() !== $user) {

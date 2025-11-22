@@ -12,9 +12,10 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
+#[Route('/api', name: 'api_')]
 class AuthController extends AbstractController
 {
-    #[Route('/api/login', name: 'api_login', methods: ['POST'])]
+    #[Route('/login', name: 'login', methods: ['POST'])]
     public function login(
         #[CurrentUser] $user
     ): JsonResponse
@@ -31,7 +32,7 @@ class AuthController extends AbstractController
         ]);
     }
 
-    #[Route('/api/register', name: 'api_register', methods: ['POST'])]
+    #[Route('/register', name: '_register', methods: ['POST'])]
     public function register(Request                $request, UserPasswordHasherInterface $userPasswordHasher,
                              ManagerRegistry $managerRegistry, JWTTokenManagerInterface $jwtManager): JsonResponse
     {
@@ -44,7 +45,7 @@ class AuthController extends AbstractController
         $user = $managerRegistry->getRepository(User::class)->findOneBy(['email' => $data['email']]);
 
         if ($user) {
-            return new JsonResponse(['message' => 'Un compte existe déjà avec cette adresse mail.']);
+            return new JsonResponse(['message' => 'Cette adresse mail est déjà utilisée.'], 409);
         }
 
         $user = (new User())

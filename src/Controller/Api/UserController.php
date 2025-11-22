@@ -6,9 +6,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
+#[Route('/api/user', name: 'api_')]
 class UserController extends AbstractController
 {
-    #[Route('/api/me', name: 'api_me', methods: ['GET'])]
+    #[Route('/me', name: 'me', methods: ['GET'])]
     public function me(): Response
     {
         return $this->json([

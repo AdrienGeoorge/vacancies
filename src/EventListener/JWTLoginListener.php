@@ -18,6 +18,7 @@ class JWTLoginListener
         $data = $event->getData();
 
         $data['user'] = [
+            'id' => $user->getId(),
             'email' => $user->getEmail(),
             'firstname' => $user->getFirstname(),
             'lastname' => $user->getLastname(),

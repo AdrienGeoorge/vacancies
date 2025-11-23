@@ -41,4 +41,15 @@ class TripController extends AbstractController
 
         return $this->json($trips);
     }
+    #[Route('/all/user/{user}', name: 'all_trip_by_user', methods: ['GET'])]
+    public function all(User $user): JsonResponse
+    {
+        if ($this->getUser() !== $user) {
+            return $this->json(['message' => 'Vous ne pouvez pas voir les voyages d\'un autre utilisateur.', 403]);
+        }
+
+        $trips = $this->managerRegistry->getRepository(Trip::class)->getAllTrips($this->getUser());
+
+        return $this->json($trips);
+    }
 }

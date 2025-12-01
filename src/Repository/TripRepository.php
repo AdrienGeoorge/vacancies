@@ -159,4 +159,16 @@ class TripRepository extends ServiceEntityRepository
             ->getQuery()
             ->getOneOrNullResult();
     }
+
+    public function getOneTrip(?int $tripId)
+    {
+        return $this->createQueryBuilder('t')
+            ->select('t.name, t.description, t.departureDate, t.returnDate, t.image, c.code AS selectedCountry, owner.id AS ownerId')
+            ->leftJoin('t.traveler', 'owner')
+            ->leftJoin('t.country', 'c')
+            ->andWhere('t.id = :id')
+            ->setParameter('id', $tripId)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

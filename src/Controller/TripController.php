@@ -35,64 +35,6 @@ class TripController extends AbstractController
         $this->tripService = $tripService;
     }
 
-    #[Route('/new', name: 'new')]
-    #[Route('/edit/{trip}', name: 'edit', requirements: ['trip' => '\d+'])]
-    #[IsGranted('edit_trip', subject: 'trip')]
-    public function new(Request $request, ?Trip $trip = new Trip()): Response
-    {
-        if (!$trip) $trip = new Trip();
-
-        if ($trip->getTraveler() !== null && $trip->getTraveler() !== $this->getUser()) {
-            return $this->redirectToRoute('app_home');
-        }
-
-        $form = $this->createForm(TripType::class, $trip);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted()) {
-            if ($form->isValid()) {
-                try {
-                    $image = $form->get('image')->getData();
-                    if ($image) {
-                        $imageFileName = $this->uploaderService->upload($image);
-                        $trip->setImage('/' . $this->getParameter('upload_directory') . '/' . $imageFileName);
-                    }
-
-                    $trip->setTraveler($this->getUser());
-
-                    if ($trip->getTripTravelers()->count() === 0) {
-                        $traveler = new TripTraveler();
-                        $traveler->setName($this->getUser()->getFirstname() . ' ' . $this->getUser()->getLastname());
-                        $traveler->setTrip($trip);
-                        $traveler->setInvited($this->getUser());
-                        $trip->addTripTraveler($traveler);
-                        $this->managerRegistry->getManager()->persist($traveler);
-                    }
-
-                    $this->managerRegistry->getManager()->persist($trip);
-                    $this->managerRegistry->getManager()->flush();
-
-                    if ($request->get('_route') === 'trip_edit') {
-                        $this->addFlash('success', 'Les informations de ton voyage ont bien été modifiées.');
-                    } else {
-                        $this->addFlash('success', 'Ton voyage a bien été créé.');
-                    }
-
-                    return $this->redirectToRoute('trip_show', ['trip' => $trip->getId()]);
-                } catch (\Exception $exception) {
-                    $this->addFlash('error', 'Une erreur est survenue lors de la création du voyage.');
-                }
-            } else {
-                $this->addFlash('error', $form->getErrors(true)->current()->getMessage());
-            }
-        }
-
-        return $this->render('trip/form.html.twig', [
-            'form' => $form->createView(),
-            'trip' => $trip
-        ]);
-    }
-
     #[Route('/show/{trip}', name: 'show', requirements: ['trip' => '\d+'])]
     #[IsGranted('view', subject: 'trip')]
     public function show(Trip $trip): Response

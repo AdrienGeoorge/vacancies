@@ -10,11 +10,13 @@ use App\Entity\Trip;
 use App\Entity\TripTraveler;
 use App\Entity\User;
 use App\Service\FileUploaderService;
+use App\Service\TripService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/trips', name: 'api_trip_')]
@@ -22,12 +24,13 @@ class TripController extends AbstractController
 {
     public function __construct(
         private readonly ManagerRegistry     $managerRegistry,
-        private readonly FileUploaderService $uploaderService
+        private readonly FileUploaderService $uploaderService,
+        private readonly TripService         $tripService
     )
     {
     }
 
-    #[Route('/future/user/{user}', name: 'future_trip_by_user', methods: ['GET'])]
+    #[Route('/future/user/{user}', name: 'future_trip_by_user', requirements: ['user' => '\d+'], methods: ['GET'])]
     public function future(User $user): JsonResponse
     {
         if ($this->getUser() !== $user) {
@@ -39,7 +42,7 @@ class TripController extends AbstractController
         return $this->json($trips);
     }
 
-    #[Route('/passed/user/{user}', name: 'passed_trip_by_user', methods: ['GET'])]
+    #[Route('/passed/user/{user}', name: 'passed_trip_by_user', requirements: ['user' => '\d+'], methods: ['GET'])]
     public function passed(User $user): JsonResponse
     {
         if ($this->getUser() !== $user) {
@@ -51,7 +54,7 @@ class TripController extends AbstractController
         return $this->json($trips);
     }
 
-    #[Route('/all/user/{user}', name: 'all_trip_by_user', methods: ['GET'])]
+    #[Route('/all/user/{user}', name: 'all_trip_by_user', requirements: ['user' => '\d+'], methods: ['GET'])]
     public function all(User $user): JsonResponse
     {
         if ($this->getUser() !== $user) {
@@ -63,40 +66,50 @@ class TripController extends AbstractController
         return $this->json($trips);
     }
 
-    #[Route('/get/{tripId}', name: 'get', methods: ['GET'])]
-    public function get(int $tripId): JsonResponse
+    #[Route('/get/{trip}/form-data', name: 'getFormData', requirements: ['trip' => '\d+'], methods: ['GET'])]
+    #[IsGranted('edit_trip', subject: 'trip', message: 'Vous ne pouvez pas modifier ce voyage.', statusCode: 403)]
+    public function get(?Trip $trip = null): JsonResponse
     {
-        $trip = $this->managerRegistry->getRepository(Trip::class)->getOneTrip($tripId);
-
         if (!$trip) {
             return $this->json(['message' => 'Ce voyage n\'existe pas.'], 404);
         }
 
-        if ($this->getUser()->getId() !== $trip['ownerId']) {
-            return $this->json(['message' => 'Vous ne pouvez pas voir les voyages d\'un autre utilisateur.', 403]);
-        }
+        $trip = $this->managerRegistry->getRepository(Trip::class)->getOneTrip($trip->getId());
 
         return $this->json([
             'name' => $trip['name'],
             'description' => $trip['description'],
-            'departureDate' => $trip['departureDate']->format('Y-m-d'),
-            'returnDate' => $trip['returnDate']->format('Y-m-d'),
+            'departureDate' => $trip['departureDate']?->format('Y-m-d'),
+            'returnDate' => $trip['returnDate']?->format('Y-m-d'),
             'selectedCountry' => $trip['selectedCountry'],
             'image' => $trip['image']
+        ]);
+    }
+
+    #[Route('/get/{trip}/dashboard', name: 'getDashboard', requirements: ['trip' => '\d+'], methods: ['GET'])]
+    #[IsGranted('view', subject: 'trip', message: 'Vous ne pouvez pas consulter ce voyage.', statusCode: 403)]
+    public function getDashboard(?Trip $trip = null): JsonResponse
+    {
+        if (!$trip) {
+            return $this->json(['message' => 'Ce voyage n\'existe pas.'], 404);
+        }
+
+        return $this->json([
+            'trip' => $trip,
+            'countDaysBeforeOrAfter' => $this->tripService->countDaysBeforeOrAfter($trip),
+            'budget' => $this->tripService->getBudget($trip),
+            'planning' => $this->tripService->getPlanning($trip)['events']
         ]);
     }
 
     /**
      * @throws \Exception
      */
-    #[Route('/create', name: 'create')]
-    #[Route('/edit/{trip}', name: 'edit', requirements: ['trip' => '\d+'])]
+    #[Route('/create', name: 'create', methods: ['POST'])]
+    #[Route('/edit/{trip}', name: 'edit', requirements: ['trip' => '\d+'], methods: ['POST'])]
+    #[IsGranted('edit_trip', subject: 'trip', message: 'Vous ne pouvez pas modifier ce voyage.', statusCode: 403)]
     public function create(Request $request, ValidatorInterface $validator, ?Trip $trip = new Trip()): JsonResponse
     {
-        if ($trip->getTraveler() !== null && $trip->getTraveler() !== $this->getUser()) {
-            return $this->json(['message' => 'Vous ne pouvez pas éditer les voyages d\'un autre utilisateur.', 403]);
-        }
-
         $dto = new TripRequestDTO();
         $dto->name = $request->request->get('name');
         $dto->selectedCountry = $request->request->get('selectedCountry');

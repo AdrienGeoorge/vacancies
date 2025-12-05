@@ -250,11 +250,31 @@ class TripService
         $onSite = $this->getOnSiteExpensePrice($trip);
 
         $reservedPrices = [
-            'accommodations' => $this->getReservedAccommodationsPrice($trip),
-            'transports' => $this->getReservedTransportsPrice($trip),
-            'activities' => $this->getReservedActivitiesPrice($trip),
-            'variousExpensive' => $this->getReservedVariousExpensivePrice($trip),
-            'onSite' => $onSite
+            'accommodations' => [
+                'title' => 'Hébergements',
+                'description' => 'Hôtel, auberge, location Airbnb, etc.',
+                'amount' => $this->getReservedAccommodationsPrice($trip)
+            ],
+            'transports' => [
+                'title' => 'Transports',
+                'description' => 'Avion, train, taxi, bus, etc.',
+                'amount' => $this->getReservedTransportsPrice($trip)
+            ],
+            'activities' => [
+                'title' => 'Activités',
+                'description' => "Musée, zoo, parc d'attractions, etc.",
+                'amount' => $this->getReservedActivitiesPrice($trip)
+            ],
+            'variousExpensive' => [
+                'title' => 'Dépenses diverses',
+                'description' => 'Assurance, VISA, forfait mobile, etc.',
+                'amount' => $this->getReservedVariousExpensivePrice($trip)
+            ],
+            'onSite' => [
+                'title' => 'Dépenses sur place',
+                'description' => 'Courses, restaurant, etc.',
+                'amount' => $onSite
+            ]
         ];
 
         $nonReservedPrices = [

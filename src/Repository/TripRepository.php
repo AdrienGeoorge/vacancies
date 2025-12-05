@@ -80,18 +80,24 @@ class TripRepository extends ServiceEntityRepository
                 CASE
                     WHEN t.departureDate IS NOT NULL
                      AND t.returnDate IS NOT NULL
+                     AND t.departureDate < :today
                      AND t.returnDate >= :today
                         THEN 1
+                        
+                    WHEN t.departureDate IS NOT NULL
+                     AND t.returnDate IS NOT NULL
+                     AND t.returnDate >= :today
+                        THEN 2
             
                     WHEN (t.departureDate IS NULL AND t.returnDate IS NULL)
                       OR (t.departureDate IS NOT NULL AND t.returnDate IS NULL)
                       OR (t.departureDate IS NULL AND t.returnDate IS NOT NULL)
-                        THEN 2
+                        THEN 3
             
                     WHEN t.departureDate IS NOT NULL
                      AND t.returnDate IS NOT NULL
                      AND t.returnDate < :today
-                        THEN 3
+                        THEN 4
             
                     ELSE 4
                 END AS state

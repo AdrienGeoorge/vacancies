@@ -35,18 +35,6 @@ class TripController extends AbstractController
         $this->tripService = $tripService;
     }
 
-    #[Route('/show/{trip}', name: 'show', requirements: ['trip' => '\d+'])]
-    #[IsGranted('view', subject: 'trip')]
-    public function show(Trip $trip): Response
-    {
-        return $this->render('trip/show.html.twig', [
-            'trip' => $trip,
-            'countDaysBeforeOrAfter' => $this->tripService->countDaysBeforeOrAfter($trip),
-            'budget' => $this->tripService->getBudget($trip),
-            'byTraveler' => $this->tripService->getExpensesByTraveler($trip)
-        ]);
-    }
-
     #[Route('/show/{trip}/balance', name: 'balance_details', requirements: ['trip' => '\d+'])]
     #[IsGranted('view', subject: 'trip')]
     public function balance(Trip $trip): Response
@@ -68,13 +56,6 @@ class TripController extends AbstractController
         $this->addFlash('success', 'Votre voyage a bien été supprimé.');
 
         return $this->redirectToRoute('app_home');
-    }
-
-    #[Route('/get-budget/{trip}', name: 'get_budget', requirements: ['trip' => '\d+'], options: ['expose' => true])]
-    #[IsGranted('view', 'trip')]
-    public function getBudget(Trip $trip): Response
-    {
-        return new JsonResponse($this->tripService->getBudget($trip));
     }
 
     #[Route('/update-bloc-notes/{trip}', name: 'update_bloc_notes', requirements: ['trip' => '\d+'], options: ['expose' => true])]

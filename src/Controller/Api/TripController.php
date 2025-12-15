@@ -70,10 +70,6 @@ class TripController extends AbstractController
     #[IsGranted('edit_trip', subject: 'trip', message: 'Vous ne pouvez pas modifier ce voyage.', statusCode: 403)]
     public function get(?Trip $trip = null): JsonResponse
     {
-        if (!$trip) {
-            return $this->json(['message' => 'Ce voyage n\'existe pas.'], 404);
-        }
-
         $trip = $this->managerRegistry->getRepository(Trip::class)->getOneTrip($trip->getId());
 
         return $this->json([
@@ -90,10 +86,6 @@ class TripController extends AbstractController
     #[IsGranted('view', subject: 'trip', message: 'Vous ne pouvez pas consulter ce voyage.', statusCode: 403)]
     public function getGeneralData(?Trip $trip = null): JsonResponse
     {
-        if (!$trip) {
-            return $this->json(['message' => 'Ce voyage n\'existe pas.'], 404);
-        }
-
         return $this->json([
             'trip' => $trip,
             'countDaysBeforeOrAfter' => $this->tripService->countDaysBeforeOrAfter($trip)
@@ -104,10 +96,6 @@ class TripController extends AbstractController
     #[IsGranted('view', subject: 'trip', message: 'Vous ne pouvez pas consulter ce voyage.', statusCode: 403)]
     public function getDashboard(?Trip $trip = null): JsonResponse
     {
-        if (!$trip) {
-            return $this->json(['message' => 'Ce voyage n\'existe pas.'], 404);
-        }
-
         return $this->json([
             'countTravelers' => $trip->getTripTravelers()->count(),
             'budget' => $this->tripService->getBudget($trip),

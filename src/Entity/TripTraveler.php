@@ -2,11 +2,10 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
 use App\Repository\TripTravelerRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
-#[ApiResource]
 #[ORM\Entity(repositoryClass: TripTravelerRepository::class)]
 class TripTraveler
 {
@@ -20,6 +19,7 @@ class TripTraveler
 
     #[ORM\ManyToOne(inversedBy: 'tripTravelers')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Ignore]
     private ?Trip $trip = null;
 
     #[ORM\ManyToOne]

@@ -2,11 +2,10 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
 use App\Repository\AccommodationAdditionalRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
-#[ApiResource]
 #[ORM\Entity(repositoryClass: AccommodationAdditionalRepository::class)]
 class AccommodationAdditional
 {
@@ -20,6 +19,7 @@ class AccommodationAdditional
 
     #[ORM\ManyToOne(inversedBy: 'additionalExpensive')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Ignore]
     private ?Accommodation $accommodation = null;
 
     #[ORM\Column]

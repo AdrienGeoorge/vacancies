@@ -3,10 +3,18 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
 use App\Repository\ShareInvitationRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new Get(),
+        new Delete()
+    ]
+)]
 #[ORM\Entity(repositoryClass: ShareInvitationRepository::class)]
 class ShareInvitation
 {
@@ -20,6 +28,7 @@ class ShareInvitation
 
     #[ORM\ManyToOne(inversedBy: 'shareInvitations')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Ignore]
     private ?Trip $trip = null;
 
     #[ORM\ManyToOne(inversedBy: 'shareInvitations')]

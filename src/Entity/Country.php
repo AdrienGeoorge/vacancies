@@ -9,6 +9,7 @@ use App\Repository\CountryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[ApiResource(operations: [
     new Get(),
@@ -32,6 +33,7 @@ class Country
     private ?string $continent = null;
 
     #[ORM\OneToMany(targetEntity: Trip::class, mappedBy: 'country')]
+    #[Ignore]
     private Collection $trips;
 
     public function __construct()

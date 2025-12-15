@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
 use App\Repository\PasswordResetRepository;
 use Doctrine\ORM\Mapping as ORM;
 

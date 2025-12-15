@@ -2,14 +2,13 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
 use App\Repository\AccommodationRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
-#[ApiResource]
 #[ORM\Entity(repositoryClass: AccommodationRepository::class)]
 class Accommodation
 {
@@ -44,6 +43,7 @@ class Accommodation
 
     #[ORM\ManyToOne(inversedBy: 'accommodations')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Ignore]
     private ?Trip $trip = null;
 
     #[ORM\Column(nullable: true)]

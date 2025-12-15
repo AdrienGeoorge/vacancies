@@ -11,8 +11,8 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
-#[ApiResource]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
@@ -37,6 +37,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var string|null The hashed password
      */
     #[ORM\Column]
+    #[Ignore]
     private ?string $password = null;
 
     #[ORM\Column(length: 50, nullable: true)]
@@ -46,9 +47,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $lastname = null;
 
     #[ORM\OneToMany(targetEntity: Trip::class, mappedBy: 'traveler', orphanRemoval: true)]
+    #[Ignore]
     private Collection $trips;
 
     #[ORM\OneToMany(targetEntity: ShareInvitation::class, mappedBy: 'userToShareWith', orphanRemoval: true)]
+    #[Ignore]
     private Collection $shareInvitations;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -61,9 +64,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private bool $privateProfile;
 
     #[ORM\OneToMany(targetEntity: Follows::class, mappedBy: 'follower', orphanRemoval: true)]
+    #[Ignore]
     private Collection $follows;
 
     #[ORM\OneToMany(targetEntity: Follows::class, mappedBy: 'followedBy', orphanRemoval: true)]
+    #[Ignore]
     private Collection $followedBy;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -71,12 +76,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\OneToMany(targetEntity: UserBadges::class, mappedBy: 'user', orphanRemoval: true)]
     #[ORM\OrderBy(['id' => 'DESC'])]
+    #[Ignore]
     private Collection $userBadges;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $biography = null;
 
     #[ORM\OneToMany(targetEntity: UserNotifications::class, mappedBy: 'user', orphanRemoval: true)]
+    #[Ignore]
     private Collection $userNotifications;
 
     public function __construct()

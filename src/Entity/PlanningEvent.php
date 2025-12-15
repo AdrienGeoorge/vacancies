@@ -2,12 +2,11 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
 use App\Repository\PlanningEventRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
-#[ApiResource]
 #[ORM\Entity(repositoryClass: PlanningEventRepository::class)]
 class PlanningEvent
 {
@@ -30,6 +29,7 @@ class PlanningEvent
 
     #[ORM\ManyToOne(inversedBy: 'planningEvents')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Ignore]
     private ?Trip $trip = null;
 
     #[ORM\ManyToOne]

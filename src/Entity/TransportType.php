@@ -3,10 +3,15 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
 use App\Repository\TransportTypeRepository;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new Get(),
+    ]
+)]
 #[ORM\Entity(repositoryClass: TransportTypeRepository::class)]
 class TransportType
 {

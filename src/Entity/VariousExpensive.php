@@ -2,12 +2,11 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiResource;
 use App\Repository\VariousExpensiveRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
-#[ApiResource]
 #[ORM\Entity(repositoryClass: VariousExpensiveRepository::class)]
 class VariousExpensive
 {
@@ -33,6 +32,7 @@ class VariousExpensive
 
     #[ORM\ManyToOne(inversedBy: 'variousExpensives')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Ignore]
     private ?Trip $trip = null;
 
     #[ORM\ManyToOne]

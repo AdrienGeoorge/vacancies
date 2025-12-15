@@ -86,6 +86,20 @@ class TripController extends AbstractController
         ]);
     }
 
+    #[Route('/get/{trip}/general-data', name: 'getGeneralData', requirements: ['trip' => '\d+'], methods: ['GET'])]
+    #[IsGranted('view', subject: 'trip', message: 'Vous ne pouvez pas consulter ce voyage.', statusCode: 403)]
+    public function getGeneralData(?Trip $trip = null): JsonResponse
+    {
+        if (!$trip) {
+            return $this->json(['message' => 'Ce voyage n\'existe pas.'], 404);
+        }
+
+        return $this->json([
+            'trip' => $trip,
+            'countDaysBeforeOrAfter' => $this->tripService->countDaysBeforeOrAfter($trip)
+        ]);
+    }
+
     #[Route('/get/{trip}/dashboard', name: 'getDashboard', requirements: ['trip' => '\d+'], methods: ['GET'])]
     #[IsGranted('view', subject: 'trip', message: 'Vous ne pouvez pas consulter ce voyage.', statusCode: 403)]
     public function getDashboard(?Trip $trip = null): JsonResponse
@@ -95,10 +109,9 @@ class TripController extends AbstractController
         }
 
         return $this->json([
-            'trip' => $trip,
-            'countDaysBeforeOrAfter' => $this->tripService->countDaysBeforeOrAfter($trip),
+            'countTravelers' => $trip->getTripTravelers()->count(),
             'budget' => $this->tripService->getBudget($trip),
-            'planning' => $this->tripService->getPlanning($trip)['events']
+            'planning' => $this->tripService->getPlanning($trip)
         ]);
     }
 

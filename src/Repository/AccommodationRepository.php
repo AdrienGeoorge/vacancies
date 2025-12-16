@@ -24,6 +24,19 @@ class AccommodationRepository extends ServiceEntityRepository
         parent::__construct($registry, Accommodation::class);
     }
 
+    public function findAllByTrip(Trip $trip)
+    {
+        return $this->createQueryBuilder('a')
+            ->andWhere('a.trip = :trip')
+            ->setParameter('trip', $trip)
+            ->addOrderBy('CASE WHEN a.arrivalDate IS NULL THEN 1 ELSE 0 END', 'ASC')
+            ->addOrderBy('a.arrivalDate', 'ASC')
+            ->addOrderBy('a.departureDate', 'ASC')
+            ->addOrderBy('a.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     /**
      * Retourne le montant des hôtels réservés par voyageur
      * @param Trip $trip

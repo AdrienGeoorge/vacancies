@@ -135,7 +135,6 @@ class TripController extends AbstractController
 
         if (count($errors) > 0) {
             foreach ($errors as $error) {
-                echo $error->getPropertyPath();
                 return $this->json(['message' => $error->getMessage()], 400);
             }
         }

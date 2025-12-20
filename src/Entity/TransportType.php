@@ -4,12 +4,14 @@ namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use App\Repository\TransportTypeRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ApiResource(
     operations: [
         new Get(),
+        new GetCollection(paginationEnabled: false)
     ]
 )]
 #[ORM\Entity(repositoryClass: TransportTypeRepository::class)]

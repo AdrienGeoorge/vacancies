@@ -68,7 +68,6 @@ class AccommodationController extends AbstractController
 
         if (count($errors) > 0) {
             foreach ($errors as $error) {
-                echo $error->getPropertyPath();
                 return $this->json(['message' => $error->getMessage()], 400);
             }
         }
@@ -102,7 +101,7 @@ class AccommodationController extends AbstractController
 
     #[Route('/update-reserved/{accommodation}', name: 'update_reserved', requirements: ['accommodation' => '\d+'], methods: ['PUT'])]
     #[IsGranted('edit_elements', subject: 'trip')]
-    public function UpdateReserved(Request $request, ?Trip $trip = null, ?Accommodation $accommodation = null): JsonResponse
+    public function updateReserved(Request $request, ?Trip $trip = null, ?Accommodation $accommodation = null): JsonResponse
     {
         if (!$accommodation) {
             return $this->json(['message' => 'Modification impossible : hébergement non trouvé.'], 404);

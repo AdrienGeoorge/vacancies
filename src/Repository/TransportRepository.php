@@ -22,4 +22,18 @@ class TransportRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Transport::class);
     }
+
+    public function findAllByTrip(Trip $trip)
+    {
+        return $this->createQueryBuilder('t')
+            ->andWhere('t.trip = :trip')
+            ->setParameter('trip', $trip)
+            ->addOrderBy('CASE WHEN t.arrivalDate IS NULL THEN 1 ELSE 0 END', 'ASC')
+            ->addOrderBy('t.departureDate', 'ASC')
+            ->addOrderBy('t.arrivalDate', 'ASC')
+            ->addOrderBy('t.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
 }

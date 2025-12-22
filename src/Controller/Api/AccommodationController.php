@@ -6,6 +6,7 @@ use App\Entity\Accommodation;
 use App\Entity\Trip;
 use App\Entity\TripTraveler;
 use App\Service\AccommodationService;
+use App\Service\TripService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,9 +17,11 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/api/accommodations/{trip}', name: 'api_accommodations_', requirements: ['trip' => '\d+'])]
 class AccommodationController extends AbstractController
 {
+
     public function __construct(
         readonly ManagerRegistry      $managerRegistry,
-        readonly AccommodationService $accommodationService
+        readonly AccommodationService $accommodationService,
+        readonly TripService          $tripService
     )
     {
     }
@@ -73,13 +76,19 @@ class AccommodationController extends AbstractController
         }
 
         try {
-            $this->accommodationService->handleAccommodationForm($trip, $accommodation, $dto, $sentIds);
+            $errorOnCompare = $this->tripService->compareElementDateBetweenTripDates($trip, $dto->arrivalDate, $dto->departureDate);
 
-            if ($request->get('_route') === 'api_accommodations_edit') {
-                return $this->json(['message' => 'Les informations de ton hébergement ont bien été modifiées.']);
+            if ($errorOnCompare === null) {
+                $this->accommodationService->handleAccommodationForm($trip, $accommodation, $dto, $sentIds);
+
+                if ($request->get('_route') === 'api_accommodations_edit') {
+                    return $this->json(['message' => 'Les informations de ton hébergement ont bien été modifiées.']);
+                }
+
+                return $this->json(['message' => 'Cet hébergement a bien été ajouté à votre voyage.']);
+            } else {
+                return $this->json(['message' => $errorOnCompare], 400);
             }
-
-            return $this->json(['message' => 'Cet hébergement a bien été ajouté à votre voyage.']);
         } catch (\Exception) {
             return $this->json(['message' => 'Une erreur est survenue lors de la création de l\'hébergement.'], 400);
         }

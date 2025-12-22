@@ -8,21 +8,22 @@ use App\Entity\EventType;
 use App\Entity\PlanningEvent;
 use App\Entity\Trip;
 use App\Entity\TripTraveler;
+use App\Service\DTOService;
+use App\Service\TripService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\Validator\ConstraintViolation;
-use Symfony\Component\Validator\ConstraintViolationList;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/activities/{trip}', name: 'api_activities_', requirements: ['trip' => '\d+'])]
 class ActivityController extends AbstractController
 {
     public function __construct(
-        readonly ManagerRegistry      $managerRegistry
+        readonly ManagerRegistry $managerRegistry,
+        readonly TripService     $tripService,
+        readonly DTOService      $dtoService
     )
     {
     }
@@ -45,7 +46,7 @@ class ActivityController extends AbstractController
         }
 
         return $this->json([
-            'type' => $activity->getActivityType(),
+            'type' => $activity->getType(),
             'name' => $activity->getName(),
             'description' => $activity->getDescription(),
             'date' => $activity->getDate(),
@@ -61,77 +62,57 @@ class ActivityController extends AbstractController
     #[Route('/edit/{activity}', name: 'edit', requirements: ['activity' => '\d+'], methods: ['POST'])]
     #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
     public function create(
-        Request            $request,
-        ValidatorInterface $validator,
-        ?Trip              $trip = null,
-        ?Activity          $activity = new Activity()
+        Request   $request,
+        ?Trip     $trip = null,
+        ?Activity $activity = new Activity()
     ): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
         $selectedType = $data['selectedType'] ? $this->managerRegistry->getRepository(EventType::class)->find($data['selectedType']) : null;
 
         $dto = new ActivityRequestDTO($selectedType);
-        $errors = new ConstraintViolationList();
+        $dto = $this->dtoService->initDto($data, $dto);
 
-        foreach ($data as $key => $value) {
-            if ($key === 'selectedType') continue;
-
-            if ($key === 'date') {
-                try {
-                    $dto->{$key} = $value ? new \DateTime($value) : null;
-                } catch (\Exception) {
-                    $errors->add(new ConstraintViolation('La date est invalide.', '', [], null, $key, null));
-                }
-            } else {
-                $dto->{$key} = $value;
-            }
-        }
-
-        $errors->addAll($validator->validate($dto));
-
-        if (count($errors) > 0) {
-            foreach ($errors as $error) {
-                return $this->json(['message' => $error->getMessage()], 400);
-            }
-        }
+        if (is_array($dto) && isset($dto['error'])) return $this->json(...$dto['error']);
 
         try {
-            $activity->setTrip($trip);
-            $activity->setName($dto->name);
-            $activity->setDescription($dto->description);
-            $activity->setDate($dto->date);
-            $activity->setPrice($dto->price);
-            $activity->setPerPerson($dto->perPerson);
-            $activity->setActivityType($dto->type);
+            $errorOnCompare = $this->tripService->compareElementDateBetweenTripDates($trip, $dto->date);
 
-            $this->managerRegistry->getManager()->persist($activity);
+            if ($errorOnCompare === null) {
+                $activity->setTrip($trip);
+                $activity = $this->dtoService->mapToEntity($dto, $activity);
 
-            if ($activity->getDate()) {
-                $event = $this->managerRegistry->getRepository(PlanningEvent::class)->findOneBy(['activity' => $activity]);
+                $this->managerRegistry->getManager()->persist($activity);
 
-                if (!$event) {
-                    $eventType = $this->managerRegistry->getRepository(EventType::class)->findOneBy(['name' => 'Autre']);
-                    $event = (new PlanningEvent())
-                        ->setTrip($trip)
-                        ->setActivity($activity)
-                        ->setDescription($activity->getDescription())
-                        ->setType($eventType);
+                if ($activity->getDate()) {
+                    $event = $this->managerRegistry->getRepository(PlanningEvent::class)->findOneBy(['activity' => $activity]);
+
+                    if (!$event) {
+                        $eventType = $this->managerRegistry->getRepository(EventType::class)->findOneBy(['name' => 'Autre']);
+                        $event = (new PlanningEvent())
+                            ->setTrip($trip)
+                            ->setActivity($activity)
+                            ->setDescription($activity->getDescription())
+                            ->setType($eventType);
+                    }
+
+                    $event->setTitle($activity->getName());
+                    $event->setStart($activity->getDate());
+
+                    $this->managerRegistry->getManager()->persist($event);
                 }
 
-                $event->setTitle($activity->getName());
-                $event->setStart($activity->getDate());
+                $this->managerRegistry->getManager()->flush();
 
-                $this->managerRegistry->getManager()->persist($event);
+                if ($request->get('_route') === 'api_activities_edit') {
+                    return $this->json(['message' => 'Les informations de ton activité ont bien été modifiées.']);
+                }
+
+                return $this->json(['message' => 'Cette activité a bien été ajoutée à votre voyage.']);
+            } else {
+                return $this->json(['message' => $errorOnCompare], 400);
             }
-
-            $this->managerRegistry->getManager()->flush();
-
-            if ($request->get('_route') === 'api_activities_edit') {
-                return $this->json(['message' => 'Les informations de ton activité ont bien été modifiées.']);
-            }
-
-            return $this->json(['message' => 'Cette activité a bien été ajoutée à votre voyage.']);
-        } catch (\Exception) {
+        } catch (\Exception $e) {
             return $this->json(['message' => 'Une erreur est survenue lors de la création de cette activité.'], 400);
         }
     }

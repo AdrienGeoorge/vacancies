@@ -146,12 +146,12 @@ class Activity
         return $this;
     }
 
-    public function getActivityType(): ?EventType
+    public function getType(): ?EventType
     {
         return $this->activityType;
     }
 
-    public function setActivityType(?EventType $activityType): static
+    public function setType(?EventType $activityType): static
     {
         $this->activityType = $activityType;
 

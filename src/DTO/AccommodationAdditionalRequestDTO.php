@@ -2,7 +2,6 @@
 
 namespace App\DTO;
 
-use phpDocumentor\Reflection\Types\Float_;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class AccommodationAdditionalRequestDTO

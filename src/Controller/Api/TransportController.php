@@ -7,21 +7,22 @@ use App\Entity\Transport;
 use App\Entity\TransportType;
 use App\Entity\Trip;
 use App\Entity\TripTraveler;
+use App\Service\DTOService;
+use App\Service\TripService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\Validator\ConstraintViolation;
-use Symfony\Component\Validator\ConstraintViolationList;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/transports/{trip}', name: 'api_transports_', requirements: ['trip' => '\d+'])]
 class TransportController extends AbstractController
 {
     public function __construct(
-        readonly ManagerRegistry      $managerRegistry
+        readonly ManagerRegistry $managerRegistry,
+        readonly TripService     $tripService,
+        readonly DTOService      $dtoService
     )
     {
     }
@@ -66,63 +67,41 @@ class TransportController extends AbstractController
     #[Route('/edit/{transport}', name: 'edit', requirements: ['transport' => '\d+'], methods: ['POST'])]
     #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
     public function create(
-        Request            $request,
-        ValidatorInterface $validator,
-        ?Trip              $trip = null,
-        ?Transport         $transport = new Transport()
+        Request    $request,
+        ?Trip      $trip = null,
+        ?Transport $transport = new Transport()
     ): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
         $selectedType = $data['selectedType'] ? $this->managerRegistry->getRepository(TransportType::class)->find($data['selectedType']) : null;
 
         $dto = new TransportRequestDTO($selectedType);
-        $errors = new ConstraintViolationList();
+        $dto = $this->dtoService->initDto($data, $dto);
 
-        foreach ($data as $key => $value) {
-            if ($key === 'selectedType') continue;
-
-            if ($key === 'departureDate' || $key === 'arrivalDate') {
-                try {
-                    $dto->{$key} = $value ? new \DateTime($value) : null;
-                } catch (\Exception) {
-                    $errors->add(new ConstraintViolation('La date est invalide.', '', [], null, $key, null));
-                }
-            } else {
-                $dto->{$key} = $value;
-            }
-        }
-
-        $errors->addAll($validator->validate($dto));
-
-        if (count($errors) > 0) {
-            foreach ($errors as $error) {
-                return $this->json(['message' => $error->getMessage()], 400);
-            }
-        }
+        if (is_array($dto) && isset($dto['error'])) return $this->json(...$dto['error']);
 
         try {
-            $transport->setTrip($trip);
-            $transport->setCompany($dto->company);
-            $transport->setDescription($dto->description);
-            $transport->setDepartureDate($dto->departureDate ?? null);
-            $transport->setDeparture($dto->departure ?? null);
-            $transport->setArrivalDate($dto->arrivalDate ?? null);
-            $transport->setDestination($dto->destination ?? null);
-            $transport->setSubscriptionDuration($dto->subscriptionDuration ?? null);
-            $transport->setPrice($dto->price ?? 0);
-            $transport->setPerPerson($dto->perPerson);
-            $transport->setEstimatedToll($dto->estimatedToll ?? null);
-            $transport->setEstimatedGasoline($dto->estimatedGasoline ?? null);
-            $transport->setType($dto->type);
+            $errorOnCompare = $this->tripService->compareElementDateBetweenTripDates(
+                $trip,
+                $dto->departureDate ?? null,
+                $dto->arrivalDate ?? null
+            );
 
-            $this->managerRegistry->getManager()->persist($transport);
-            $this->managerRegistry->getManager()->flush();
+            if ($errorOnCompare === null) {
+                $transport->setTrip($trip);
+                $transport = $this->dtoService->mapToEntity($dto, $transport);
 
-            if ($request->get('_route') === 'api_transports_edit') {
-                return $this->json(['message' => 'Les informations de ton moyen de transport ont bien été modifiées.']);
+                $this->managerRegistry->getManager()->persist($transport);
+                $this->managerRegistry->getManager()->flush();
+
+                if ($request->get('_route') === 'api_transports_edit') {
+                    return $this->json(['message' => 'Les informations de ton moyen de transport ont bien été modifiées.']);
+                }
+
+                return $this->json(['message' => 'Ce moyen de transport a bien été ajouté à votre voyage.']);
+            } else {
+                return $this->json(['message' => $errorOnCompare], 400);
             }
-
-            return $this->json(['message' => 'Ce moyen de transport a bien été ajouté à votre voyage.']);
         } catch (\Exception) {
             return $this->json(['message' => 'Une erreur est survenue lors de la création de ce moyen de transport.'], 400);
         }

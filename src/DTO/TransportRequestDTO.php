@@ -20,14 +20,14 @@ class TransportRequestDTO
     public ?string $description;
 
     #[Assert\Type(\DateTime::class)]
-    public ?\DateTime $departureDate;
+    public ?\DateTime $departureDate = null;
 
-    public ?string $departure;
+    public ?string $departure = null;
 
     #[Assert\Type(\DateTime::class)]
-    public ?\DateTime $arrivalDate;
+    public ?\DateTime $arrivalDate = null;
 
-    public ?string $destination;
+    public ?string $destination = null;
 
     #[Assert\When(
         expression: 'this.isPublicTransport()',
@@ -36,7 +36,7 @@ class TransportRequestDTO
             new Assert\GreaterThan(0, message: "Votre abonnement doit avoir une durée minimale de 1 jour.")
         ],
     )]
-    public ?int $subscriptionDuration;
+    public ?int $subscriptionDuration = null;
 
     #[Assert\When(
         expression: '!this.isCar()',
@@ -45,7 +45,7 @@ class TransportRequestDTO
             new Assert\GreaterThan(0, message: 'Le prix doit être de minimum 1€.')
         ],
     )]
-    public ?float $price;
+    public ?float $price = 0;
 
     public bool $perPerson = false;
 
@@ -56,7 +56,7 @@ class TransportRequestDTO
             new Assert\GreaterThanOrEqual(0, message: "L'estimation du péage doit être de minimum 0€.")
         ],
     )]
-    public ?float $estimatedToll;
+    public ?float $estimatedToll = null;
 
     #[Assert\When(
         expression: 'this.isCar()',
@@ -65,7 +65,7 @@ class TransportRequestDTO
             new Assert\GreaterThanOrEqual(0, message: "L'estimation du prix du carburant doit être de minimum 0€.")
         ],
     )]
-    public ?float $estimatedGasoline;
+    public ?float $estimatedGasoline = null;
 
     public function isPublicTransport(): bool
     {

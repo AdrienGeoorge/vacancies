@@ -125,10 +125,13 @@ class ActivityController extends AbstractController
             return $this->json(['message' => 'Suppression impossible : activité non trouvée.'], 404);
         }
 
+        $event = $this->managerRegistry->getRepository(PlanningEvent::class)->findOneBy(['activity' => $activity]);
+        if ($event) $this->managerRegistry->getManager()->remove($event);
+
         $this->managerRegistry->getManager()->remove($activity);
         $this->managerRegistry->getManager()->flush();
 
-        return $this->json(['message' => 'Activité supprimée avec succès.']);
+        return $this->json(['message' => 'Votre activité a bien été dissociée de ce voyage et supprimée.']);
     }
 
     #[Route('/update-reserved/{activity}', name: 'update_reserved', requirements: ['activity' => '\d+'], methods: ['PUT'])]

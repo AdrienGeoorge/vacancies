@@ -118,7 +118,7 @@ class TransportController extends AbstractController
         $this->managerRegistry->getManager()->remove($transport);
         $this->managerRegistry->getManager()->flush();
 
-        return $this->json(['message' => 'Transport supprimé avec succès.']);
+        return $this->json(['message' => 'Votre moyen de transport a bien été dissocié de ce voyage et supprimé.']);
     }
 
     #[Route('/update-reserved/{transport}', name: 'update_reserved', requirements: ['transport' => '\d+'], methods: ['PUT'])]

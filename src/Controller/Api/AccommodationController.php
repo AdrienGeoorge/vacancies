@@ -105,7 +105,7 @@ class AccommodationController extends AbstractController
         $this->managerRegistry->getManager()->remove($accommodation);
         $this->managerRegistry->getManager()->flush();
 
-        return $this->json(['message' => 'Hébergement supprimé avec succès.']);
+        return $this->json(['message' => 'Votre hébergement a bien été dissocié de ce voyage et supprimé.']);
     }
 
     #[Route('/update-reserved/{accommodation}', name: 'update_reserved', requirements: ['accommodation' => '\d+'], methods: ['PUT'])]

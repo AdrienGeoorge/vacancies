@@ -25,7 +25,7 @@ class Activity
     private ?float $price = null;
 
     #[ORM\Column]
-    private ?bool $booked = null;
+    private ?bool $booked = false;
 
     #[ORM\ManyToOne(inversedBy: 'activities')]
     #[ORM\JoinColumn(nullable: false)]
@@ -40,6 +40,10 @@ class Activity
 
     #[ORM\ManyToOne]
     private ?TripTraveler $payedBy = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?EventType $activityType = null;
 
     public function getId(): ?int
     {
@@ -138,6 +142,18 @@ class Activity
     public function setPayedBy(?TripTraveler $payedBy): static
     {
         $this->payedBy = $payedBy;
+
+        return $this;
+    }
+
+    public function getActivityType(): ?EventType
+    {
+        return $this->activityType;
+    }
+
+    public function setActivityType(?EventType $activityType): static
+    {
+        $this->activityType = $activityType;
 
         return $this;
     }

@@ -2,14 +2,11 @@
 
 namespace App\Controller\Api;
 
-use App\DTO\AccommodationAdditionalRequestDTO;
 use App\DTO\TransportRequestDTO;
-use App\Entity\Accommodation;
 use App\Entity\Transport;
 use App\Entity\TransportType;
 use App\Entity\Trip;
 use App\Entity\TripTraveler;
-use App\Service\AccommodationService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,8 +21,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class TransportController extends AbstractController
 {
     public function __construct(
-        readonly ManagerRegistry      $managerRegistry,
-        readonly AccommodationService $accommodationService
+        readonly ManagerRegistry      $managerRegistry
     )
     {
     }

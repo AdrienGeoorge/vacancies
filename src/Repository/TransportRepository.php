@@ -35,5 +35,4 @@ class TransportRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-
 }

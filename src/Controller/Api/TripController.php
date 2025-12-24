@@ -179,4 +179,18 @@ class TripController extends AbstractController
             return $this->json(['message' => 'Une erreur est survenue lors de la création du voyage.'], 400);
         }
     }
+
+    #[Route('/delete/{trip}', name: 'delete', requirements: ['trip' => '\d+'], methods: ['DELETE'])]
+    #[IsGranted('delete_trip', subject: 'trip')]
+    public function delete(Trip $trip): JsonResponse
+    {
+        try {
+            $this->managerRegistry->getManager()->remove($trip);
+            $this->managerRegistry->getManager()->flush();
+
+            return $this->json(['message' => 'Votre voyage ainsi que toutes les informations associées ont bien été supprimés.']);
+        } catch (\Exception) {
+            return $this->json(['message' => 'Une erreur est survenue lors de la suppression du voyage.'], 400);
+        }
+    }
 }

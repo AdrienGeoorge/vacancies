@@ -46,18 +46,6 @@ class TripController extends AbstractController
         ]);
     }
 
-    #[Route('/delete/{trip}', name: 'delete', requirements: ['trip' => '\d+'])]
-    #[IsGranted('delete_trip', subject: 'trip')]
-    public function delete(Trip $trip): Response
-    {
-        $this->managerRegistry->getManager()->remove($trip);
-        $this->managerRegistry->getManager()->flush();
-
-        $this->addFlash('success', 'Votre voyage a bien été supprimé.');
-
-        return $this->redirectToRoute('app_home');
-    }
-
     #[Route('/update-bloc-notes/{trip}', name: 'update_bloc_notes', requirements: ['trip' => '\d+'], options: ['expose' => true])]
     #[IsGranted('view', 'trip')]
     public function updateBlocNotes(Request $request, Trip $trip): Response

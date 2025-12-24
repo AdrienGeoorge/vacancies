@@ -10,7 +10,7 @@ class AccommodationRequestDTO
     #[Assert\Length(
         min: 5,
         max: 255,
-        minMessage: 'Le nom del\'hébergement doit faire au minimum 5 caractères.',
+        minMessage: 'Le nom de l\'hébergement doit faire au minimum 5 caractères.',
         maxMessage: 'Le nom de l\'hébergement doit faire au maximum 255 caractères.'
     )]
     public string $name;

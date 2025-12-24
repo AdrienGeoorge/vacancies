@@ -265,7 +265,7 @@ class TripService
                 'description' => "Musée, zoo, parc d'attractions, etc.",
                 'amount' => $this->getReservedActivitiesPrice($trip)
             ],
-            'variousExpensive' => [
+            'various-expensive' => [
                 'title' => 'Dépenses diverses',
                 'description' => 'Assurance, VISA, forfait mobile, etc.',
                 'amount' => $this->getReservedVariousExpensivePrice($trip)
@@ -281,7 +281,7 @@ class TripService
             'accommodations' => $this->getNonReservedAccommodationsPrice($trip),
             'transports' => $this->getNonReservedTransportsPrice($trip),
             'activities' => $this->getNonReservedActivitiesPrice($trip),
-            'variousExpensive' => $this->getNonReservedVariousExpensivePrice($trip),
+            'various-expensive' => $this->getNonReservedVariousExpensivePrice($trip),
         ];
 
         $totalReserved = round(array_sum($reservedPrices), 2);

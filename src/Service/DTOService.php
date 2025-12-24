@@ -4,8 +4,10 @@ namespace App\Service;
 
 use App\DTO\ActivityRequestDTO;
 use App\DTO\TransportRequestDTO;
+use App\DTO\VariousExpensiveRequestDTO;
 use App\Entity\Activity;
 use App\Entity\Transport;
+use App\Entity\VariousExpensive;
 use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -16,7 +18,10 @@ class DTOService
     {
     }
 
-    public function initDto(array $data, ActivityRequestDTO|TransportRequestDTO &$dto): ActivityRequestDTO|TransportRequestDTO|array
+    public function initDto(
+        array                                                             $data,
+        ActivityRequestDTO|TransportRequestDTO|VariousExpensiveRequestDTO &$dto
+    ): ActivityRequestDTO|TransportRequestDTO|VariousExpensiveRequestDTO|array
     {
         $errors = new ConstraintViolationList();
 
@@ -46,9 +51,9 @@ class DTOService
     }
 
     public function mapToEntity(
-        ActivityRequestDTO|TransportRequestDTO $dto,
-        Activity|Transport                     $entity
-    ): Activity|Transport
+        ActivityRequestDTO|TransportRequestDTO|VariousExpensiveRequestDTO $dto,
+        Activity|Transport|VariousExpensive                               $entity
+    ): Activity|Transport|VariousExpensive
     {
         foreach (get_object_vars($dto) as $property => $value) {
             $setter = 'set' . ucfirst($property);

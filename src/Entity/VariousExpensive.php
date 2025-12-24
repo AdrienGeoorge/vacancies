@@ -25,10 +25,10 @@ class VariousExpensive
     private ?float $price = null;
 
     #[ORM\Column]
-    private ?bool $paid = null;
+    private ?bool $paid = false;
 
     #[ORM\Column]
-    private ?bool $perPerson = null;
+    private ?bool $perPerson = false;
 
     #[ORM\ManyToOne(inversedBy: 'variousExpensives')]
     #[ORM\JoinColumn(nullable: false)]

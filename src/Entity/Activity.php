@@ -42,7 +42,7 @@ class Activity
     private ?TripTraveler $payedBy = null;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?EventType $activityType = null;
 
     public function getId(): ?int

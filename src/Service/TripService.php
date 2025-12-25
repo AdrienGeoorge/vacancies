@@ -284,7 +284,7 @@ class TripService
             'various-expensive' => $this->getNonReservedVariousExpensivePrice($trip),
         ];
 
-        $totalReserved = round(array_sum($reservedPrices), 2);
+        $totalReserved = round(array_sum(array_column($reservedPrices, 'amount')), 2);
         $totalNonReserved = round(array_sum($nonReservedPrices), 2);
 
         return [

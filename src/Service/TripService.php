@@ -270,7 +270,7 @@ class TripService
                 'description' => 'Assurance, VISA, forfait mobile, etc.',
                 'amount' => $this->getReservedVariousExpensivePrice($trip)
             ],
-            'onSite' => [
+            'on-site' => [
                 'title' => 'Dépenses sur place',
                 'description' => 'Courses, restaurant, etc.',
                 'amount' => $onSite
@@ -294,7 +294,7 @@ class TripService
             'details' => [
                 'reserved' => $reservedPrices,
                 'nonReserved' => $nonReservedPrices,
-                'onSite' => $onSite
+                'on-site' => $onSite
             ],
         ];
     }

@@ -42,4 +42,15 @@ class OnSiteExpenseRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    public function findAllByTrip(Trip $trip)
+    {
+        return $this->createQueryBuilder('o')
+            ->andWhere('o.trip = :trip')
+            ->setParameter('trip', $trip)
+            ->addOrderBy('o.purchaseDate', 'DESC')
+            ->addOrderBy('o.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

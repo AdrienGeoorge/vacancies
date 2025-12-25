@@ -11,7 +11,6 @@ use App\Service\TripService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
@@ -151,22 +150,5 @@ class TripController extends AbstractController
 
         $this->addFlash('success', sprintf('Vous avez rejoint le voyage %s.', $invitation->getTrip()->getName()));
         return $this->redirectToRoute('trip_show', ['trip' => $invitation->getTrip()->getId()]);
-    }
-
-    #[Route('/leave/{trip}', name: 'leave', requirements: ['trip' => '\d+'])]
-    #[IsGranted('view', subject: 'trip')]
-    public function leave(Trip $trip): RedirectResponse
-    {
-        if ($trip->getTraveler() !== $this->getUser()) {
-            $traveler = $this->managerRegistry->getRepository(TripTraveler::class)->findOneBy(['trip' => $trip, 'invited' => $this->getUser()]);
-            $this->managerRegistry->getManager()->remove($traveler);
-            $this->managerRegistry->getManager()->flush();
-
-            $this->addFlash('success', sprintf('Vous avez quitté le voyage : %s', $trip->getName()));
-        } else {
-            $this->addFlash('error', 'Vous n\'avez pas l\'autorisation de réaliser cette action.');
-        }
-
-        return $this->redirectToRoute('app_home');
     }
 }

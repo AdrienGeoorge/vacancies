@@ -207,4 +207,20 @@ class TripController extends AbstractController
             return $this->json(['message' => 'Une erreur est survenue lors de la suppression du voyage.'], 400);
         }
     }
+
+    #[Route('/leave/{trip}', name: 'leave', requirements: ['trip' => '\d+'], methods: ['POST'])]
+    #[IsGranted('view', subject: 'trip')]
+    public function leave(Trip $trip): JsonResponse
+    {
+        if ($trip->getTraveler() !== $this->getUser()) {
+            $traveler = $this->managerRegistry->getRepository(TripTraveler::class)->findOneBy(['trip' => $trip, 'invited' => $this->getUser()]);
+
+            $this->managerRegistry->getManager()->remove($traveler);
+            $this->managerRegistry->getManager()->flush();
+
+            return $this->json(['message' => sprintf('Vous avez quitté le voyage : %s', $trip->getName())]);
+        }
+
+        return $this->json(['message' => 'Vous n\'avez pas l\'autorisation de réaliser cette action.'], 403);
+    }
 }

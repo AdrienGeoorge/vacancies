@@ -7,8 +7,6 @@ use App\Entity\Trip;
 use App\Entity\TripTraveler;
 use App\Entity\User;
 use App\Entity\UserNotifications;
-use App\Form\TripType;
-use App\Service\FileUploaderService;
 use App\Service\TripService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -24,26 +22,12 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class TripController extends AbstractController
 {
     private ManagerRegistry $managerRegistry;
-    private FileUploaderService $uploaderService;
     private TripService $tripService;
 
-    public function __construct(ManagerRegistry $managerRegistry, FileUploaderService $uploaderService,
-                                TripService     $tripService)
+    public function __construct(ManagerRegistry $managerRegistry, TripService     $tripService)
     {
         $this->managerRegistry = $managerRegistry;
-        $this->uploaderService = $uploaderService;
         $this->tripService = $tripService;
-    }
-
-    #[Route('/show/{trip}/balance', name: 'balance_details', requirements: ['trip' => '\d+'])]
-    #[IsGranted('view', subject: 'trip')]
-    public function balance(Trip $trip): Response
-    {
-        return $this->render('trip/balance.html.twig', [
-            'trip' => $trip,
-            'countDaysBeforeOrAfter' => $this->tripService->countDaysBeforeOrAfter($trip),
-            'data' => $this->tripService->getCreditorAndDebtorDetails($trip)
-        ]);
     }
 
     #[Route('/update-bloc-notes/{trip}', name: 'update_bloc_notes', requirements: ['trip' => '\d+'], options: ['expose' => true])]

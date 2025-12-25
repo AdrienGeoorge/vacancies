@@ -110,6 +110,13 @@ class TripController extends AbstractController
         ]);
     }
 
+    #[Route('/get/{trip}/balance', name: 'getBalance', requirements: ['trip' => '\d+'], methods: ['GET'])]
+    #[IsGranted('view', subject: 'trip', message: 'Vous ne pouvez pas consulter ce voyage.', statusCode: 403)]
+    public function getBalance(?Trip $trip = null): JsonResponse
+    {
+        return $this->json($this->tripService->getCreditorAndDebtorDetails($trip));
+    }
+
     /**
      * @throws \Exception
      */

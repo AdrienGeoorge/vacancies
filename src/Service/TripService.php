@@ -350,11 +350,11 @@ class TripService
                 $balances[$traveler->getName()] = [
                     'paid' => $paid,
                     'amountDue' => round($amountByPerson - $paid, 2),
-                    'accommodations' => round($accommodations, 2),
-                    'transports' => round($transportPaid, 2),
-                    'activities' => round($activities, 2),
-                    'variousExpenses' => round($variousExpenses, 2),
-                    'onSite' => round($onSite, 2)
+                    'Hébergements' => round($accommodations, 2),
+                    'Transports' => round($transportPaid, 2),
+                    'Activités' => round($activities, 2),
+                    'Dépenses diverses' => round($variousExpenses, 2),
+                    'Dépenses sur place' => round($onSite, 2)
                 ];
             }
         }
@@ -401,7 +401,7 @@ class TripService
             $data['refund'][] = [
                 'from' => $debtor,
                 'to' => $creditor,
-                'amount' => $transferAmount
+                'amount' => round($transferAmount, 2, PHP_ROUND_HALF_UP)
             ];
 
             // Mise à jour des soldes

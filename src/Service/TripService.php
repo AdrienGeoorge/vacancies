@@ -499,7 +499,7 @@ class TripService
     {
         try {
             $token = ByteString::fromRandom(50);
-            $url = $this->domain . '/accept-invitation/' . $token;
+            $url = $this->domain . '/trip/' . $trip->getId() . '/accept-invitation/' . $token;
 
             $email = (new TemplatedEmail())
                 ->from('no-reply@adriengeorge.fr')

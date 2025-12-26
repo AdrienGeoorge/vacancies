@@ -100,36 +100,28 @@ class TripTravelerController extends AbstractController
             $userToShareWith,
             sprintf('vous a invité à prendre part au voyage : %s', $trip->getName()),
             $this->getUser(),
-            $this->domain . '/accept-invitation/' . $token
+            $this->domain . '/trip/' . $trip->getId() . '/accept-invitation/' . $token
         );
 
         return $this->json(['message' => 'L\'invitation à prendre part à ce voyage a bien été transmise.'], 201);
     }
 
-    #[Route('/accept/{token}', name: 'accept', requirements: ['token' => '\w+'])]
-    public function acceptInvitation(string $token): Response
+    #[Route('/accept/{token}', name: 'accept', requirements: ['token' => '\w+'], methods: ['GET'])]
+    public function acceptInvitation(string $token, Trip $trip): JsonResponse
     {
         $invitation = $this->managerRegistry->getRepository(ShareInvitation::class)
             ->findOneBy(['token' => $token]);
 
         if (!$invitation) {
-            $this->addFlash('error', 'Nous n\'avons trouvé aucune invitation. Veuillez réessayer.');
-            return $this->redirectToRoute('app_home');
+            return $this->json(['message' => 'Cette invitation n\'existe pas.'], 404);
         }
 
         if ($invitation->getExpireAt() < new \DateTimeImmutable('now')) {
-            $this->addFlash('error', 'Cette invitation a expiré. La personne à l\'origine de cette requête doit renouveler l\'invitation.');
-            return $this->redirectToRoute('app_home');
+            return $this->json(['message' => 'Cette invitation a expiré. La personne à l\'origine de cette requête doit renouveler l\'invitation.'], 500);
         }
 
         if ($invitation->getUserToShareWith() !== $this->getUser()) {
-            $this->addFlash('error', 'Vous ne pouvez pas accepter une invitation qui ne vous est pas destinée.');
-            return $this->redirectToRoute('app_home');
-        }
-
-        if (!$invitation->getUserToShareWith()->getFirstname() || !$invitation->getUserToShareWith()->getLastname()) {
-            $this->addFlash('error', 'Vous devez remplir votre nom et prénom pour rejoindre ce voyage.');
-            return $this->redirectToRoute('user_about');
+            return $this->json(['message' => 'Vous ne pouvez pas accepter une invitation qui ne vous est pas destinée.'], 500);
         }
 
         $traveler = new TripTraveler();
@@ -146,11 +138,13 @@ class TripTravelerController extends AbstractController
                 $tripTraveler->getInvited(),
                 sprintf('a rejoint le voyage : %s', $invitation->getTrip()->getName()),
                 $this->getUser(),
-                $this->generateUrl('trip_show', ['trip' => $invitation->getTrip()->getId()])
+                $this->domain . '/trip/show/' . $trip->getId(),
             );
         }
 
-        $this->addFlash('success', sprintf('Vous avez rejoint le voyage %s.', $invitation->getTrip()->getName()));
-        return $this->redirectToRoute('trip_show', ['trip' => $invitation->getTrip()->getId()]);
+        return $this->json([
+            'message' => sprintf('Vous avez rejoint le voyage : %s.', $invitation->getTrip()->getName()),
+            'id' => $trip->getId()
+        ]);
     }
 }

@@ -73,28 +73,4 @@ class TripDocumentController extends AbstractController
             'countDaysBeforeOrAfter' => $this->tripService->countDaysBeforeOrAfter($trip),
         ]);
     }
-
-    #[Route('/delete/{document}', name: 'delete', requirements: ['document' => '\d+'])]
-    #[IsGranted('edit_elements', subject: 'trip')]
-    public function delete(Trip $trip, TripDocument $document): Response
-    {
-        if ($document->getTrip() !== $trip) {
-            $this->addFlash('error', 'Ce document n\'est pas associé à ce voyage. Vous ne pouvez pas y accéder.');
-            return $this->redirectToRoute('app_home');
-        }
-
-        try {
-            $fileSystem = new Filesystem();
-            $fileSystem->remove($document->getFile());
-
-            $this->managerRegistry->getManager()->remove($document);
-            $this->managerRegistry->getManager()->flush();
-
-            $this->addFlash('success', 'Votre document a bien été supprimé.');
-        } catch (\Exception $exception) {
-            $this->addFlash('error', 'La suppression du document a échoué.');
-        }
-
-        return $this->redirectToRoute('trip_documents_bag', ['trip' => $trip->getId()]);
-    }
 }

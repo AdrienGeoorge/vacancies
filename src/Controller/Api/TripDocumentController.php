@@ -63,4 +63,35 @@ class TripDocumentController extends AbstractController
 
         return $response;
     }
+
+    #[Route('/delete/{document}', name: 'delete', requirements: ['document' => '\d+'], methods: ['DELETE'])]
+    #[IsGranted('edit_elements', subject: 'trip')]
+    public function delete(Trip $trip, TripDocument $document): Response
+    {
+        if (!$document) {
+            return $this->json(['message' => 'Document non trouvé.'], 404);
+        }
+
+        if ($document->getTrip() !== $trip) {
+            return $this->json(['message' => 'Ce document n\'est pas associé à ce voyage.'], 403);
+        }
+
+        $filePath = $document->getFile();
+        $fileSystem = new Filesystem();
+
+        if (!$fileSystem->exists($filePath)) {
+            return $this->json(['message' => 'Le fichier n\'a pas été trouvé.'], 404);
+        }
+
+        try {
+            $fileSystem->remove($document->getFile());
+
+            $this->managerRegistry->getManager()->remove($document);
+            $this->managerRegistry->getManager()->flush();
+
+            return $this->json(['message' => 'Le document a bien été supprimé.']);
+        } catch (\Exception $exception) {
+            return $this->json(['message' => 'La suppression du document a échoué.'], 500);
+        }
+    }
 }

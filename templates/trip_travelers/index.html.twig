@@ -1,38 +1,6 @@
 {% extends 'trip/base.html.twig' %}
 
 {% block bodyTrip %}
-    <div class="grid grid-cols-4 gap-4">
-        <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-3.5 px-6 col-span-4 md:col-span-3">
-            <div class="mb-2 flex flex-row items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-                    <path fill-rule="evenodd"
-                          d="M18.685 19.097A9.723 9.723 0 0 0 21.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 0 0 3.065 7.097A9.716 9.716 0 0 0 12 21.75a9.716 9.716 0 0 0 6.685-2.653Zm-12.54-1.285A7.486 7.486 0 0 1 12 15a7.486 7.486 0 0 1 5.855 2.812A8.224 8.224 0 0 1 12 20.25a8.224 8.224 0 0 1-5.855-2.438ZM15.75 9a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"
-                          clip-rule="evenodd"></path>
-                </svg>
-                <div class="font-poppins-semi-bold text-xl">Liste des voyageurs</div>
-            </div>
-            <div class="text-sm">
-                Définissez quels sont les voyageurs qui prennent part à ce voyage.
-                Chaque dépense de ce voyage sera associée à une personne pour savoir qui à payer quoi.
-            </div>
-        </div>
-
-        <a href="{{ path('trip_traveler_new', {'trip': trip.id}) }}" class="shadow rounded-3xl py-3.5 px-6 flex flex-col gap-2 items-center justify-center text-center
-                          col-span-4 md:col-span-1
-                          tracking-wide bg-teal-500 text-white
-                                    border border-teal-300 hover:bg-teal-600
-                                    transition-all duration-300 ease-in-out focus:shadow-outline focus:outline-none">
-            <span class="bg-teal-400 rounded-full p-1">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-                    <path fill-rule="evenodd"
-                          d="M12 3.75a.75.75 0 0 1 .75.75v6.75h6.75a.75.75 0 0 1 0 1.5h-6.75v6.75a.75.75 0 0 1-1.5 0v-6.75H4.5a.75.75 0 0 1 0-1.5h6.75V4.5a.75.75 0 0 1 .75-.75Z"
-                          clip-rule="evenodd"></path>
-                </svg>
-            </span>
-            <span>Nouveau voyageur</span>
-        </a>
-    </div>
-
     <div id="share-modal-button" class="cursor-pointer shadow rounded-2xl py-2.5 px-5 bg-rose-400 text-white
                     w-full font-bold text-center m-auto border-2 border-rose-300 hover:bg-rose-500 mt-4
                     transition-all duration-300 ease-in-out focus:shadow-outline focus:outline-none">
@@ -45,38 +13,6 @@
                 {% for traveler in trip.tripTravelers %}
                     {% set creator = traveler.invited and trip.traveler.completeName == traveler.invited.completeName %}
                     <div class="shadow rounded-3xl bg-box dark:bg-box-dark py-3.5 px-6 flex flex-col justify-between items-center gap-4">
-                        <div class="text-center">
-                            <div class="flex flex-row justify-center items-center gap-2 mb-4">
-                                <div class="border-4 rounded-2xl overflow-hidden w-12 h-12">
-                                    {% if traveler.invited and traveler.invited.avatar %}
-                                        <img src="{{ traveler.invited.avatar }}" alt="Mon profil" class="w-12 h-12">
-                                    {% else %}
-                                        <div class="w-10 h-10 text-white text-xl font-poppins relative"
-                                             style="background-color: #495963;">
-                                    <span class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                                        {{ traveler.name|first }}
-                                    </span>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                <div class="font-poppins-semi-bold text-lg">{{ traveler.name }}</div>
-                            </div>
-                            {% if creator %}
-                                <div class="leading-5">
-                                    Vous ne pouvez pas modifier les informations de la personne à l'origine du séjour.
-                                </div>
-                            {% elseif traveler.invited and traveler.invited.completeName != trip.traveler.completeName %}
-                                <div class="leading-5">Ce voyageur a été invité à rejoindre ce séjour.</div>
-                            {% elseif traveler.invited %}
-                                <div class="leading-5">
-                                    Vous ne pouvez pas modifier les informations d'un utilisateur invité à rejoindre
-                                    ce séjour.
-                                </div>
-                            {% else %}
-                                <div class="leading-5">Ce voyageur a été ajouté manuellement.</div>
-                            {% endif %}
-                        </div>
-
                         <div class="footer flex flex-row gap-2 items-center justify-center mt-3">
                             {% if not creator and not traveler.invited %}
                                 <a href="{{ path('trip_traveler_edit', {'trip': trip.id, 'traveler': traveler.id}) }}"

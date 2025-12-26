@@ -16,21 +16,19 @@ use Exception;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\String\ByteString;
 
 class TripService
 {
-    private RouterInterface $router;
     private MailerInterface $mailer;
     private ManagerRegistry $managerRegistry;
+    protected string $domain;
 
-    public function __construct(RouterInterface $router, MailerInterface $mailer, ManagerRegistry $managerRegistry)
+    public function __construct(MailerInterface $mailer, ManagerRegistry $managerRegistry, string $domain)
     {
         $this->mailer = $mailer;
-        $this->router = $router;
         $this->managerRegistry = $managerRegistry;
+        $this->domain = $domain;
     }
 
     /**
@@ -501,7 +499,7 @@ class TripService
     {
         try {
             $token = ByteString::fromRandom(50);
-            $url = $this->router->generate('trip_accept', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
+            $url = $this->domain . '/accept-invitation/' . $token;
 
             $email = (new TemplatedEmail())
                 ->from('no-reply@adriengeorge.fr')

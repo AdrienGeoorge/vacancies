@@ -96,33 +96,4 @@ class PlanningController extends AbstractController
 
         return $this->redirectToRoute('trip_planning_index', ['trip' => $trip->getId()]);
     }
-
-    #[Route('/get', name: 'get', options: ['expose' => true])]
-    #[IsGranted('view', subject: 'trip')]
-    public function getPlanning(Trip $trip): Response
-    {
-        return new JsonResponse($this->tripService->getPlanning($trip));
-    }
-
-    #[Route('/drop-event', name: 'drop_event', options: ['expose' => true])]
-    #[IsGranted('edit_elements', subject: 'trip')]
-    public function dropEvent(Request $request, Trip $trip): Response
-    {
-        if (!$request->isXmlHttpRequest()) return new JsonResponse([], 500);
-
-        $event = $this->managerRegistry->getRepository(PlanningEvent::class)->find($request->request->get('id'));
-
-        if (!$event) return new JsonResponse([], 500);
-
-        try {
-            $event->setStart(new \DateTime($request->request->get('start')));
-            if ($request->request->get('end')) $event->setEnd(new \DateTime($request->request->get('end')));
-            $this->managerRegistry->getManager()->persist($event);
-            $this->managerRegistry->getManager()->flush();
-        } catch (\Exception) {
-            return new JsonResponse([], 500);
-        }
-
-        return new JsonResponse([], 200);
-    }
 }

@@ -223,4 +223,21 @@ class TripController extends AbstractController
 
         return $this->json(['message' => 'Vous n\'avez pas l\'autorisation de réaliser cette action.'], 403);
     }
+
+    #[Route('/update-notes/{trip}', name: 'update_notes', requirements: ['trip' => '\d+'], methods: ['POST'])]
+    #[IsGranted('edit_elements', 'trip')]
+    public function updateNotes(Request $request, Trip $trip): JsonResponse
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+            $trip->setBlocNotes($data['blocNotes'] ?? null);
+
+            $this->managerRegistry->getManager()->persist($trip);
+            $this->managerRegistry->getManager()->flush();
+
+            return $this->json([]);
+        } catch (\Exception) {
+            return $this->json(['message' => 'Une erreur est survenue lors de la sauvegarde des notes.x'], 500);
+        }
+    }
 }

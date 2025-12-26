@@ -4,22 +4,32 @@ declare(strict_types=1);
 
 namespace App\Controller\Api;
 
+use App\DTO\TripDocumentRequestDTO;
 use App\Entity\Trip;
 use App\Entity\TripDocument;
+use App\Service\DTOService;
+use App\Service\FileUploaderService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Mime\MimeTypes;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/trip-documents/{trip}', name: 'api_trip_documents_', requirements: ['trip' => '\\d+'])]
 class TripDocumentController extends AbstractController
 {
-    public function __construct(private readonly ManagerRegistry $managerRegistry)
+    public function __construct(
+        private readonly ManagerRegistry $managerRegistry,
+        private readonly DTOService      $dtoService,
+        private readonly FileUploaderService $uploaderService
+    )
     {
     }
 
@@ -92,6 +102,51 @@ class TripDocumentController extends AbstractController
             return $this->json(['message' => 'Le document a bien été supprimé.']);
         } catch (\Exception $exception) {
             return $this->json(['message' => 'La suppression du document a échoué.'], 500);
+        }
+    }
+
+    #[Route('/create', name: 'create', methods: ['POST'])]
+    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
+    public function create(
+        Request      $request,
+        ValidatorInterface $validator,
+        ?Trip        $trip = null,
+    ): JsonResponse
+    {
+        $document = new TripDocument();
+
+        $dto = new TripDocumentRequestDTO();
+        $dto->name = $request->request->get('name');
+        $dto->file = $request->files->get('file');
+
+        $errors = $validator->validate($dto);
+
+        if (count($errors) > 0) {
+            foreach ($errors as $error) {
+                return $this->json(['message' => $error->getMessage()], 400);
+            }
+        }
+
+        try {
+            if ($dto->file) {
+                $directory = $this->getParameter('bag_directory') . '/' . $trip->getId();
+                $fileName = $this->uploaderService->upload($dto->file, null, $directory);
+
+                $document->setFile($directory . '/' . $fileName);
+            }
+
+            $document->setName($dto->name);
+            $document->setTrip($trip);
+
+            $this->managerRegistry->getManager()->persist($document);
+            $this->managerRegistry->getManager()->flush();
+
+            return $this->json([
+                'message' => 'Le document a bien été lié à votre voyage.',
+                'files' => $trip->getDocuments()->toArray()
+            ]);
+        } catch (\Exception $e) {
+            return $this->json(['message' => 'Une erreur est survenue lors de l\'ajout du document.'], 400);
         }
     }
 }

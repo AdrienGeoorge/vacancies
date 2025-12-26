@@ -74,16 +74,6 @@ class TripDocumentController extends AbstractController
         ]);
     }
 
-    #[Route('/bag', name: 'bag', requirements: ['trip' => '\d+'])]
-    #[IsGranted('view', subject: 'trip')]
-    public function bag(Trip $trip): Response
-    {
-        return $this->render('trip_documents/bag.html.twig', [
-            'trip' => $trip,
-            'countDaysBeforeOrAfter' => $this->tripService->countDaysBeforeOrAfter($trip),
-        ]);
-    }
-
     #[Route('/delete/{document}', name: 'delete', requirements: ['document' => '\d+'])]
     #[IsGranted('edit_elements', subject: 'trip')]
     public function delete(Trip $trip, TripDocument $document): Response
@@ -106,41 +96,5 @@ class TripDocumentController extends AbstractController
         }
 
         return $this->redirectToRoute('trip_documents_bag', ['trip' => $trip->getId()]);
-    }
-
-    #[Route('/show/{document}', name: 'show', requirements: ['document' => '\d+'])]
-    #[IsGranted('edit_elements', subject: 'trip')]
-    public function showOrDownload(Trip $trip, TripDocument $document)
-    {
-        if ($document->getTrip() !== $trip) {
-            $this->addFlash('error', 'Ce document n\'est pas associé à ce voyage. Vous ne pouvez pas y accéder.');
-            return $this->redirectToRoute('app_home');
-        }
-
-        $fileSystem = new Filesystem();
-        if (!$fileSystem->exists($document->getFile())) {
-            $this->addFlash('error', 'Le fichier n\'a pas été trouvé.');
-            return $this->redirectToRoute('trip_documents_bag', ['trip' => $trip]);
-        }
-
-        // Détecter le type MIME
-        $mimeTypes = new MimeTypes();
-        $typeMime = $mimeTypes->guessMimeType($document->getFile()) ?? 'application/octet-stream';
-
-        $response = new BinaryFileResponse($document->getFile());
-        $response->headers->set('Content-Type', $typeMime);
-
-        // Définir la disposition (inline ou attachment)
-        $disposition = str_starts_with($typeMime, 'image/') || str_starts_with($typeMime, 'application/pdf')
-            ? ResponseHeaderBag::DISPOSITION_INLINE
-            : ResponseHeaderBag::DISPOSITION_ATTACHMENT;
-
-        $fileName = pathinfo($document->getFile(), PATHINFO_BASENAME);
-        $response->setContentDisposition($disposition, $fileName);
-
-        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
-        $response->headers->set('Pragma', 'no-cache');
-
-        return $response;
     }
 }

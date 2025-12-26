@@ -10,3 +10,7 @@ nelmio_cors:
   paths:
     '^/api/':
       allow_origin: [ '*' ]
+      # Permettre au front de lire les entêtes utiles pour les téléchargements
+      expose_headers: [ 'Content-Disposition', 'Content-Type', 'Content-Length' ]
+      # Autoriser les en-têtes envoyés par le front
+      allow_headers: [ 'Accept', 'Content-Type', 'Authorization' ]

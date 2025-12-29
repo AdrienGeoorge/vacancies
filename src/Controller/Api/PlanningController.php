@@ -30,6 +30,20 @@ class PlanningController extends AbstractController
         return new JsonResponse($this->tripService->getPlanning($trip));
     }
 
+    #[Route('/delete/{event}', name: 'delete', requirements: ['event' => '\d+'], methods: ['DELETE'])]
+    #[IsGranted('edit_elements', subject: 'trip')]
+    public function delete(Trip $trip, ?PlanningEvent $event): JsonResponse
+    {
+        if (!$event) {
+            return $this->json(['message' => 'Evénement non existant.'], 500);
+        }
+
+        $this->managerRegistry->getManager()->remove($event);
+        $this->managerRegistry->getManager()->flush();
+
+        return $this->json(['message' => 'Votre évènement a bien été supprimé du planning']);
+    }
+
     #[Route('/drop-event/{event}', name: 'drop_event', requirements: ['event' => '\d+'], methods: ['POST'])]
     #[IsGranted('edit_elements', subject: 'trip')]
     public function dropEvent(Request $request, Trip $trip, ?PlanningEvent $event): JsonResponse

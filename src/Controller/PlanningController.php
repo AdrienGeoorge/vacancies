@@ -84,16 +84,4 @@ class PlanningController extends AbstractController
             'form' => $form->createView()
         ]);
     }
-
-    #[Route('/delete/{event}', name: 'delete', requirements: ['event' => '\d+'])]
-    #[IsGranted('edit_elements', subject: 'trip')]
-    public function delete(Trip $trip, PlanningEvent $event): Response
-    {
-        $this->managerRegistry->getManager()->remove($event);
-        $this->managerRegistry->getManager()->flush();
-
-        $this->addFlash('success', 'Votre évènement a bien été supprimé du planning.');
-
-        return $this->redirectToRoute('trip_planning_index', ['trip' => $trip->getId()]);
-    }
 }

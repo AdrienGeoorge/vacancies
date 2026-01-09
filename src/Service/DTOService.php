@@ -3,11 +3,13 @@
 namespace App\Service;
 
 use App\DTO\ActivityRequestDTO;
+use App\DTO\EventRequestDTO;
 use App\DTO\OnSiteExpenseRequestDTO;
 use App\DTO\TransportRequestDTO;
 use App\DTO\VariousExpensiveRequestDTO;
 use App\Entity\Activity;
 use App\Entity\OnSiteExpense;
+use App\Entity\PlanningEvent;
 use App\Entity\Transport;
 use App\Entity\VariousExpensive;
 use Symfony\Component\Validator\ConstraintViolation;
@@ -21,16 +23,16 @@ class DTOService
     }
 
     public function initDto(
-        array                                                                                     $data,
-        ActivityRequestDTO|TransportRequestDTO|VariousExpensiveRequestDTO|OnSiteExpenseRequestDTO &$dto
-    ): ActivityRequestDTO|TransportRequestDTO|VariousExpensiveRequestDTO|OnSiteExpenseRequestDTO|array
+        array                                                                                                     $data,
+        ActivityRequestDTO|TransportRequestDTO|VariousExpensiveRequestDTO|OnSiteExpenseRequestDTO|EventRequestDTO &$dto
+    ): ActivityRequestDTO|TransportRequestDTO|VariousExpensiveRequestDTO|OnSiteExpenseRequestDTO|EventRequestDTO|array
     {
         $errors = new ConstraintViolationList();
 
         foreach ($data as $key => $value) {
-            if ($key === 'selectedType' || $key === 'payedBy') continue;
+            if ($key === 'selectedType' || $key === 'payedBy' || $key === 'type') continue;
 
-            if ($key === 'date' || $key === 'departureDate' || $key === 'arrivalDate' || $key === 'purchaseDate') {
+            if ($key === 'date' || $key === 'departureDate' || $key === 'arrivalDate' || $key === 'purchaseDate' || $key === 'start' || $key === 'end') {
                 try {
                     $dto->{$key} = $value ? new \DateTime($value) : null;
                 } catch (\Exception) {
@@ -53,9 +55,9 @@ class DTOService
     }
 
     public function mapToEntity(
-        ActivityRequestDTO|TransportRequestDTO|VariousExpensiveRequestDTO|OnSiteExpenseRequestDTO $dto,
-        Activity|Transport|VariousExpensive|OnSiteExpense                                         $entity
-    ): Activity|Transport|VariousExpensive|OnSiteExpense
+        ActivityRequestDTO|TransportRequestDTO|VariousExpensiveRequestDTO|OnSiteExpenseRequestDTO|EventRequestDTO $dto,
+        Activity|Transport|VariousExpensive|OnSiteExpense|PlanningEvent                                           $entity
+    ): Activity|Transport|VariousExpensive|OnSiteExpense|PlanningEvent
     {
         foreach (get_object_vars($dto) as $property => $value) {
             $setter = 'set' . ucfirst($property);

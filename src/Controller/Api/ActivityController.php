@@ -33,7 +33,10 @@ class ActivityController extends AbstractController
     public function getAll(?Trip $trip = null): JsonResponse
     {
         return $this->json(
-            $this->managerRegistry->getRepository(Activity::class)->findAllByTrip($trip)
+            $this->managerRegistry->getRepository(Activity::class)->findAllByTrip($trip),
+            200,
+            [],
+            ['datetime_format' => 'Y-m-d H:i']
         );
     }
 
@@ -49,7 +52,7 @@ class ActivityController extends AbstractController
             'type' => $activity->getType(),
             'name' => $activity->getName(),
             'description' => $activity->getDescription(),
-            'date' => $activity->getDate(),
+            'date' => $activity->getDate()?->format('Y-m-d H:i'),
             'price' => $activity->getPrice(),
             'perPerson' => $activity->isPerPerson()
         ]);
@@ -68,9 +71,9 @@ class ActivityController extends AbstractController
     ): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        $selectedType = $data['selectedType'] ? $this->managerRegistry->getRepository(EventType::class)->find($data['selectedType']) : null;
+        $type = $data['type'] ? $this->managerRegistry->getRepository(EventType::class)->find($data['type']) : null;
 
-        $dto = new ActivityRequestDTO($selectedType);
+        $dto = new ActivityRequestDTO($type);
         $dto = $this->dtoService->initDto($data, $dto);
 
         if (is_array($dto) && isset($dto['error'])) return $this->json(...$dto['error']);

@@ -31,7 +31,10 @@ class OnSiteController extends AbstractController
     public function getAll(?Trip $trip = null): JsonResponse
     {
         return $this->json(
-            $this->managerRegistry->getRepository(OnSiteExpense::class)->findAllByTrip($trip)
+            $this->managerRegistry->getRepository(OnSiteExpense::class)->findAllByTrip($trip),
+            200,
+            [],
+            ['datetime_format' => 'Y-m-d H:i']
         );
     }
 

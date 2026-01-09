@@ -30,7 +30,7 @@ class DTOService
         $errors = new ConstraintViolationList();
 
         foreach ($data as $key => $value) {
-            if ($key === 'selectedType' || $key === 'payedBy' || $key === 'type') continue;
+            if ($key === 'type' || $key === 'payedBy') continue;
 
             if ($key === 'date' || $key === 'departureDate' || $key === 'arrivalDate' || $key === 'purchaseDate' || $key === 'start' || $key === 'end') {
                 try {

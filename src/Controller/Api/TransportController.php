@@ -32,7 +32,10 @@ class TransportController extends AbstractController
     public function getAll(?Trip $trip = null): JsonResponse
     {
         return $this->json(
-            $this->managerRegistry->getRepository(Transport::class)->findAllByTrip($trip)
+            $this->managerRegistry->getRepository(Transport::class)->findAllByTrip($trip),
+            200,
+            [],
+            ['datetime_format' => 'Y-m-d H:i']
         );
     }
 
@@ -48,9 +51,9 @@ class TransportController extends AbstractController
             'type' => $transport->getType(),
             'company' => $transport->getCompany(),
             'description' => $transport->getDescription(),
-            'departureDate' => $transport->getDepartureDate()?->format('Y-m-d'),
+            'departureDate' => $transport->getDepartureDate()?->format('Y-m-d H:i'),
             'departure' => $transport->getDeparture(),
-            'arrivalDate' => $transport->getArrivalDate()?->format('Y-m-d'),
+            'arrivalDate' => $transport->getArrivalDate()?->format('Y-m-d H:i'),
             'destination' => $transport->getDestination(),
             'subscriptionDuration' => $transport->getSubscriptionDuration(),
             'price' => $transport->getPrice(),
@@ -73,9 +76,9 @@ class TransportController extends AbstractController
     ): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        $selectedType = $data['selectedType'] ? $this->managerRegistry->getRepository(TransportType::class)->find($data['selectedType']) : null;
+        $type = $data['type'] ? $this->managerRegistry->getRepository(TransportType::class)->find($data['type']) : null;
 
-        $dto = new TransportRequestDTO($selectedType);
+        $dto = new TransportRequestDTO($type);
         $dto = $this->dtoService->initDto($data, $dto);
 
         if (is_array($dto) && isset($dto['error'])) return $this->json(...$dto['error']);

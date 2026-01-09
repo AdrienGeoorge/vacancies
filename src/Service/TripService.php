@@ -465,21 +465,38 @@ class TripService
      */
     public function compareElementDateBetweenTripDates(Trip $trip, ?DateTime $start, ?DateTime $end = null): ?string
     {
-        $returnDate = $trip->getReturnDate() ? new DateTime($trip->getReturnDate()->format('Y-m-d') . '23:59') : null;
-
         if ($start !== null || $end !== null) {
-            if ($trip->getDepartureDate() && $start && $start < $trip->getDepartureDate()) {
-                return 'La date de début ne pas être inférieure à la date de commencement du séjour.';
-            } elseif ($trip->getDepartureDate() && $end && $end < $trip->getDepartureDate()) {
-                return 'La date de fin ne pas être inférieure à la date de commencement du séjour.';
-            } elseif (!$trip->getDepartureDate() && ($start < new DateTime('today') || $end < new DateTime('today'))) {
-                return 'Comme vous n\'avez pas renseigné vos dates de séjour, votre évènement ne peut pas commencer ou se terminer avant la date du jour.';
-            } elseif ($returnDate && $start > $returnDate) {
-                return 'La date de début ne pas être supérieure à la date de fin du séjour.';
-            } elseif ($returnDate && $end && $end > $returnDate) {
-                return 'La date de fin ne pas être supérieure à la date de fin du séjour.';
-            } elseif ($end && $end < $start) {
-                return 'L\'évènement ne peut pas se terminer avant d\'avoir commencé.';
+            $today = new DateTime('today');
+            $departureDate = $trip->getDepartureDate();
+            $returnDate = $trip->getReturnDate();
+
+            if ($departureDate && $start && $start < $departureDate) {
+                return 'La date de début ne peut pas être inférieure à la date de commencement du séjour.';
+            }
+
+            if ($departureDate && $end && $end < $departureDate) {
+                return 'La date de fin ne peut pas être inférieure à la date de commencement du séjour.';
+            }
+
+            if (!$departureDate) {
+                if ($start && $start < $today) {
+                    return 'Comme vous n\'avez pas renseigné vos dates de séjour, votre événement ne peut pas commencer avant la date du jour.';
+                }
+                if ($end && $end < $today) {
+                    return 'Comme vous n\'avez pas renseigné vos dates de séjour, votre événement ne peut pas se terminer avant la date du jour.';
+                }
+            }
+
+            if ($returnDate && $start && $start > $returnDate) {
+                return 'La date de début ne peut pas être supérieure à la date de fin du séjour.';
+            }
+
+            if ($returnDate && $end && $end > $returnDate) {
+                return 'La date de fin ne peut pas être supérieure à la date de fin du séjour.';
+            }
+
+            if ($start && $end && $end < $start) {
+                return 'L\'événement ne peut pas se terminer avant d\'avoir commencé.';
             }
         }
 

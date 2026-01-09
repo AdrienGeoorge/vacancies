@@ -100,7 +100,7 @@ class TripTravelerController extends AbstractController
             $userToShareWith,
             sprintf('vous a invité à prendre part au voyage : %s', $trip->getName()),
             $this->getUser(),
-            $this->domain . '/trip/' . $trip->getId() . '/accept-invitation/' . $token
+            '/trip/' . $trip->getId() . '/accept-invitation/' . $token
         );
 
         return $this->json(['message' => 'L\'invitation à prendre part à ce voyage a bien été transmise.'], 201);
@@ -138,7 +138,7 @@ class TripTravelerController extends AbstractController
                 $tripTraveler->getInvited(),
                 sprintf('a rejoint le voyage : %s', $invitation->getTrip()->getName()),
                 $this->getUser(),
-                $this->domain . '/trip/show/' . $trip->getId(),
+                '/trip/show/' . $trip->getId(),
             );
         }
 

@@ -30,7 +30,7 @@ class Trip
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $returnDate = null;
 
-    #[ORM\Column(length: 500)]
+    #[ORM\Column(length: 500, nullable: true)]
     private ?string $image = null;
 
     #[ApiProperty(readableLink: true)]

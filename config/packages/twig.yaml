@@ -1,8 +1,8 @@
 twig:
     file_name_pattern: '*.twig'
     globals:
-        app_name: '%env(APP_NAME)%'
-        domain: '%env(DOMAIN)%'
+      app_name: '%env(APP_NAME)%'
+      domain: '%env(DOMAIN)%'
 
 when@test:
     twig:

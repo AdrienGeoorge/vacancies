@@ -16,21 +16,19 @@ use Exception;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\String\ByteString;
 
 class TripService
 {
-    private RouterInterface $router;
     private MailerInterface $mailer;
     private ManagerRegistry $managerRegistry;
+    protected string $domain;
 
-    public function __construct(RouterInterface $router, MailerInterface $mailer, ManagerRegistry $managerRegistry)
+    public function __construct(MailerInterface $mailer, ManagerRegistry $managerRegistry, string $domain)
     {
         $this->mailer = $mailer;
-        $this->router = $router;
         $this->managerRegistry = $managerRegistry;
+        $this->domain = $domain;
     }
 
     /**
@@ -250,21 +248,41 @@ class TripService
         $onSite = $this->getOnSiteExpensePrice($trip);
 
         $reservedPrices = [
-            'accommodations' => $this->getReservedAccommodationsPrice($trip),
-            'transports' => $this->getReservedTransportsPrice($trip),
-            'activities' => $this->getReservedActivitiesPrice($trip),
-            'variousExpensive' => $this->getReservedVariousExpensivePrice($trip),
-            'onSite' => $onSite
+            'accommodations' => [
+                'title' => 'Hébergements',
+                'description' => 'Hôtel, auberge, location Airbnb, etc.',
+                'amount' => $this->getReservedAccommodationsPrice($trip)
+            ],
+            'transports' => [
+                'title' => 'Transports',
+                'description' => 'Avion, train, taxi, bus, etc.',
+                'amount' => $this->getReservedTransportsPrice($trip)
+            ],
+            'activities' => [
+                'title' => 'Activités',
+                'description' => "Musée, zoo, parc d'attractions, etc.",
+                'amount' => $this->getReservedActivitiesPrice($trip)
+            ],
+            'various-expensive' => [
+                'title' => 'Dépenses diverses',
+                'description' => 'Assurance, VISA, forfait mobile, etc.',
+                'amount' => $this->getReservedVariousExpensivePrice($trip)
+            ],
+            'on-site' => [
+                'title' => 'Dépenses sur place',
+                'description' => 'Courses, restaurant, etc.',
+                'amount' => $onSite
+            ]
         ];
 
         $nonReservedPrices = [
             'accommodations' => $this->getNonReservedAccommodationsPrice($trip),
             'transports' => $this->getNonReservedTransportsPrice($trip),
             'activities' => $this->getNonReservedActivitiesPrice($trip),
-            'variousExpensive' => $this->getNonReservedVariousExpensivePrice($trip),
+            'various-expensive' => $this->getNonReservedVariousExpensivePrice($trip),
         ];
 
-        $totalReserved = round(array_sum($reservedPrices), 2);
+        $totalReserved = round(array_sum(array_column($reservedPrices, 'amount')), 2);
         $totalNonReserved = round(array_sum($nonReservedPrices), 2);
 
         return [
@@ -274,7 +292,7 @@ class TripService
             'details' => [
                 'reserved' => $reservedPrices,
                 'nonReserved' => $nonReservedPrices,
-                'onSite' => $onSite
+                'on-site' => $onSite
             ],
         ];
     }
@@ -330,11 +348,11 @@ class TripService
                 $balances[$traveler->getName()] = [
                     'paid' => $paid,
                     'amountDue' => round($amountByPerson - $paid, 2),
-                    'accommodations' => round($accommodations, 2),
-                    'transports' => round($transportPaid, 2),
-                    'activities' => round($activities, 2),
-                    'variousExpenses' => round($variousExpenses, 2),
-                    'onSite' => round($onSite, 2)
+                    'Hébergements' => round($accommodations, 2),
+                    'Transports' => round($transportPaid, 2),
+                    'Activités' => round($activities, 2),
+                    'Dépenses diverses' => round($variousExpenses, 2),
+                    'Dépenses sur place' => round($onSite, 2)
                 ];
             }
         }
@@ -381,7 +399,7 @@ class TripService
             $data['refund'][] = [
                 'from' => $debtor,
                 'to' => $creditor,
-                'amount' => $transferAmount
+                'amount' => round($transferAmount, 2, PHP_ROUND_HALF_UP)
             ];
 
             // Mise à jour des soldes
@@ -447,21 +465,38 @@ class TripService
      */
     public function compareElementDateBetweenTripDates(Trip $trip, ?DateTime $start, ?DateTime $end = null): ?string
     {
-        $returnDate = $trip->getReturnDate() ? new DateTime($trip->getReturnDate()->format('Y-m-d') . '23:59') : null;
-
         if ($start !== null || $end !== null) {
-            if ($trip->getDepartureDate() && $start && $start < $trip->getDepartureDate()) {
-                return 'La date de début ne pas être inférieure à la date de commencement du séjour.';
-            } elseif ($trip->getDepartureDate() && $end && $end < $trip->getDepartureDate()) {
-                return 'La date de fin ne pas être inférieure à la date de commencement du séjour.';
-            } elseif (!$trip->getDepartureDate() && ($start < new DateTime('today') || $end < new DateTime('today'))) {
-                return 'Comme vous n\'avez pas renseigné vos dates de séjour, votre évènement ne peut pas commencer ou se terminer avant la date du jour.';
-            } elseif ($returnDate && $start > $returnDate) {
-                return 'La date de début ne pas être supérieure à la date de fin du séjour.';
-            } elseif ($returnDate && $end && $end > $returnDate) {
-                return 'La date de fin ne pas être supérieure à la date de fin du séjour.';
-            } elseif ($end && $end < $start) {
-                return 'L\'évènement ne peut pas se terminer avant d\'avoir commencé.';
+            $today = new DateTime('today');
+            $departureDate = $trip->getDepartureDate();
+            $returnDate = $trip->getReturnDate();
+
+            if ($departureDate && $start && $start < $departureDate) {
+                return 'La date de début ne peut pas être inférieure à la date de commencement du séjour.';
+            }
+
+            if ($departureDate && $end && $end < $departureDate) {
+                return 'La date de fin ne peut pas être inférieure à la date de commencement du séjour.';
+            }
+
+            if (!$departureDate) {
+                if ($start && $start < $today) {
+                    return 'Comme vous n\'avez pas renseigné vos dates de séjour, votre événement ne peut pas commencer avant la date du jour.';
+                }
+                if ($end && $end < $today) {
+                    return 'Comme vous n\'avez pas renseigné vos dates de séjour, votre événement ne peut pas se terminer avant la date du jour.';
+                }
+            }
+
+            if ($returnDate && $start && $start > $returnDate) {
+                return 'La date de début ne peut pas être supérieure à la date de fin du séjour.';
+            }
+
+            if ($returnDate && $end && $end > $returnDate) {
+                return 'La date de fin ne peut pas être supérieure à la date de fin du séjour.';
+            }
+
+            if ($start && $end && $end < $start) {
+                return 'L\'événement ne peut pas se terminer avant d\'avoir commencé.';
             }
         }
 
@@ -481,7 +516,7 @@ class TripService
     {
         try {
             $token = ByteString::fromRandom(50);
-            $url = $this->router->generate('trip_accept', ['token' => $token], UrlGeneratorInterface::ABSOLUTE_URL);
+            $url = $this->domain . '/trip/' . $trip->getId() . '/accept-invitation/' . $token;
 
             $email = (new TemplatedEmail())
                 ->from('no-reply@adriengeorge.fr')

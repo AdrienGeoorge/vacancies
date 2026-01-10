@@ -45,4 +45,14 @@ class VariousExpensiveRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    public function findAllByTrip(Trip $trip)
+    {
+        return $this->createQueryBuilder('v')
+            ->andWhere('v.trip = :trip')
+            ->setParameter('trip', $trip)
+            ->addOrderBy('v.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

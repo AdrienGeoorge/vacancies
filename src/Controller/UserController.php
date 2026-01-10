@@ -23,27 +23,6 @@ class UserController extends AbstractController
         $this->managerRegistry = $managerRegistry;
     }
 
-    #[Route('/about', name: 'about')]
-    public function home(Request $request): Response
-    {
-        if ($this->getUser()->getFirstname() && $this->getUser()->getLastname()) return $this->redirectToRoute('app_home');
-
-        $user = $this->getUser();
-        $form = $this->createForm(AboutYouType::class, $user);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->managerRegistry->getManager()->persist($user);
-            $this->managerRegistry->getManager()->flush();
-
-            return $this->redirectToRoute('app_home');
-        }
-
-        return $this->render('user/about.html.twig', [
-            'form' => $form->createView()
-        ]);
-    }
-
     #[Route('/profile', name: 'profile')]
     #[Route('/profile/{username}', name: 'profile_for_user')]
     public function profile(?string $username): Response

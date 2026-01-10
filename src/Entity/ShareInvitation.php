@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\ShareInvitationRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[ORM\Entity(repositoryClass: ShareInvitationRepository::class)]
 class ShareInvitation
@@ -18,6 +19,7 @@ class ShareInvitation
 
     #[ORM\ManyToOne(inversedBy: 'shareInvitations')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Ignore]
     private ?Trip $trip = null;
 
     #[ORM\ManyToOne(inversedBy: 'shareInvitations')]

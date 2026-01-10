@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\OnSiteExpenseRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[ORM\Entity(repositoryClass: OnSiteExpenseRepository::class)]
 class OnSiteExpense
@@ -25,6 +26,7 @@ class OnSiteExpense
 
     #[ORM\ManyToOne(inversedBy: 'onSiteExpenses')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Ignore]
     private ?Trip $trip = null;
 
     #[ORM\ManyToOne]

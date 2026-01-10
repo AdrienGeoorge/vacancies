@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\TripDocumentRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[ORM\Entity(repositoryClass: TripDocumentRepository::class)]
 class TripDocument
@@ -15,6 +16,7 @@ class TripDocument
 
     #[ORM\ManyToOne(inversedBy: 'documents')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Ignore]
     private ?Trip $trip = null;
 
     #[ORM\Column(length: 255)]

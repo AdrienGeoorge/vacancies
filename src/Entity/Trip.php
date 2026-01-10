@@ -2,11 +2,13 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiProperty;
 use App\Repository\TripRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\MaxDepth;
 
 #[ORM\Entity(repositoryClass: TripRepository::class)]
 class Trip
@@ -28,9 +30,10 @@ class Trip
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $returnDate = null;
 
-    #[ORM\Column(length: 500)]
+    #[ORM\Column(length: 500, nullable: true)]
     private ?string $image = null;
 
+    #[ApiProperty(readableLink: true)]
     #[ORM\ManyToOne(inversedBy: 'trips')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $traveler = null;
@@ -59,6 +62,7 @@ class Trip
     #[ORM\OneToMany(targetEntity: OnSiteExpense::class, mappedBy: 'trip', orphanRemoval: true)]
     private Collection $onSiteExpenses;
 
+    #[ApiProperty(readableLink: true)]
     #[ORM\OneToMany(targetEntity: TripTraveler::class, mappedBy: 'trip', orphanRemoval: true)]
     private Collection $tripTravelers;
 
@@ -68,6 +72,8 @@ class Trip
     #[ORM\Column(length: 9, nullable: true)]
     private ?string $visibility = null;
 
+    #[ApiProperty(readableLink: true)]
+    #[MaxDepth(1)]
     #[ORM\ManyToOne(inversedBy: 'trips')]
     private ?Country $country = null;
 

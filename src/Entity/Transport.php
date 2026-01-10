@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\TransportRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[ORM\Entity(repositoryClass: TransportRepository::class)]
 class Transport
@@ -47,6 +48,7 @@ class Transport
 
     #[ORM\ManyToOne(inversedBy: 'transports')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Ignore]
     private ?Trip $trip = null;
 
     #[ORM\Column(nullable: true)]

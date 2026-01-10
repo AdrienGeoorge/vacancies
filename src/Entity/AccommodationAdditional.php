@@ -3,8 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\AccommodationAdditionalRepository;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[ORM\Entity(repositoryClass: AccommodationAdditionalRepository::class)]
 class AccommodationAdditional
@@ -19,6 +19,7 @@ class AccommodationAdditional
 
     #[ORM\ManyToOne(inversedBy: 'additionalExpensive')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Ignore]
     private ?Accommodation $accommodation = null;
 
     #[ORM\Column]

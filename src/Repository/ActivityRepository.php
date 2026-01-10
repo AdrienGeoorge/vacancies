@@ -45,4 +45,16 @@ class ActivityRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    public function findAllByTrip(Trip $trip)
+    {
+        return $this->createQueryBuilder('a')
+            ->andWhere('a.trip = :trip')
+            ->setParameter('trip', $trip)
+            ->addOrderBy('CASE WHEN a.date IS NULL THEN 1 ELSE 0 END', 'ASC')
+            ->addOrderBy('a.date', 'ASC')
+            ->addOrderBy('a.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

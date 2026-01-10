@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\ActivityRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Ignore;
 
 #[ORM\Entity(repositoryClass: ActivityRepository::class)]
 class Activity
@@ -24,10 +25,11 @@ class Activity
     private ?float $price = null;
 
     #[ORM\Column]
-    private ?bool $booked = null;
+    private ?bool $booked = false;
 
     #[ORM\ManyToOne(inversedBy: 'activities')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Ignore]
     private ?Trip $trip = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
@@ -38,6 +40,10 @@ class Activity
 
     #[ORM\ManyToOne]
     private ?TripTraveler $payedBy = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?EventType $activityType = null;
 
     public function getId(): ?int
     {
@@ -136,6 +142,18 @@ class Activity
     public function setPayedBy(?TripTraveler $payedBy): static
     {
         $this->payedBy = $payedBy;
+
+        return $this;
+    }
+
+    public function getType(): ?EventType
+    {
+        return $this->activityType;
+    }
+
+    public function setType(?EventType $activityType): static
+    {
+        $this->activityType = $activityType;
 
         return $this;
     }

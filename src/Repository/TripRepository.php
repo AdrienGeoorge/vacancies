@@ -70,6 +70,56 @@ class TripRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function getAllTrips($user): array
+    {
+        $today = new \DateTime('today');
+
+        $qb = $this->createQueryBuilder('t')
+            ->select('DISTINCT t.id, t.name, t.description, t.departureDate, t.returnDate, t.image, c.name AS countryName')
+            ->addSelect("
+                CASE
+                    WHEN t.departureDate IS NOT NULL
+                     AND t.returnDate IS NOT NULL
+                     AND t.departureDate < :today
+                     AND t.returnDate >= :today
+                        THEN 1
+                        
+                    WHEN t.departureDate IS NOT NULL
+                     AND t.returnDate IS NOT NULL
+                     AND t.returnDate >= :today
+                        THEN 2
+            
+                    WHEN (t.departureDate IS NULL AND t.returnDate IS NULL)
+                      OR (t.departureDate IS NOT NULL AND t.returnDate IS NULL)
+                      OR (t.departureDate IS NULL AND t.returnDate IS NOT NULL)
+                        THEN 3
+            
+                    WHEN t.departureDate IS NOT NULL
+                     AND t.returnDate IS NOT NULL
+                     AND t.returnDate < :today
+                        THEN 4
+            
+                    ELSE 4
+                END AS state
+            ")
+            ->leftJoin('t.tripTravelers', 'tt')
+            ->leftJoin('t.country', 'c');
+
+        return $qb->andWhere(
+            $qb->expr()->orX(
+                $qb->expr()->eq('t.traveler', ':traveler'),
+                $qb->expr()->eq('tt.invited', ':traveler')
+            )
+        )
+            ->setParameter('traveler', $user)
+            ->setParameter('today', $today)
+            ->orderBy('state', 'ASC')
+            ->addOrderBy('t.departureDate', 'DESC')
+            ->addOrderBy('t.returnDate', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
     public function countPassedCountries($user)
     {
         $qb = $this->createQueryBuilder('t')
@@ -112,6 +162,18 @@ class TripRepository extends ServiceEntityRepository
             ->orderBy('visitCount', 'DESC')
             ->addOrderBy('firstVisitDate', 'ASC')
             ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function getOneTrip(?int $tripId)
+    {
+        return $this->createQueryBuilder('t')
+            ->select('t.name, t.description, t.departureDate, t.returnDate, t.image, c.code AS selectedCountry, owner.id AS ownerId')
+            ->leftJoin('t.traveler', 'owner')
+            ->leftJoin('t.country', 'c')
+            ->andWhere('t.id = :id')
+            ->setParameter('id', $tripId)
             ->getQuery()
             ->getOneOrNullResult();
     }

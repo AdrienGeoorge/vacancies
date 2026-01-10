@@ -1,0 +1,16 @@
+nelmio_cors:
+  defaults:
+    #    origin_regex: true
+    allow_origin: [ '%env(CORS_ALLOW_ORIGIN)%' ]
+    allow_credentials: false
+    allow_headers: [ 'Content-Type', 'Authorization' ]
+    expose_headers: [ 'Authorization' ]
+    allow_methods: [ 'GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS' ]
+    max_age: 3600
+  paths:
+    '^/api/':
+      allow_origin: [ '*' ]
+      # Permettre au front de lire les entêtes utiles pour les téléchargements
+      expose_headers: [ 'Content-Disposition', 'Content-Type', 'Content-Length' ]
+      # Autoriser les en-têtes envoyés par le front
+      allow_headers: [ 'Accept', 'Content-Type', 'Authorization' ]

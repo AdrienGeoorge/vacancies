@@ -27,8 +27,7 @@ class TripRequestDTO
     #[Assert\Type(\DateTime::class)]
     public ?\DateTime $returnDate;
 
-    #[Assert\NotBlank(message: 'Vous devez saisir une description pour ce voyage.')]
-    public string $description;
+    public ?string $description;
 
     #[Assert\File(mimeTypes: ['image/jpeg', 'image/png'])]
     public ?UploadedFile $image;

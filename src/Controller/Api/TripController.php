@@ -189,8 +189,7 @@ class TripController extends AbstractController
                 'message' => 'Ton voyage a bien été créé.',
                 'id' => $trip->getId()
             ]);
-        } catch (\Exception $e) {
-            dd($e);
+        } catch (\Exception) {
             return $this->json(['message' => 'Une erreur est survenue lors de la création du voyage.'], 400);
         }
     }

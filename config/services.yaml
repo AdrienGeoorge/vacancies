@@ -6,6 +6,8 @@
 parameters:
     upload_directory: '%env(UPLOAD_DIRECTORY)%'
     bag_directory: '%env(BAG_DIRECTORY)%'
+    exchangerate_api_key: '%env(EXCHANGERATE_API_KEY)%'
+    exchangerate_api_url: 'https://v6.exchangerate-api.com/v6'
 
 services:
     # default configuration for services in *this* file

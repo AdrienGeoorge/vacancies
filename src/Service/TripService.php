@@ -72,8 +72,7 @@ class TripService
         $price = 0;
         foreach ($trip->getAccommodations() as $accommodation) {
             if ($accommodation->isBooked()) {
-                $price += $accommodation->getPrice();
-                foreach ($accommodation->getAdditionalExpensive() as $item) $price += $item->getPrice();
+                $price += $accommodation->getTotalPrice();
             }
         }
 
@@ -90,8 +89,7 @@ class TripService
         $price = 0;
         foreach ($trip->getAccommodations() as $accommodation) {
             if (!$accommodation->isBooked()) {
-                $price += $accommodation->getPrice();
-                foreach ($accommodation->getAdditionalExpensive() as $item) $price += $item->getPrice();
+                $price += $accommodation->getTotalPrice();
             }
         }
 

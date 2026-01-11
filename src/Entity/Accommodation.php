@@ -340,8 +340,27 @@ class Accommodation
 
     public function getTotalPrice(): float
     {
-        $total = $this->getConvertedPrice() ?: $this->getOriginalPrice();
-        foreach ($this->additionalExpensive as $item) $total += $item->getConvertedPrice() ?: $item->getOriginalPrice();
+        $total = 0;
+
+        // Prix de l'hébergement
+        $total += $this->getOriginalCurrency()?->getCode() !== 'EUR'
+            ? $this->getConvertedPrice()
+            : $this->getOriginalPrice();
+
+        // Caution
+        if ($this->getOriginalDeposit()) {
+            $total += $this->getOriginalDepositCurrency()?->getCode() !== 'EUR'
+                ? $this->getConvertedDeposit()
+                : $this->getOriginalDeposit();
+        }
+
+        // Dépenses additionnelles
+        foreach ($this->additionalExpensive as $item) {
+            $total += $item->getOriginalCurrency()?->getCode() !== 'EUR'
+                ? $item->getConvertedPrice()
+                : $item->getOriginalPrice();
+        }
+
         return round($total, 2);
     }
 

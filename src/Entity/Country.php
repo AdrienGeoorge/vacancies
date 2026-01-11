@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
@@ -9,7 +10,9 @@ use App\Repository\CountryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\JoinColumn;
 use Symfony\Component\Serializer\Annotation\Ignore;
+use Symfony\Component\Serializer\Attribute\MaxDepth;
 
 #[ApiResource(operations: [
     new Get(),
@@ -35,6 +38,12 @@ class Country
     #[ORM\OneToMany(targetEntity: Trip::class, mappedBy: 'country')]
     #[Ignore]
     private Collection $trips;
+
+    #[ORM\ManyToOne(targetEntity: Currency::class)]
+    #[JoinColumn(name: 'currency', referencedColumnName: 'code')]
+    #[ApiProperty(readableLink: true)]
+    #[MaxDepth(1)]
+    private ?Currency $currency = null;
 
     public function __construct()
     {
@@ -108,6 +117,18 @@ class Country
                 $trip->setCountry(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getCurrency(): ?Currency
+    {
+        return $this->currency;
+    }
+
+    public function setCurrency(?Currency $currency): static
+    {
+        $this->currency = $currency;
 
         return $this;
     }

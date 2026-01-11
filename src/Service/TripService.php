@@ -232,7 +232,13 @@ class TripService
     public function getOnSiteExpensePrice(Trip $trip): float
     {
         $price = 0;
-        foreach ($trip->getOnSiteExpenses() as $expense) $price += $expense->getPrice();
+
+        foreach ($trip->getOnSiteExpenses() as $expense) {
+            $price += $expense->getOriginalCurrency()?->getCode() !== 'EUR'
+                ? $expense->getConvertedPrice()
+                : $expense->getOriginalPrice();
+        }
+
         return round($price, 2);
     }
 

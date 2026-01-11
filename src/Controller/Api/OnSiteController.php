@@ -3,9 +3,11 @@
 namespace App\Controller\Api;
 
 use App\DTO\OnSiteExpenseRequestDTO;
+use App\Entity\Currency;
 use App\Entity\OnSiteExpense;
 use App\Entity\Trip;
 use App\Entity\TripTraveler;
+use App\Service\CurrencyConverterService;
 use App\Service\DTOService;
 use App\Service\TripService;
 use Doctrine\Persistence\ManagerRegistry;
@@ -19,9 +21,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class OnSiteController extends AbstractController
 {
     public function __construct(
-        readonly ManagerRegistry $managerRegistry,
-        readonly TripService     $tripService,
-        readonly DTOService      $dtoService
+        readonly ManagerRegistry          $managerRegistry,
+        readonly TripService              $tripService,
+        readonly DTOService               $dtoService,
+        readonly CurrencyConverterService $converterService
     )
     {
     }
@@ -48,7 +51,8 @@ class OnSiteController extends AbstractController
 
         return $this->json([
             'name' => $expensive->getName(),
-            'price' => $expensive->getPrice(),
+            'originalPrice' => $expensive->getOriginalPrice(),
+            'originalCurrency' => $expensive->getOriginalCurrency(),
             'purchaseDate' => $expensive->getPurchaseDate()?->format('Y-m-d H:i'),
             'payedBy' => $expensive->getPayedBy()
         ]);
@@ -68,15 +72,27 @@ class OnSiteController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
         $selectedPayedBy = $data['payedBy'] ? $this->managerRegistry->getRepository(TripTraveler::class)->find($data['payedBy']) : null;
+        $selectedCurrency = $data['originalCurrency'] ? $this->managerRegistry->getRepository(Currency::class)
+            ->findOneBy(['code' => $data['originalCurrency']]) : null;
 
-        $dto = new OnSiteExpenseRequestDTO($selectedPayedBy);
+        $dto = new OnSiteExpenseRequestDTO($selectedPayedBy, $selectedCurrency);
         $dto = $this->dtoService->initDto($data, $dto);
 
         if (is_array($dto) && isset($dto['error'])) return $this->json(...$dto['error']);
 
         try {
+            $eurCurrency = $this->managerRegistry->getRepository(Currency::class)->findOneBy(['code' => 'EUR']);
+
             $expensive->setTrip($trip);
+            $expensive->setPrice($dto->originalPrice);
             $expensive = $this->dtoService->mapToEntity($dto, $expensive);
+
+            if ($eurCurrency !== $dto->originalCurrency && $expensive->getOriginalPrice() !== $dto->originalPrice) {
+                $convertedDeposit = $this->converterService->convert($dto->originalPrice, $dto->originalCurrency, $eurCurrency);
+                $expensive->setConvertedPrice($convertedDeposit['amount']);
+                $expensive->setExchangeRate($convertedDeposit['rate']);
+                $expensive->setConvertedAt(new \DateTimeImmutable());
+            }
 
             $this->managerRegistry->getManager()->persist($expensive);
             $this->managerRegistry->getManager()->flush();

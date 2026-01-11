@@ -44,19 +44,19 @@ class UpdateCurrencyCommand extends Command
         try {
             $apiKey = $this->params->get('exchangerate_api_key');
             $apiUrl = $this->params->get('exchangerate_api_url');
-            $url = sprintf('%s/%s/latest/EUR', $apiUrl, $apiKey);
+            $url = sprintf('%s/latest?access_key=%s&base=EUR', $apiUrl, $apiKey);
 
-            $io->info('Récupération des taux depuis ExchangeRate-API...');
+            $io->info('Récupération des taux depuis exchangeratesapi.io...');
 
             $response = $this->httpClient->request('GET', $url);
             $data = $response->toArray();
 
-            if ($data['result'] !== 'success') {
+            if ($data['success'] !== true) {
                 throw new \Exception('Erreur API : ' . ($data['error-type'] ?? 'Unknown'));
             }
 
-            $rates = $data['conversion_rates'];
-            $lastUpdate = new \DateTime('@' . $data['time_last_update_unix']);
+            $rates = $data['rates'];
+            $lastUpdate = new \DateTime('@' . $data['timestamp']);
 
             $today = new \DateTime('today');
             $existingRate = $this->managerRegistry->getRepository(ExchangeRate::class)

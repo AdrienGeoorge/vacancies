@@ -2,6 +2,7 @@
 
 namespace App\DTO;
 
+use App\Entity\Currency;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class AccommodationRequestDTO
@@ -34,8 +35,14 @@ class AccommodationRequestDTO
 
     #[Assert\NotBlank(message: 'Le prix de l\'hébergement est obligatoire.')]
     #[Assert\GreaterThan(0, message: 'Le prix doit être de minimum 1€.')]
-    public float $price;
+    public float $originalPrice;
 
-    public ?float $deposit;
+    #[Assert\NotBlank(message: 'Vous devez choisir une devise.')]
+    public ?Currency $originalCurrency = null;
+
+    public ?float $originalDeposit;
+
+    public ?Currency $originalDepositCurrency = null;
+
     public array $additionalExpensive = [];
 }

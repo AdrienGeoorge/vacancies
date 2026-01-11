@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Currency;
 use App\Repository\ExchangeRateRepository;
 
 class CurrencyConverterService
@@ -10,17 +11,19 @@ class CurrencyConverterService
         private readonly ExchangeRateRepository $exchangeRateRepository
     ) {}
 
+    /**
+     * @throws \Exception
+     */
     public function convert(
         float $amount,
-        string $fromCurrency,
-        string $toCurrency,
+        Currency $fromCurrency,
+        Currency $toCurrency,
         ?\DateTimeInterface $date = null
     ): array {
         if ($fromCurrency === $toCurrency) {
             return [
                 'amount' => $amount,
                 'rate' => 1.0,
-                'date' => $date ?? new \DateTime(),
             ];
         }
 
@@ -35,38 +38,37 @@ class CurrencyConverterService
         $rates = $exchangeRate->getRates();
 
         // EUR vers autre devise
-        if ($fromCurrency === 'EUR') {
-            if (!isset($rates[$toCurrency])) {
-                throw new \Exception("Devise $toCurrency non disponible");
+        if ($fromCurrency->getCode() === 'EUR') {
+            if (!isset($rates[$toCurrency->getCode()])) {
+                throw new \Exception("Devise {$toCurrency->getCode()} non disponible");
             }
 
-            $rate = $rates[$toCurrency];
+            $rate = $rates[$toCurrency->getCode()];
             $convertedAmount = $amount * $rate;
         }
         // Autre devise vers EUR
-        elseif ($toCurrency === 'EUR') {
-            if (!isset($rates[$fromCurrency])) {
-                throw new \Exception("Devise $fromCurrency non disponible");
+        elseif ($toCurrency->getCode() === 'EUR') {
+            if (!isset($rates[$fromCurrency->getCode()])) {
+                throw new \Exception("Devise {$fromCurrency->getCode()} non disponible");
             }
 
-            $rate = 1 / $rates[$fromCurrency];
+            $rate = 1 / $rates[$fromCurrency->getCode()];
             $convertedAmount = $amount * $rate;
         }
         // Entre deux devises (passage par EUR)
         else {
-            if (!isset($rates[$fromCurrency]) || !isset($rates[$toCurrency])) {
+            if (!isset($rates[$fromCurrency->getCode()]) || !isset($rates[$toCurrency->getCode()])) {
                 throw new \Exception('Une ou plusieurs devises non disponibles');
             }
 
-            $amountInEUR = $amount / $rates[$fromCurrency];
-            $convertedAmount = $amountInEUR * $rates[$toCurrency];
-            $rate = $rates[$toCurrency] / $rates[$fromCurrency];
+            $amountInEUR = $amount / $rates[$fromCurrency->getCode()];
+            $convertedAmount = $amountInEUR * $rates[$toCurrency->getCode()];
+            $rate = $rates[$toCurrency->getCode()] / $rates[$fromCurrency->getCode()];
         }
 
         return [
             'amount' => round($convertedAmount, 2),
-            'rate' => round($rate, 6),
-            'date' => $exchangeRate->getDate(),
+            'rate' => round($rate, 6)
         ];
     }
 }

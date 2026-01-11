@@ -52,8 +52,10 @@ class AccommodationController extends AbstractController
             'arrivalDate' => $accommodation->getArrivalDate()?->format('Y-m-d'),
             'departureDate' => $accommodation->getDepartureDate()?->format('Y-m-d'),
             'description' => $accommodation->getDescription(),
-            'price' => $accommodation->getPrice(),
-            'deposit' => $accommodation->getDeposit(),
+            'originalPrice' => $accommodation->getOriginalPrice(),
+            'originalCurrency' => $accommodation->getOriginalCurrency(),
+            'originalDeposit' => $accommodation->getOriginalDeposit(),
+            'originalDepositCurrency' => $accommodation->getOriginalDepositCurrency(),
             'additionalExpensive' => $accommodation->getAdditionalExpensive(),
         ]);
     }

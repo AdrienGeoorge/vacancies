@@ -277,9 +277,11 @@ class Accommodation
         return $this->originalDeposit;
     }
 
-    public function setOriginalDeposit(?string $originalDeposit): void
+    public function setOriginalDeposit(?string $originalDeposit): static
     {
         $this->originalDeposit = $originalDeposit;
+
+        return $this;
     }
 
     public function getOriginalDepositCurrency(): ?Currency
@@ -287,9 +289,11 @@ class Accommodation
         return $this->originalDepositCurrency;
     }
 
-    public function setOriginalDepositCurrency(?Currency $originalDepositCurrency): void
+    public function setOriginalDepositCurrency(?Currency $originalDepositCurrency): static
     {
         $this->originalDepositCurrency = $originalDepositCurrency;
+
+        return $this;
     }
 
     public function getConvertedDeposit(): ?string
@@ -297,9 +301,11 @@ class Accommodation
         return $this->convertedDeposit;
     }
 
-    public function setConvertedDeposit(?string $convertedDeposit): void
+    public function setConvertedDeposit(?string $convertedDeposit): static
     {
         $this->convertedDeposit = $convertedDeposit;
+
+        return $this;
     }
 
     /**
@@ -332,11 +338,11 @@ class Accommodation
         return $this;
     }
 
-    public function getTotalPrice()
+    public function getTotalPrice(): float
     {
-        $total = $this->getPrice();
-        foreach ($this->additionalExpensive as $item) $total += $item->getPrice();
-        return $total;
+        $total = $this->getConvertedPrice() ?: $this->getOriginalPrice();
+        foreach ($this->additionalExpensive as $item) $total += $item->getConvertedPrice() ?: $item->getOriginalPrice();
+        return round($total, 2);
     }
 
     public function getArrivalDate(): ?\DateTimeInterface

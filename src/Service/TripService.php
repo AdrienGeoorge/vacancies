@@ -193,9 +193,13 @@ class TripService
         foreach ($trip->getVariousExpensives() as $expensive) {
             if ($expensive->isPaid()) {
                 if ($expensive->isPerPerson()) {
-                    $price += ($expensive->getPrice() * $trip->getTripTravelers()->count());
+                    $price += ($expensive->getOriginalCurrency()?->getCode() !== 'EUR'
+                            ? $expensive->getConvertedPrice()
+                            : $expensive->getOriginalPrice()) * $trip->getTripTravelers()->count();
                 } else {
-                    $price += $expensive->getPrice();
+                    $price += $expensive->getOriginalCurrency()?->getCode() !== 'EUR'
+                        ? $expensive->getConvertedPrice()
+                        : $expensive->getOriginalPrice();
                 }
             }
         }

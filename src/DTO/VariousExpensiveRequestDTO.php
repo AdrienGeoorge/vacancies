@@ -2,11 +2,16 @@
 
 namespace App\DTO;
 
-use App\Entity\EventType;
+use App\Entity\Currency;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class VariousExpensiveRequestDTO
 {
+    public function __construct(?Currency $originalCurrency)
+    {
+        $this->originalCurrency = $originalCurrency;
+    }
+
     #[Assert\NotBlank(message: 'Le nom de la dépense est obligatoire.')]
     #[Assert\Length(
         min: 5,
@@ -20,7 +25,10 @@ class VariousExpensiveRequestDTO
 
     #[Assert\NotBlank(message: 'Le prix de la dépense est obligatoire.')]
     #[Assert\GreaterThan(0, message: 'Le prix doit être de minimum 1€.')]
-    public ?float $price;
+    public ?float $originalPrice;
+
+    #[Assert\NotBlank(message: 'Vous devez choisir une devise.')]
+    public ?Currency $originalCurrency = null;
 
     public bool $perPerson = false;
 }

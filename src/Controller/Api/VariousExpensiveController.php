@@ -3,9 +3,11 @@
 namespace App\Controller\Api;
 
 use App\DTO\VariousExpensiveRequestDTO;
+use App\Entity\Currency;
 use App\Entity\Trip;
 use App\Entity\TripTraveler;
 use App\Entity\VariousExpensive;
+use App\Service\CurrencyConverterService;
 use App\Service\DTOService;
 use App\Service\TripService;
 use Doctrine\Persistence\ManagerRegistry;
@@ -19,9 +21,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class VariousExpensiveController extends AbstractController
 {
     public function __construct(
-        readonly ManagerRegistry $managerRegistry,
-        readonly TripService     $tripService,
-        readonly DTOService      $dtoService
+        readonly ManagerRegistry          $managerRegistry,
+        readonly TripService              $tripService,
+        readonly DTOService               $dtoService,
+        readonly CurrencyConverterService $converterService,
     )
     {
     }
@@ -46,7 +49,8 @@ class VariousExpensiveController extends AbstractController
         return $this->json([
             'name' => $expensive->getName(),
             'description' => $expensive->getDescription(),
-            'price' => $expensive->getPrice(),
+            'originalPrice' => $expensive->getOriginalPrice(),
+            'originalCurrency' => $expensive->getOriginalCurrency(),
             'perPerson' => $expensive->isPerPerson()
         ]);
     }
@@ -58,21 +62,33 @@ class VariousExpensiveController extends AbstractController
     #[Route('/edit/{expensive}', name: 'edit', requirements: ['expensive' => '\d+'], methods: ['POST'])]
     #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
     public function create(
-        Request   $request,
-        ?Trip     $trip = null,
+        Request           $request,
+        ?Trip             $trip = null,
         ?VariousExpensive $expensive = new VariousExpensive()
     ): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
+        $selectedCurrency = $data['originalCurrency'] ? $this->managerRegistry->getRepository(Currency::class)
+            ->findOneBy(['code' => $data['originalCurrency']]) : null;
 
-        $dto = new VariousExpensiveRequestDTO();
+        $dto = new VariousExpensiveRequestDTO($selectedCurrency);
         $dto = $this->dtoService->initDto($data, $dto);
 
         if (is_array($dto) && isset($dto['error'])) return $this->json(...$dto['error']);
 
         try {
+            $eurCurrency = $this->managerRegistry->getRepository(Currency::class)->findOneBy(['code' => 'EUR']);
+
             $expensive->setTrip($trip);
+            $expensive->setPrice($dto->originalPrice);
             $expensive = $this->dtoService->mapToEntity($dto, $expensive);
+
+            if ($eurCurrency !== $dto->originalCurrency && $expensive->getOriginalPrice() !== $dto->originalPrice) {
+                $convertedDeposit = $this->converterService->convert($dto->originalPrice, $dto->originalCurrency, $eurCurrency);
+                $expensive->setConvertedPrice($convertedDeposit['amount']);
+                $expensive->setExchangeRate($convertedDeposit['rate']);
+                $expensive->setConvertedAt(new \DateTimeImmutable());
+            }
 
             $this->managerRegistry->getManager()->persist($expensive);
             $this->managerRegistry->getManager()->flush();

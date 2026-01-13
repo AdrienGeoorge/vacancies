@@ -72,7 +72,7 @@ class OnSiteController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
         $selectedPayedBy = $data['payedBy'] ? $this->managerRegistry->getRepository(TripTraveler::class)->find($data['payedBy']) : null;
-        $selectedCurrency = $data['originalCurrency'] ? $this->managerRegistry->getRepository(Currency::class)
+        $selectedCurrency = isset($data['originalCurrency']) ? $this->managerRegistry->getRepository(Currency::class)
             ->findOneBy(['code' => $data['originalCurrency']]) : null;
 
         $dto = new OnSiteExpenseRequestDTO($selectedPayedBy, $selectedCurrency);

@@ -76,7 +76,7 @@ class ActivityController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
         $type = $data['type'] ? $this->managerRegistry->getRepository(EventType::class)->find($data['type']) : null;
-        $selectedCurrency = $data['originalCurrency'] ? $this->managerRegistry->getRepository(Currency::class)
+        $selectedCurrency = isset($data['originalCurrency']) ? $this->managerRegistry->getRepository(Currency::class)
             ->findOneBy(['code' => $data['originalCurrency']]) : null;
 
         $dto = new ActivityRequestDTO($type, $selectedCurrency);

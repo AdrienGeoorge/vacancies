@@ -3,11 +3,13 @@
 namespace App\Controller\Api;
 
 use App\DTO\TransportRequestDTO;
+use App\Entity\Currency;
 use App\Entity\PlanningEvent;
 use App\Entity\Transport;
 use App\Entity\TransportType;
 use App\Entity\Trip;
 use App\Entity\TripTraveler;
+use App\Service\CurrencyConverterService;
 use App\Service\DTOService;
 use App\Service\TripService;
 use Doctrine\Persistence\ManagerRegistry;
@@ -21,9 +23,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class TransportController extends AbstractController
 {
     public function __construct(
-        readonly ManagerRegistry $managerRegistry,
-        readonly TripService     $tripService,
-        readonly DTOService      $dtoService
+        readonly ManagerRegistry          $managerRegistry,
+        readonly TripService              $tripService,
+        readonly DTOService               $dtoService,
+        readonly CurrencyConverterService $converterService
     )
     {
     }
@@ -57,7 +60,8 @@ class TransportController extends AbstractController
             'arrivalDate' => $transport->getArrivalDate()?->format('Y-m-d H:i'),
             'destination' => $transport->getDestination(),
             'subscriptionDuration' => $transport->getSubscriptionDuration(),
-            'price' => $transport->getPrice(),
+            'originalPrice' => $transport->getOriginalPrice(),
+            'originalCurrency' => $transport->getOriginalCurrency(),
             'perPerson' => $transport->isPerPerson(),
             'estimatedToll' => $transport->getEstimatedToll(),
             'estimatedGasoline' => $transport->getEstimatedGasoline(),
@@ -78,8 +82,10 @@ class TransportController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
         $type = $data['type'] ? $this->managerRegistry->getRepository(TransportType::class)->find($data['type']) : null;
+        $selectedCurrency = isset($data['originalCurrency']) ? $this->managerRegistry->getRepository(Currency::class)
+            ->findOneBy(['code' => $data['originalCurrency']]) : null;
 
-        $dto = new TransportRequestDTO($type);
+        $dto = new TransportRequestDTO($type, $selectedCurrency);
         $dto = $this->dtoService->initDto($data, $dto);
 
         if (is_array($dto) && isset($dto['error'])) return $this->json(...$dto['error']);
@@ -92,8 +98,22 @@ class TransportController extends AbstractController
             );
 
             if ($errorOnCompare === null) {
+                $eurCurrency = $this->managerRegistry->getRepository(Currency::class)->findOneBy(['code' => 'EUR']);
+
                 $transport->setTrip($trip);
+                $transport->setPrice($dto->originalPrice);
                 $transport = $this->dtoService->mapToEntity($dto, $transport);
+
+                if (
+                    $transport->getType()->getName() !== 'Voiture' &&
+                    $eurCurrency !== $dto->originalCurrency &&
+                    $transport->getOriginalPrice() !== $dto->originalPrice
+                ) {
+                    $convertedDeposit = $this->converterService->convert($dto->originalPrice, $dto->originalCurrency, $eurCurrency);
+                    $transport->setConvertedPrice($convertedDeposit['amount']);
+                    $transport->setExchangeRate($convertedDeposit['rate']);
+                    $transport->setConvertedAt(new \DateTimeImmutable());
+                }
 
                 $this->managerRegistry->getManager()->persist($transport);
                 $this->managerRegistry->getManager()->flush();

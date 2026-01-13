@@ -108,11 +108,15 @@ class TripService
             if (!$transport->isPaid()) continue;
 
             if ($transport->isPerPerson() && $transport->getType()->getName() !== 'Voiture') {
-                $price += ($transport->getPrice() * $trip->getTripTravelers()->count());
+                $price += ($transport->getOriginalCurrency()?->getCode() !== 'EUR'
+                        ? $transport->getConvertedPrice()
+                        : $transport->getOriginalPrice()) * $trip->getTripTravelers()->count();
             } else if (!$transport->isPerPerson() && $transport->getType()->getName() === 'Voiture') {
                 $price += ($transport->getEstimatedToll() + $transport->getEstimatedGasoline());
             } else {
-                $price += $transport->getPrice();
+                $price += $transport->getOriginalCurrency()?->getCode() !== 'EUR'
+                    ? $transport->getConvertedPrice()
+                    : $transport->getOriginalPrice();
             }
         }
 
@@ -130,10 +134,16 @@ class TripService
         foreach ($trip->getTransports() as $transport) {
             if ($transport->isPaid()) continue;
 
-            if ($transport->isPerPerson()) {
-                $price += ($transport->getPrice() * $trip->getTripTravelers()->count());
+            if ($transport->isPerPerson() && $transport->getType()->getName() !== 'Voiture') {
+                $price += ($transport->getOriginalCurrency()?->getCode() !== 'EUR'
+                        ? $transport->getConvertedPrice()
+                        : $transport->getOriginalPrice()) * $trip->getTripTravelers()->count();
+            } else if (!$transport->isPerPerson() && $transport->getType()->getName() === 'Voiture') {
+                $price += ($transport->getEstimatedToll() + $transport->getEstimatedGasoline());
             } else {
-                $price += $transport->getPrice();
+                $price += $transport->getOriginalCurrency()?->getCode() !== 'EUR'
+                    ? $transport->getConvertedPrice()
+                    : $transport->getOriginalPrice();
             }
         }
 
@@ -151,9 +161,13 @@ class TripService
         foreach ($trip->getActivities() as $activity) {
             if ($activity->isBooked()) {
                 if ($activity->isPerPerson()) {
-                    $price += ($activity->getPrice() * $trip->getTripTravelers()->count());
+                    $price += ($activity->getOriginalCurrency()?->getCode() !== 'EUR'
+                            ? $activity->getConvertedPrice()
+                            : $activity->getOriginalPrice()) * $trip->getTripTravelers()->count();
                 } else {
-                    $price += $activity->getPrice();
+                    $price += $activity->getOriginalCurrency()?->getCode() !== 'EUR'
+                        ? $activity->getConvertedPrice()
+                        : $activity->getOriginalPrice();
                 }
             }
         }
@@ -172,9 +186,13 @@ class TripService
         foreach ($trip->getActivities() as $activity) {
             if (!$activity->isBooked()) {
                 if ($activity->isPerPerson()) {
-                    $price += ($activity->getPrice() * $trip->getTripTravelers()->count());
+                    $price += ($activity->getOriginalCurrency()?->getCode() !== 'EUR'
+                            ? $activity->getConvertedPrice()
+                            : $activity->getOriginalPrice()) * $trip->getTripTravelers()->count();
                 } else {
-                    $price += $activity->getPrice();
+                    $price += $activity->getOriginalCurrency()?->getCode() !== 'EUR'
+                        ? $activity->getConvertedPrice()
+                        : $activity->getOriginalPrice();
                 }
             }
         }
@@ -218,9 +236,13 @@ class TripService
         foreach ($trip->getVariousExpensives() as $expensive) {
             if (!$expensive->isPaid()) {
                 if ($expensive->isPerPerson()) {
-                    $price += ($expensive->getPrice() * $trip->getTripTravelers()->count());
+                    $price += ($expensive->getOriginalCurrency()?->getCode() !== 'EUR'
+                            ? $expensive->getConvertedPrice()
+                            : $expensive->getOriginalPrice()) * $trip->getTripTravelers()->count();
                 } else {
-                    $price += $expensive->getPrice();
+                    $price += $expensive->getOriginalCurrency()?->getCode() !== 'EUR'
+                        ? $expensive->getConvertedPrice()
+                        : $expensive->getOriginalPrice();
                 }
             }
         }
@@ -338,14 +360,30 @@ class TripService
                         if ($transport->getType()->getName() === 'Voiture') {
                             $transportPaid += round(($transport->getEstimatedToll() + $transport->getEstimatedGasoline()) / $totalTravelers, 2);
                         } elseif ($transport->isPerPerson() && $transport->getPayedBy() === $traveler) {
-                            $transportPaid += round($transport->getPrice() * $totalTravelers, 2);
+                            if ($transport->getOriginalCurrency()->getCode() !== 'EUR') {
+                                $transportPaid += round($transport->getConvertedPrice() * $totalTravelers, 2);
+                            } else {
+                                $transportPaid += round($transport->getOriginalPrice() * $totalTravelers, 2);
+                            }
                         } elseif (!$transport->isPerPerson() && $transport->getPayedBy() === $traveler) {
-                            $transportPaid += $transport->getPrice();
+                            if ($transport->getOriginalCurrency()->getCode() !== 'EUR') {
+                                $transportPaid += $transport->getConvertedPrice();
+                            } else {
+                                $transportPaid += $transport->getOriginalPrice();
+                            }
                         } elseif (!$transport->getPayedBy() && $transport->getType()->getName() === 'Transports en commun') {
                             if ($transport->isPerPerson()) {
-                                $transportPaid += $transport->getPrice();
+                                if ($transport->getOriginalCurrency()->getCode() !== 'EUR') {
+                                    $transportPaid += $transport->getConvertedPrice();
+                                } else {
+                                    $transportPaid += $transport->getOriginalPrice();
+                                }
                             } else {
-                                $transportPaid += round($transport->getPrice() / $totalTravelers, 2);
+                                if ($transport->getOriginalCurrency()->getCode() !== 'EUR') {
+                                    $transportPaid += round($transport->getConvertedPrice() / $totalTravelers, 2);
+                                } else {
+                                    $transportPaid += round($transport->getOriginalPrice() / $totalTravelers, 2);
+                                }
                             }
                         }
                     }

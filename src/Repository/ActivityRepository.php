@@ -32,10 +32,13 @@ class ActivityRepository extends ServiceEntityRepository
     public function findByTraveler(Trip $trip, TripTraveler $traveler): mixed
     {
         return $this->createQueryBuilder('a')
-            ->select('SUM(CASE 
-                    WHEN a.perPerson = true THEN a.price * :nbTraveler
-                    ELSE a.price 
-                 END) as totalPrice')
+            ->select("SUM(CASE 
+                    WHEN a.perPerson = true AND oc.code != 'EUR' THEN a.convertedPrice * :nbTraveler
+                    WHEN a.perPerson = true AND oc.code = 'EUR' THEN a.originalPrice * :nbTraveler
+                    WHEN a.perPerson = false AND oc.code != 'EUR' THEN a.convertedPrice
+                    ELSE a.originalPrice
+                 END) as totalPrice")
+            ->leftJoin('a.originalCurrency', 'oc')
             ->setParameter('nbTraveler', $trip->getTripTravelers()->count())
             ->andWhere('a.trip = :trip')
             ->setParameter('trip', $trip)

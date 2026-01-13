@@ -68,7 +68,7 @@ class VariousExpensiveController extends AbstractController
     ): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        $selectedCurrency = $data['originalCurrency'] ? $this->managerRegistry->getRepository(Currency::class)
+        $selectedCurrency = isset($data['originalCurrency']) ? $this->managerRegistry->getRepository(Currency::class)
             ->findOneBy(['code' => $data['originalCurrency']]) : null;
 
         $dto = new VariousExpensiveRequestDTO($selectedCurrency);

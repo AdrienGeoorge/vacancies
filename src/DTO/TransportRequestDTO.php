@@ -2,14 +2,16 @@
 
 namespace App\DTO;
 
+use App\Entity\Currency;
 use App\Entity\TransportType;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class TransportRequestDTO
 {
-    public function __construct(?TransportType $transportType)
+    public function __construct(?TransportType $transportType, ?Currency $currency)
     {
         $this->type = $transportType;
+        $this->originalCurrency = $currency;
     }
 
     #[Assert\NotBlank(message: 'Vous devez choisir un type de transport.')]
@@ -45,7 +47,15 @@ class TransportRequestDTO
             new Assert\GreaterThan(0, message: 'Le prix doit être de minimum 1€.')
         ],
     )]
-    public ?float $price = 0;
+    public ?float $originalPrice = 0;
+
+    #[Assert\When(
+        expression: '!this.isCar()',
+        constraints: [
+            new Assert\NotBlank(message: 'Vous devez choisir une devise.'),
+        ],
+    )]
+    public ?Currency $originalCurrency = null;
 
     public bool $perPerson = false;
 

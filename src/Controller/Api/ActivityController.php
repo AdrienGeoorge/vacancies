@@ -4,10 +4,12 @@ namespace App\Controller\Api;
 
 use App\DTO\ActivityRequestDTO;
 use App\Entity\Activity;
+use App\Entity\Currency;
 use App\Entity\EventType;
 use App\Entity\PlanningEvent;
 use App\Entity\Trip;
 use App\Entity\TripTraveler;
+use App\Service\CurrencyConverterService;
 use App\Service\DTOService;
 use App\Service\TripService;
 use Doctrine\Persistence\ManagerRegistry;
@@ -21,9 +23,10 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class ActivityController extends AbstractController
 {
     public function __construct(
-        readonly ManagerRegistry $managerRegistry,
-        readonly TripService     $tripService,
-        readonly DTOService      $dtoService
+        readonly ManagerRegistry          $managerRegistry,
+        readonly TripService              $tripService,
+        readonly DTOService               $dtoService,
+        readonly CurrencyConverterService $converterService
     )
     {
     }
@@ -53,7 +56,8 @@ class ActivityController extends AbstractController
             'name' => $activity->getName(),
             'description' => $activity->getDescription(),
             'date' => $activity->getDate()?->format('Y-m-d H:i'),
-            'price' => $activity->getPrice(),
+            'originalPrice' => $activity->getOriginalPrice(),
+            'originalCurrency' => $activity->getOriginalCurrency(),
             'perPerson' => $activity->isPerPerson()
         ]);
     }
@@ -72,8 +76,10 @@ class ActivityController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
         $type = $data['type'] ? $this->managerRegistry->getRepository(EventType::class)->find($data['type']) : null;
+        $selectedCurrency = $data['originalCurrency'] ? $this->managerRegistry->getRepository(Currency::class)
+            ->findOneBy(['code' => $data['originalCurrency']]) : null;
 
-        $dto = new ActivityRequestDTO($type);
+        $dto = new ActivityRequestDTO($type, $selectedCurrency);
         $dto = $this->dtoService->initDto($data, $dto);
 
         if (is_array($dto) && isset($dto['error'])) return $this->json(...$dto['error']);
@@ -82,8 +88,18 @@ class ActivityController extends AbstractController
             $errorOnCompare = $this->tripService->compareElementDateBetweenTripDates($trip, $dto->date);
 
             if ($errorOnCompare === null) {
+                $eurCurrency = $this->managerRegistry->getRepository(Currency::class)->findOneBy(['code' => 'EUR']);
+
                 $activity->setTrip($trip);
+                $activity->setPrice($dto->originalPrice);
                 $activity = $this->dtoService->mapToEntity($dto, $activity);
+
+                if ($eurCurrency !== $dto->originalCurrency && $activity->getOriginalPrice() !== $dto->originalPrice) {
+                    $convertedDeposit = $this->converterService->convert($dto->originalPrice, $dto->originalCurrency, $eurCurrency);
+                    $activity->setConvertedPrice($convertedDeposit['amount']);
+                    $activity->setExchangeRate($convertedDeposit['rate']);
+                    $activity->setConvertedAt(new \DateTimeImmutable());
+                }
 
                 $this->managerRegistry->getManager()->persist($activity);
 

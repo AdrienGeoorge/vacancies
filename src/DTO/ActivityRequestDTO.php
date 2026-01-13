@@ -2,14 +2,16 @@
 
 namespace App\DTO;
 
+use App\Entity\Currency;
 use App\Entity\EventType;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class ActivityRequestDTO
 {
-    public function __construct(?EventType $activityType)
+    public function __construct(?EventType $activityType, ?Currency $currency)
     {
         $this->type = $activityType;
+        $this->originalCurrency = $currency;
     }
 
     #[Assert\NotBlank(message: 'Vous devez choisir un type d\'activité.')]
@@ -31,7 +33,10 @@ class ActivityRequestDTO
 
     #[Assert\NotBlank(message: 'Le prix de l\'hébergement est obligatoire.')]
     #[Assert\GreaterThan(0, message: 'Le prix doit être de minimum 1€.')]
-    public ?float $price;
+    public ?float $originalPrice;
+
+    #[Assert\NotBlank(message: 'Vous devez choisir une devise.')]
+    public ?Currency $originalCurrency = null;
 
     public bool $perPerson = false;
 }

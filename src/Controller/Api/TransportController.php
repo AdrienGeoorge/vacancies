@@ -3,6 +3,7 @@
 namespace App\Controller\Api;
 
 use App\DTO\TransportRequestDTO;
+use App\Entity\PlanningEvent;
 use App\Entity\Transport;
 use App\Entity\TransportType;
 use App\Entity\Trip;
@@ -117,6 +118,9 @@ class TransportController extends AbstractController
         if (!$transport) {
             return $this->json(['message' => 'Suppression impossible : transport non trouvé.'], 404);
         }
+
+        $event = $this->managerRegistry->getRepository(PlanningEvent::class)->findOneBy(['transport' => $transport]);
+        if ($event) $this->managerRegistry->getManager()->remove($event);
 
         $this->managerRegistry->getManager()->remove($transport);
         $this->managerRegistry->getManager()->flush();

@@ -56,8 +56,9 @@ class AccommodationRepository extends ServiceEntityRepository
                         ) +
                         SUM(
                             CASE 
-                                WHEN oc2.code != 'EUR' THEN a.converted_deposit
-                                ELSE a.original_deposit
+                                WHEN original_deposit AND oc2.code != 'EUR' THEN a.converted_deposit
+                                WHEN original_deposit AND oc2.code = 'EUR' THEN a.original_deposit
+                                ELSE 0
                             END
                         )
                         FROM accommodation a 

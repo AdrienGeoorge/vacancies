@@ -166,6 +166,27 @@ class TripRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    public function getTopCountries()
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->select('country.name AS countryName, country.code AS countryCode, COUNT(DISTINCT country.code) AS visitCount, MIN(t.departureDate) AS firstVisitDate')
+            ->leftJoin('t.tripTravelers', 'tt')
+            ->leftJoin('t.country', 'country');
+
+        return $qb
+            ->where('t.country IS NOT NULL')
+            ->andWhere('t.departureDate IS NOT NULL')
+            ->andWhere('t.returnDate IS NOT NULL')
+            ->andWhere('t.returnDate < :today')
+            ->setParameter('today', (new \DateTime())->format('Y-m-d'))
+            ->groupBy('country.name, country.code')
+            ->orderBy('visitCount', 'DESC')
+            ->addOrderBy('firstVisitDate', 'ASC')
+            ->setMaxResults(5)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function getOneTrip(?int $tripId)
     {
         return $this->createQueryBuilder('t')

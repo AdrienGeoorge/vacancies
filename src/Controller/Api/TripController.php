@@ -30,6 +30,12 @@ class TripController extends AbstractController
     {
     }
 
+    #[Route('/get/top', name: 'getTop', methods: ['GET'])]
+    public function getTop(): JsonResponse
+    {
+        return $this->json($this->managerRegistry->getRepository(Trip::class)->getTopCountries());
+    }
+
     #[Route('/future/user/{user}', name: 'future_trip_by_user', requirements: ['user' => '\d+'], methods: ['GET'])]
     public function future(User $user): JsonResponse
     {

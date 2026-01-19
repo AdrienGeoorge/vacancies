@@ -1,10 +1,12 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\Api;
 
+use App\Entity\Country;
 use App\Entity\Follows;
 use App\Entity\Trip;
 use App\Entity\User;
+use App\Entity\UserBadges;
 use App\Form\AboutYouType;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -13,7 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/user', name: 'user_')]
+#[Route('/api/user', name: 'api_user_')]
 class UserController extends AbstractController
 {
     private ManagerRegistry $managerRegistry;
@@ -23,28 +25,30 @@ class UserController extends AbstractController
         $this->managerRegistry = $managerRegistry;
     }
 
-    #[Route('/profile', name: 'profile')]
     #[Route('/profile/{username}', name: 'profile_for_user')]
     public function profile(?string $username): Response
     {
+        $user = $this->managerRegistry->getRepository(User::class)->findOneBy(['username' => $username]);
 
-        if ($username) {
-            $user = $this->managerRegistry->getRepository(User::class)->findOneBy(['username' => $username]);
+        if ($user) {
+            $passedTrips = $this->managerRegistry->getRepository(Trip::class)->getPassedTrips($user);
+            $countPassedCountries = $this->managerRegistry->getRepository(Trip::class)->countPassedCountries($user);
+            $countryMostVisited = $this->managerRegistry->getRepository(Trip::class)->getCountryMostVisited($user);
+            $nbCountries = $this->managerRegistry->getRepository(Country::class)->count();
+            $badges = $this->managerRegistry->getRepository(UserBadges::class)->findBy(['user' => $user]);
+
+            /** @var User $user */
+            return $this->json([
+                'user' => $user,
+                'passedTrips' => count($passedTrips),
+                'countPassedCountries' => $countPassedCountries,
+                'countryMostVisited' => $countryMostVisited,
+                'percentCountries' => round(($countPassedCountries / $nbCountries) * 100, 2),
+                'badges' => $badges,
+            ]);
         } else {
-            $user = $this->getUser();
+            return $this->json([], Response::HTTP_NOT_FOUND);
         }
-
-        $passedTrips = $this->managerRegistry->getRepository(Trip::class)->getPassedTrips($user);
-        $countPassedCountries = $this->managerRegistry->getRepository(Trip::class)->countPassedCountries($user);
-        $countryMostVisited = $this->managerRegistry->getRepository(Trip::class)->getCountryMostVisited($user);
-
-        /** @var User $user */
-        return $this->render('user/profile.html.twig', [
-            'user' => $user,
-            'passedTrips' => count($passedTrips),
-            'countPassedCountries' => $countPassedCountries,
-            'countryMostVisited' => $countryMostVisited
-        ]);
     }
 
     #[Route('/follow/{user}', name: 'follow', options: ['expose' => true], methods: ['POST'])]

@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\UserBadgesRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Ignore;
 
 #[ORM\Entity(repositoryClass: UserBadgesRepository::class)]
 class UserBadges
@@ -16,6 +17,7 @@ class UserBadges
 
     #[ORM\ManyToOne(inversedBy: 'userBadges')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Ignore]
     private ?User $user = null;
 
     #[ORM\Column(length: 255)]

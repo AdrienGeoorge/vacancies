@@ -513,8 +513,8 @@ class TripService
     {
         if ($start !== null || $end !== null) {
             $today = new DateTime('today');
-            $departureDate = $trip->getDepartureDate();
-            $returnDate = $trip->getReturnDate();
+            $departureDate = $trip->getDepartureDate()?->setTime(0, 0, 0);
+            $returnDate = $trip->getReturnDate()?->setTime(23, 59, 59);
 
             if ($departureDate && $start && $start < $departureDate) {
                 return 'La date de début ne peut pas être inférieure à la date de commencement du séjour.';

@@ -61,6 +61,18 @@ class PlanningController extends AbstractController
         try {
             $event->setStart(new \DateTime($data['start']));
             if ($data['end']) $event->setEnd(new \DateTime($data['end']));
+
+            if ($event->getActivity()) {
+                $event->getActivity()->setDate(new \DateTime($data['start']));
+                $this->managerRegistry->getManager()->persist($event->getActivity());
+            }
+
+            if ($event->getTransport()) {
+                $event->getTransport()->setDepartureDate(new \DateTime($data['start']));
+                if ($data['end']) $event->getTransport()->setArrivalDate(new \DateTime($data['end']));
+                $this->managerRegistry->getManager()->persist($event->getTransport());
+            }
+
             $this->managerRegistry->getManager()->persist($event);
             $this->managerRegistry->getManager()->flush();
         } catch (\Exception) {
@@ -115,6 +127,17 @@ class PlanningController extends AbstractController
                 }
 
                 $event = $this->dtoService->mapToEntity($dto, $event);
+
+                if ($event->getActivity()) {
+                    $event->getActivity()->setDate($dto->start);
+                    $this->managerRegistry->getManager()->persist($event->getActivity());
+                }
+
+                if ($event->getTransport()) {
+                    $event->getTransport()->setDepartureDate($dto->start);
+                    if ($dto->end) $event->getTransport()->setArrivalDate($dto->end);
+                    $this->managerRegistry->getManager()->persist($event->getTransport());
+                }
 
                 $this->managerRegistry->getManager()->persist($event);
                 $this->managerRegistry->getManager()->flush();

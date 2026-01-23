@@ -16,6 +16,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -37,7 +38,7 @@ class ActivityController extends AbstractController
     {
         return $this->json(
             $this->managerRegistry->getRepository(Activity::class)->findAllByTrip($trip),
-            200,
+            Response::HTTP_OK,
             [],
             ['datetime_format' => 'Y-m-d H:i']
         );
@@ -48,7 +49,7 @@ class ActivityController extends AbstractController
     public function get(?Trip $trip = null, ?Activity $activity = null): JsonResponse
     {
         if (!$activity) {
-            return $this->json(['message' => 'Edition impossible : activité non trouvée.'], 404);
+            return $this->json(['message' => 'Edition impossible : activité non trouvée.'], Response::HTTP_NOT_FOUND);
         }
 
         return $this->json([
@@ -129,10 +130,10 @@ class ActivityController extends AbstractController
 
                 return $this->json(['message' => 'Cette activité a bien été ajoutée à votre voyage.']);
             } else {
-                return $this->json(['message' => $errorOnCompare], 400);
+                return $this->json(['message' => $errorOnCompare], Response::HTTP_BAD_REQUEST);
             }
         } catch (\Exception $e) {
-            return $this->json(['message' => 'Une erreur est survenue lors de la création de cette activité.'], 400);
+            return $this->json(['message' => 'Une erreur est survenue lors de la création de cette activité.'], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -141,7 +142,7 @@ class ActivityController extends AbstractController
     public function delete(?Trip $trip = null, ?Activity $activity = null): JsonResponse
     {
         if (!$activity) {
-            return $this->json(['message' => 'Suppression impossible : activité non trouvée.'], 404);
+            return $this->json(['message' => 'Suppression impossible : activité non trouvée.'], Response::HTTP_NOT_FOUND);
         }
 
         $event = $this->managerRegistry->getRepository(PlanningEvent::class)->findOneBy(['activity' => $activity]);
@@ -158,7 +159,7 @@ class ActivityController extends AbstractController
     public function updateReserved(Request $request, ?Trip $trip = null, ?Activity $activity = null): JsonResponse
     {
         if (!$activity) {
-            return $this->json(['message' => 'Modification impossible : activité non trouvée.'], 404);
+            return $this->json(['message' => 'Modification impossible : activité non trouvée.'], Response::HTTP_NOT_FOUND);
         }
 
         $data = json_decode($request->getContent(), true);

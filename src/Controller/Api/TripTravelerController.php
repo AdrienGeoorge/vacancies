@@ -37,11 +37,11 @@ class TripTravelerController extends AbstractController
     public function delete(Trip $trip, TripTraveler $traveler): JsonResponse
     {
         if ($traveler->getInvited() && $traveler->getInvited()->getCompleteName() === $trip->getTraveler()->getCompleteName()) {
-            return $this->json(['message' => 'Vous ne pouvez pas supprimer le créateur du voyage.'], 403);
+            return $this->json(['message' => 'Vous ne pouvez pas supprimer le créateur du voyage.'], Response::HTTP_FORBIDDEN);
         }
 
         if ($traveler->getInvited() && $trip->getTraveler() !== $this->getUser()) {
-            return $this->json(['message' => 'Vous ne pouvez pas supprimer un utilisateur invité à rejoindre ce séjour.'], 403);
+            return $this->json(['message' => 'Vous ne pouvez pas supprimer un utilisateur invité à rejoindre ce séjour.'], Response::HTTP_FORBIDDEN);
         }
 
         try {
@@ -55,7 +55,7 @@ class TripTravelerController extends AbstractController
         } catch (\Exception) {
             return $this->json(
                 ['message' => 'Ce voyageur est rattaché à des éléments du voyage (logement, transport, activité ou dépense diverse...).
-                Veuillez les supprimer ou les mettre à jour afin de pouvoir supprimer ce voyageur.'], 500
+                Veuillez les supprimer ou les mettre à jour afin de pouvoir supprimer ce voyageur.'], Response::HTTP_BAD_REQUEST
             );
         }
     }
@@ -93,7 +93,7 @@ class TripTravelerController extends AbstractController
         $token = $this->tripService->sendSharingMail($trip, $userToShareWith, $this->getUser()->getCompleteName());
 
         if ($token === false) {
-            return $this->json(['message' => 'L\'email n\'a pas pu être envoyé en raison d\'une anomalie.'], 500);
+            return $this->json(['message' => 'L\'email n\'a pas pu être envoyé en raison d\'une anomalie.'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
         $this->managerRegistry->getRepository(UserNotifications::class)->sendNotification(
@@ -103,7 +103,7 @@ class TripTravelerController extends AbstractController
             '/trip/' . $trip->getId() . '/accept-invitation/' . $token
         );
 
-        return $this->json(['message' => 'L\'invitation à prendre part à ce voyage a bien été transmise.'], 201);
+        return $this->json(['message' => 'L\'invitation à prendre part à ce voyage a bien été transmise.'], Response::HTTP_CREATED);
     }
 
     #[Route('/accept/{token}', name: 'accept', requirements: ['token' => '\w+'], methods: ['GET'])]
@@ -113,15 +113,15 @@ class TripTravelerController extends AbstractController
             ->findOneBy(['token' => $token]);
 
         if (!$invitation) {
-            return $this->json(['message' => 'Cette invitation n\'existe pas.'], 404);
+            return $this->json(['message' => 'Cette invitation n\'existe pas.'], Response::HTTP_NOT_FOUND);
         }
 
         if ($invitation->getExpireAt() < new \DateTimeImmutable('now')) {
-            return $this->json(['message' => 'Cette invitation a expiré. La personne à l\'origine de cette requête doit renouveler l\'invitation.'], 500);
+            return $this->json(['message' => 'Cette invitation a expiré. La personne à l\'origine de cette requête doit renouveler l\'invitation.'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
         if ($invitation->getUserToShareWith() !== $this->getUser()) {
-            return $this->json(['message' => 'Vous ne pouvez pas accepter une invitation qui ne vous est pas destinée.'], 500);
+            return $this->json(['message' => 'Vous ne pouvez pas accepter une invitation qui ne vous est pas destinée.'], Response::HTTP_FORBIDDEN);
         }
 
         $traveler = new TripTraveler();

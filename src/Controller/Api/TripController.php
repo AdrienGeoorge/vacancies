@@ -15,6 +15,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -40,7 +41,7 @@ class TripController extends AbstractController
     public function future(User $user): JsonResponse
     {
         if ($this->getUser() !== $user) {
-            return $this->json(['message' => 'Vous ne pouvez pas voir les voyages d\'un autre utilisateur.', 403]);
+            return $this->json(['message' => 'Vous ne pouvez pas voir les voyages d\'un autre utilisateur.', Response::HTTP_FORBIDDEN]);
         }
 
         $trips = $this->managerRegistry->getRepository(Trip::class)->getFutureTrips($this->getUser());
@@ -52,7 +53,7 @@ class TripController extends AbstractController
     public function passed(User $user): JsonResponse
     {
         if ($this->getUser() !== $user) {
-            return $this->json(['message' => 'Vous ne pouvez pas voir les voyages d\'un autre utilisateur.', 403]);
+            return $this->json(['message' => 'Vous ne pouvez pas voir les voyages d\'un autre utilisateur.', Response::HTTP_FORBIDDEN]);
         }
 
         $trips = $this->managerRegistry->getRepository(Trip::class)->getPassedTrips($this->getUser());
@@ -64,7 +65,7 @@ class TripController extends AbstractController
     public function all(User $user): JsonResponse
     {
         if ($this->getUser() !== $user) {
-            return $this->json(['message' => 'Vous ne pouvez pas voir les voyages d\'un autre utilisateur.', 403]);
+            return $this->json(['message' => 'Vous ne pouvez pas voir les voyages d\'un autre utilisateur.', Response::HTTP_FORBIDDEN]);
         }
 
         $trips = $this->managerRegistry->getRepository(Trip::class)->getAllTrips($this->getUser());
@@ -141,21 +142,25 @@ class TripController extends AbstractController
             $departureDateStr = $request->request->get('departureDate');
             $dto->departureDate = $departureDateStr ? new \DateTime($departureDateStr) : null;
         } catch (\Exception) {
-            return $this->json(['message' => 'La date de départ est invalide.'], 400);
+            return $this->json(['message' => 'La date de départ est invalide.'], Response::HTTP_BAD_REQUEST);
         }
 
         try {
             $returnDateStr = $request->request->get('returnDate');
             $dto->returnDate = $returnDateStr ? new \DateTime($returnDateStr) : null;
         } catch (\Exception) {
-            return $this->json(['message' => 'La date de retour est invalide.'], 400);
+            return $this->json(['message' => 'La date de retour est invalide.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        if ($dto->departureDate && $dto->returnDate && $dto->departureDate > $dto->returnDate) {
+            return $this->json(['message' => 'La date de retour ne peut pas être supérieure à la date de départ.'], Response::HTTP_BAD_REQUEST);
         }
 
         $errors = $validator->validate($dto);
 
         if (count($errors) > 0) {
             foreach ($errors as $error) {
-                return $this->json(['message' => $error->getMessage()], 400);
+                return $this->json(['message' => $error->getMessage()], Response::HTTP_BAD_REQUEST);
             }
         }
 
@@ -196,7 +201,7 @@ class TripController extends AbstractController
                 'id' => $trip->getId()
             ]);
         } catch (\Exception) {
-            return $this->json(['message' => 'Une erreur est survenue lors de la création du voyage.'], 400);
+            return $this->json(['message' => 'Une erreur est survenue lors de la création du voyage.'], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -210,7 +215,7 @@ class TripController extends AbstractController
 
             return $this->json(['message' => 'Votre voyage ainsi que toutes les informations associées ont bien été supprimés.']);
         } catch (\Exception) {
-            return $this->json(['message' => 'Une erreur est survenue lors de la suppression du voyage.'], 400);
+            return $this->json(['message' => 'Une erreur est survenue lors de la suppression du voyage.'], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -227,7 +232,7 @@ class TripController extends AbstractController
             return $this->json(['message' => sprintf('Vous avez quitté le voyage : %s', $trip->getName())]);
         }
 
-        return $this->json(['message' => 'Vous n\'avez pas l\'autorisation de réaliser cette action.'], 403);
+        return $this->json(['message' => 'Vous n\'avez pas l\'autorisation de réaliser cette action.'], Response::HTTP_FORBIDDEN);
     }
 
     #[Route('/update-notes/{trip}', name: 'update_notes', requirements: ['trip' => '\d+'], methods: ['POST'])]
@@ -243,7 +248,7 @@ class TripController extends AbstractController
 
             return $this->json([]);
         } catch (\Exception) {
-            return $this->json(['message' => 'Une erreur est survenue lors de la sauvegarde des notes.x'], 500);
+            return $this->json(['message' => 'Une erreur est survenue lors de la sauvegarde des notes.x'], Response::HTTP_BAD_REQUEST);
         }
     }
 }

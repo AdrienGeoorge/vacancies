@@ -16,6 +16,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -37,7 +38,7 @@ class TransportController extends AbstractController
     {
         return $this->json(
             $this->managerRegistry->getRepository(Transport::class)->findAllByTrip($trip),
-            200,
+            Response::HTTP_OK,
             [],
             ['datetime_format' => 'Y-m-d H:i']
         );
@@ -48,7 +49,7 @@ class TransportController extends AbstractController
     public function get(?Trip $trip = null, ?Transport $transport = null): JsonResponse
     {
         if (!$transport) {
-            return $this->json(['message' => 'Edition impossible : transport non trouvé.'], 404);
+            return $this->json(['message' => 'Edition impossible : transport non trouvé.'], Response::HTTP_NOT_FOUND);
         }
 
         return $this->json([
@@ -124,10 +125,10 @@ class TransportController extends AbstractController
 
                 return $this->json(['message' => 'Ce moyen de transport a bien été ajouté à votre voyage.']);
             } else {
-                return $this->json(['message' => $errorOnCompare], 400);
+                return $this->json(['message' => $errorOnCompare], Response::HTTP_BAD_REQUEST);
             }
         } catch (\Exception) {
-            return $this->json(['message' => 'Une erreur est survenue lors de la création de ce moyen de transport.'], 400);
+            return $this->json(['message' => 'Une erreur est survenue lors de la création de ce moyen de transport.'], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -136,7 +137,7 @@ class TransportController extends AbstractController
     public function delete(?Trip $trip = null, ?Transport $transport = null): JsonResponse
     {
         if (!$transport) {
-            return $this->json(['message' => 'Suppression impossible : transport non trouvé.'], 404);
+            return $this->json(['message' => 'Suppression impossible : transport non trouvé.'], Response::HTTP_NOT_FOUND);
         }
 
         $event = $this->managerRegistry->getRepository(PlanningEvent::class)->findOneBy(['transport' => $transport]);
@@ -153,7 +154,7 @@ class TransportController extends AbstractController
     public function updateReserved(Request $request, ?Trip $trip = null, ?Transport $transport = null): JsonResponse
     {
         if (!$transport) {
-            return $this->json(['message' => 'Modification impossible : transport non trouvé.'], 404);
+            return $this->json(['message' => 'Modification impossible : transport non trouvé.'], Response::HTTP_NOT_FOUND);
         }
 
         $data = json_decode($request->getContent(), true);

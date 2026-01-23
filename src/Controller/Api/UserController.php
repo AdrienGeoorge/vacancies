@@ -7,7 +7,6 @@ use App\Entity\Follows;
 use App\Entity\Trip;
 use App\Entity\User;
 use App\Entity\UserBadges;
-use App\Form\AboutYouType;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

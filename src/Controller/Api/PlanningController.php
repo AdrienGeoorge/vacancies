@@ -39,7 +39,7 @@ class PlanningController extends AbstractController
     public function delete(Trip $trip, ?PlanningEvent $event): JsonResponse
     {
         if (!$event) {
-            return $this->json(['message' => 'Evénement non existant.'], 500);
+            return $this->json(['message' => 'Evénement non existant.'], Response::HTTP_NOT_FOUND);
         }
 
         $this->managerRegistry->getManager()->remove($event);
@@ -55,7 +55,7 @@ class PlanningController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         if (!$event) {
-            return $this->json(['message' => 'Evénement non existant.'], 500);
+            return $this->json(['message' => 'Evénement non existant.'], Response::HTTP_NOT_FOUND);
         }
 
         try {
@@ -64,7 +64,7 @@ class PlanningController extends AbstractController
             $this->managerRegistry->getManager()->persist($event);
             $this->managerRegistry->getManager()->flush();
         } catch (\Exception) {
-            return $this->json(['message' => 'Une erreur est survenue lors de la mise à jour de l\'évènement.'], 500);
+            return $this->json(['message' => 'Une erreur est survenue lors de la mise à jour de l\'évènement.'], Response::HTTP_BAD_REQUEST);
         }
 
         return $this->json([]);
@@ -75,7 +75,7 @@ class PlanningController extends AbstractController
     public function get(?Trip $trip = null, ?PlanningEvent $event = null): JsonResponse
     {
         if (!$event) {
-            return $this->json(['message' => 'Edition impossible : évènement non trouvé.'], 404);
+            return $this->json(['message' => 'Edition impossible : évènement non trouvé.'], Response::HTTP_NOT_FOUND);
         }
 
         return $this->json([
@@ -125,10 +125,10 @@ class PlanningController extends AbstractController
 
                 return $this->json(['message' => 'Cet évènement a bien été ajouté à votre voyage.']);
             } else {
-                return $this->json(['message' => $errorOnCompare], 400);
+                return $this->json(['message' => $errorOnCompare], Response::HTTP_BAD_REQUEST);
             }
         } catch (\Exception) {
-            return $this->json(['message' => 'Une erreur est survenue lors de la création de cet évènement.'], 400);
+            return $this->json(['message' => 'Une erreur est survenue lors de la création de cet évènement.'], Response::HTTP_BAD_REQUEST);
         }
     }
 }

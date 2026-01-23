@@ -38,18 +38,18 @@ class TripDocumentController extends AbstractController
     public function showOrDownload(?Trip $trip = null, ?TripDocument $document = null): Response
     {
         if (!$document) {
-            return $this->json(['message' => 'Document non trouvé.'], 404);
+            return $this->json(['message' => 'Document non trouvé.'], Response::HTTP_NOT_FOUND);
         }
 
         if ($document->getTrip() !== $trip) {
-            return $this->json(['message' => 'Ce document n\'est pas associé à ce voyage.'], 403);
+            return $this->json(['message' => 'Ce document n\'est pas associé à ce voyage.'], Response::HTTP_FORBIDDEN);
         }
 
         $filePath = $document->getFile();
         $fileSystem = new Filesystem();
 
         if (!$fileSystem->exists($filePath)) {
-            return $this->json(['message' => 'Le fichier n\'a pas été trouvé.'], 404);
+            return $this->json(['message' => 'Le fichier n\'a pas été trouvé.'], Response::HTTP_NOT_FOUND);
         }
 
         $mimeTypes = new MimeTypes();
@@ -79,18 +79,18 @@ class TripDocumentController extends AbstractController
     public function delete(Trip $trip, TripDocument $document): Response
     {
         if (!$document) {
-            return $this->json(['message' => 'Document non trouvé.'], 404);
+            return $this->json(['message' => 'Document non trouvé.'], Response::HTTP_NOT_FOUND);
         }
 
         if ($document->getTrip() !== $trip) {
-            return $this->json(['message' => 'Ce document n\'est pas associé à ce voyage.'], 403);
+            return $this->json(['message' => 'Ce document n\'est pas associé à ce voyage.'], Response::HTTP_FORBIDDEN);
         }
 
         $filePath = $document->getFile();
         $fileSystem = new Filesystem();
 
         if (!$fileSystem->exists($filePath)) {
-            return $this->json(['message' => 'Le fichier n\'a pas été trouvé.'], 404);
+            return $this->json(['message' => 'Le fichier n\'a pas été trouvé.'], Response::HTTP_NOT_FOUND);
         }
 
         try {
@@ -101,7 +101,7 @@ class TripDocumentController extends AbstractController
 
             return $this->json(['message' => 'Le document a bien été supprimé.']);
         } catch (\Exception $exception) {
-            return $this->json(['message' => 'La suppression du document a échoué.'], 500);
+            return $this->json(['message' => 'La suppression du document a échoué.'], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -123,7 +123,7 @@ class TripDocumentController extends AbstractController
 
         if (count($errors) > 0) {
             foreach ($errors as $error) {
-                return $this->json(['message' => $error->getMessage()], 400);
+                return $this->json(['message' => $error->getMessage()], Response::HTTP_BAD_REQUEST);
             }
         }
 
@@ -146,7 +146,7 @@ class TripDocumentController extends AbstractController
                 'files' => $trip->getDocuments()->toArray()
             ]);
         } catch (\Exception $e) {
-            return $this->json(['message' => 'Une erreur est survenue lors de l\'ajout du document.'], 400);
+            return $this->json(['message' => 'Une erreur est survenue lors de l\'ajout du document.'], Response::HTTP_BAD_REQUEST);
         }
     }
 }

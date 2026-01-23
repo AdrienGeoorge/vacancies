@@ -14,6 +14,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -43,7 +44,7 @@ class VariousExpensiveController extends AbstractController
     public function get(?Trip $trip = null, ?VariousExpensive $expensive = null): JsonResponse
     {
         if (!$expensive) {
-            return $this->json(['message' => 'Edition impossible : dépense non trouvée.'], 404);
+            return $this->json(['message' => 'Edition impossible : dépense non trouvée.'], Response::HTTP_NOT_FOUND);
         }
 
         return $this->json([
@@ -99,7 +100,7 @@ class VariousExpensiveController extends AbstractController
 
             return $this->json(['message' => 'Cette dépense a bien été ajoutée à votre voyage.']);
         } catch (\Exception $e) {
-            return $this->json(['message' => 'Une erreur est survenue lors de la création de cette dépense.'], 400);
+            return $this->json(['message' => 'Une erreur est survenue lors de la création de cette dépense.'], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -108,7 +109,7 @@ class VariousExpensiveController extends AbstractController
     public function delete(?Trip $trip = null, ?VariousExpensive $expensive = null): JsonResponse
     {
         if (!$expensive) {
-            return $this->json(['message' => 'Suppression impossible : dépense non trouvée.'], 404);
+            return $this->json(['message' => 'Suppression impossible : dépense non trouvée.'], Response::HTTP_NOT_FOUND);
         }
 
         $this->managerRegistry->getManager()->remove($expensive);
@@ -122,7 +123,7 @@ class VariousExpensiveController extends AbstractController
     public function updateReserved(Request $request, ?Trip $trip = null, ?VariousExpensive $expensive = null): JsonResponse
     {
         if (!$expensive) {
-            return $this->json(['message' => 'Modification impossible : dépense non trouvée.'], 404);
+            return $this->json(['message' => 'Modification impossible : dépense non trouvée.'], Response::HTTP_NOT_FOUND);
         }
 
         $data = json_decode($request->getContent(), true);

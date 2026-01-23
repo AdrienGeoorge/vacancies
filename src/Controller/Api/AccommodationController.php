@@ -11,6 +11,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -40,7 +41,7 @@ class AccommodationController extends AbstractController
     public function get(?Trip $trip = null, ?Accommodation $accommodation = null): JsonResponse
     {
         if (!$accommodation) {
-            return $this->json(['message' => 'Edition impossible : hébergement non trouvé.'], 404);
+            return $this->json(['message' => 'Edition impossible : hébergement non trouvé.'], Response::HTTP_NOT_FOUND);
         }
 
         return $this->json([
@@ -73,7 +74,7 @@ class AccommodationController extends AbstractController
 
         if (count($errors) > 0) {
             foreach ($errors as $error) {
-                return $this->json(['message' => $error->getMessage()], 400);
+                return $this->json(['message' => $error->getMessage()], Response::HTTP_BAD_REQUEST);
             }
         }
 
@@ -89,10 +90,10 @@ class AccommodationController extends AbstractController
 
                 return $this->json(['message' => 'Cet hébergement a bien été ajouté à votre voyage.']);
             } else {
-                return $this->json(['message' => $errorOnCompare], 400);
+                return $this->json(['message' => $errorOnCompare], Response::HTTP_FORBIDDEN);
             }
         } catch (\Exception) {
-            return $this->json(['message' => 'Une erreur est survenue lors de la création de l\'hébergement.'], 400);
+            return $this->json(['message' => 'Une erreur est survenue lors de la création de l\'hébergement.'], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -101,7 +102,7 @@ class AccommodationController extends AbstractController
     public function delete(?Trip $trip = null, ?Accommodation $accommodation = null): JsonResponse
     {
         if (!$accommodation) {
-            return $this->json(['message' => 'Suppression impossible : hébergement non trouvé.'], 404);
+            return $this->json(['message' => 'Suppression impossible : hébergement non trouvé.'], Response::HTTP_NOT_FOUND);
         }
 
         $this->managerRegistry->getManager()->remove($accommodation);
@@ -115,7 +116,7 @@ class AccommodationController extends AbstractController
     public function updateReserved(Request $request, ?Trip $trip = null, ?Accommodation $accommodation = null): JsonResponse
     {
         if (!$accommodation) {
-            return $this->json(['message' => 'Modification impossible : hébergement non trouvé.'], 404);
+            return $this->json(['message' => 'Modification impossible : hébergement non trouvé.'], Response::HTTP_NOT_FOUND);
         }
 
         $data = json_decode($request->getContent(), true);

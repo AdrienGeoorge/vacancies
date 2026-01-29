@@ -21,10 +21,7 @@ class TripRepository extends ServiceEntityRepository
         parent::__construct($registry, Trip::class);
     }
 
-    /**
-     * @return Trip[]
-     */
-    public function getFutureTrips($user): array
+    public function getFutureTrips($user, bool $nextOnly = false)
     {
         $qb = $this->createQueryBuilder('t')
             ->leftJoin('t.tripTravelers', 'tt');
@@ -36,26 +33,36 @@ class TripRepository extends ServiceEntityRepository
             )
         )->setParameter('traveler', $user);
 
-        return $qb->andWhere(
-            $qb->expr()->orX(
-                $qb->expr()->gte('t.returnDate', ':today'),
-                $qb->expr()->isNull('t.departureDate'),
-                $qb->expr()->isNull('t.returnDate')
-            )
-        )->setParameter('today', (new \DateTime())->format('Y-m-d'))
-            ->orderBy("CASE WHEN t.departureDate IS NULL THEN 1 ELSE 0 END", 'ASC')
-            ->addOrderBy('t.departureDate', 'ASC')
-            ->addOrderBy('t.id', 'DESC')
-            ->getQuery()
-            ->getResult();
+        if ($nextOnly) {
+            return $qb->andWhere($qb->expr()->isNotNull('t.departureDate'))
+                ->andWhere($qb->expr()->gte('t.departureDate', ':today'))
+                ->setParameter('today', (new \DateTime())->format('Y-m-d'))
+                ->orderBy('t.departureDate', 'ASC')
+                ->setMaxResults(1)
+                ->getQuery()
+                ->getOneOrNullResult();
+        } else {
+            return $qb->andWhere(
+                $qb->expr()->orX(
+                    $qb->expr()->gte('t.returnDate', ':today'),
+                    $qb->expr()->isNull('t.departureDate'),
+                    $qb->expr()->isNull('t.returnDate')
+                )
+            )->setParameter('today', (new \DateTime())->format('Y-m-d'))
+                ->orderBy("CASE WHEN t.departureDate IS NULL THEN 1 ELSE 0 END", 'ASC')
+                ->addOrderBy('t.departureDate', 'ASC')
+                ->addOrderBy('t.id', 'DESC')
+                ->getQuery()
+                ->getResult();
+        }
     }
 
-    public function getPassedTrips($user): array
+    public function getPassedTrips($user, bool $lastOnly = false)
     {
         $qb = $this->createQueryBuilder('t')
             ->leftJoin('t.tripTravelers', 'tt');
 
-        return $qb->andWhere(
+        $qb = $qb->andWhere(
             $qb->expr()->orX(
                 $qb->expr()->eq('t.traveler', ':traveler'),
                 $qb->expr()->eq('tt.invited', ':traveler')
@@ -65,9 +72,13 @@ class TripRepository extends ServiceEntityRepository
             ->andWhere('t.returnDate IS NOT NULL')
             ->andWhere('t.returnDate < :today')
             ->setParameter('today', (new \DateTime())->format('Y-m-d'))
-            ->orderBy('t.departureDate', 'DESC')
-            ->getQuery()
-            ->getResult();
+            ->orderBy('t.departureDate', 'DESC');
+
+        if ($lastOnly) {
+            return $qb->setMaxResults(1)->getQuery()->getOneOrNullResult();
+        } else {
+            return $qb->getQuery()->getResult();
+        }
     }
 
     public function getAllTrips($user): array
@@ -78,26 +89,27 @@ class TripRepository extends ServiceEntityRepository
             ->select('DISTINCT t.id, t.name, t.description, t.departureDate, t.returnDate, t.image, c.name AS countryName')
             ->addSelect("
                 CASE
-                    WHEN t.departureDate IS NOT NULL
-                     AND t.returnDate IS NOT NULL
-                     AND t.departureDate < :today
-                     AND t.returnDate >= :today
-                        THEN 1
+                    WHEN (t.departureDate IS NOT NULL
+                         AND t.returnDate IS NOT NULL
+                         AND t.departureDate <= :today
+                         AND t.returnDate >= :today)
+                      OR (t.departureDate IS NOT NULL AND t.returnDate IS NULL
+                         AND t.departureDate <= :today)
+                    THEN 1 -- en cours
                         
-                    WHEN t.departureDate IS NOT NULL
-                     AND t.returnDate IS NOT NULL
-                     AND t.returnDate >= :today
-                        THEN 2
+                    WHEN (t.departureDate IS NOT NULL AND t.returnDate IS NOT NULL AND t.returnDate > :today)
+                      OR (t.departureDate IS NOT NULL AND t.returnDate IS NULL AND t.departureDate > :today)
+                        THEN 2 -- à venir
             
                     WHEN (t.departureDate IS NULL AND t.returnDate IS NULL)
                       OR (t.departureDate IS NOT NULL AND t.returnDate IS NULL)
                       OR (t.departureDate IS NULL AND t.returnDate IS NOT NULL)
-                        THEN 3
+                        THEN 3 -- non planifié
             
                     WHEN t.departureDate IS NOT NULL
                      AND t.returnDate IS NOT NULL
                      AND t.returnDate < :today
-                        THEN 4
+                        THEN 4 -- passé
             
                     ELSE 4
                 END AS state

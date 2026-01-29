@@ -7,6 +7,7 @@ use App\Entity\Follows;
 use App\Entity\Trip;
 use App\Entity\User;
 use App\Entity\UserBadges;
+use App\Service\TripService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -18,10 +19,12 @@ use Symfony\Component\Routing\Attribute\Route;
 class UserController extends AbstractController
 {
     private ManagerRegistry $managerRegistry;
+    private TripService $tripService;
 
-    public function __construct(ManagerRegistry $managerRegistry)
+    public function __construct(ManagerRegistry $managerRegistry, TripService $tripService)
     {
         $this->managerRegistry = $managerRegistry;
+        $this->tripService = $tripService;
     }
 
     #[Route('/profile/{username}', name: 'profile_for_user')]
@@ -36,6 +39,9 @@ class UserController extends AbstractController
             $nbCountries = $this->managerRegistry->getRepository(Country::class)->count();
             $badges = $this->managerRegistry->getRepository(UserBadges::class)->findBy(['user' => $user]);
 
+            $lastTripObject = $this->managerRegistry->getRepository(Trip::class)->getPassedTrips($this->getUser(), true);
+            $nextTripObject = $this->managerRegistry->getRepository(Trip::class)->getFutureTrips($this->getUser(), true);
+
             /** @var User $user */
             return $this->json([
                 'user' => $user,
@@ -44,6 +50,14 @@ class UserController extends AbstractController
                 'countryMostVisited' => $countryMostVisited,
                 'percentCountries' => round(($countPassedCountries / $nbCountries) * 100, 2),
                 'badges' => $badges,
+                'lastTrip' => $lastTripObject ? [
+                    'country' => $lastTripObject->getCountry()->getName(),
+                    'countDays' => $this->tripService->countDaysBeforeOrAfter($lastTripObject)
+                ] : null,
+                'nextTrip' => $nextTripObject ? [
+                    'country' => $nextTripObject->getCountry()->getName(),
+                    'countDays' => $this->tripService->countDaysBeforeOrAfter($nextTripObject)
+                ] : null
             ]);
         } else {
             return $this->json([], Response::HTTP_NOT_FOUND);

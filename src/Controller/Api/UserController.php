@@ -3,16 +3,17 @@
 namespace App\Controller\Api;
 
 use App\Entity\Country;
-use App\Entity\Follows;
 use App\Entity\Trip;
 use App\Entity\User;
 use App\Entity\UserBadges;
 use App\Service\TripService;
 use Doctrine\Persistence\ManagerRegistry;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/user', name: 'api_user_')]
@@ -64,59 +65,117 @@ class UserController extends AbstractController
         }
     }
 
-    #[Route('/follow/{user}', name: 'follow', options: ['expose' => true], methods: ['POST'])]
-    public function followUser(Request $request, User $user): JsonResponse
+    #[Route('/settings/personal-data', name: 'update_personal_data', options: ['expose' => true], methods: ['POST'])]
+    public function updatePersonalData(Request $request, JWTTokenManagerInterface $jwtManager): JsonResponse
     {
-        if (!$request->isXmlHttpRequest()) return new JsonResponse([], 500);
+        if (!$this->getUser()) return new JsonResponse([], Response::HTTP_UNAUTHORIZED);
 
-        $follow = $this->managerRegistry->getRepository(Follows::class)->findOneBy([
-            'followedBy' => $this->getUser(),
-            'follower' => $user
-        ]);
+        $data = json_decode($request->getContent(), true);
 
-        if ($follow) {
-            $this->managerRegistry->getManager()->remove($follow);
-            $this->managerRegistry->getManager()->flush();
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if (!isset($data['firstname']) || !isset($data['lastname']) || !isset($data['email'])) {
             return new JsonResponse([
-                'status' => 'deleted',
-                'privateProfile' => $user->isPrivateProfile(),
-                'follows' => $user->getApprovedFollows()->count(),
-                'followedBy' => $user->getApprovedFollowedBy()->count()
-            ]);
+                'message' => 'Vous devez remplir les champs obligatoires.'
+            ], Response::HTTP_BAD_REQUEST);
         }
 
-        $follow = (new Follows())
-            ->setFollowedBy($this->getUser())
-            ->setFollower($user)
-            ->setCreatedAt(new \DateTime());
+        $userEmail = $this->managerRegistry->getRepository(User::class)->findOneBy(['email' => $data['email']]);
 
-        if (!$user->isPrivateProfile()) $follow->setIsApproved(true);
+        if ($userEmail && $userEmail->getId() !== $user->getId()) {
+            return new JsonResponse([
+                'message' => 'Cette adresse e-mail est déjà utilisée.'
+            ], Response::HTTP_BAD_REQUEST);
+        }
 
-        $this->managerRegistry->getManager()->persist($follow);
-        $this->managerRegistry->getManager()->flush();
+        $user->setFirstName($data['firstname'])
+            ->setLastName($data['lastname'])
+            ->setEmail($data['email'])
+            ->setBiography($data['biography'] ?? null);
 
-        return new JsonResponse([
-            'status' => $user->isPrivateProfile() ? 'waiting' : 'followed',
-            'follows' => $user->getApprovedFollows()->count(),
-            'followedBy' => $user->getApprovedFollowedBy()->count()
-        ]);
-    }
-
-    #[Route('/change-visibility', name: 'change_visibility', options: ['expose' => true], methods: ['POST'])]
-    public function changeVisibility(Request $request): JsonResponse
-    {
-        if (!$request->isXmlHttpRequest()) return new JsonResponse([], 500);
-
-        $user = $this->managerRegistry->getRepository(User::class)->find($request->request->get('userId'));
-        if (!$user) return new JsonResponse([], 500);
-        if ($user !== $this->getUser()) return new JsonResponse([], 403);
-
-        $user->setPrivateProfile(!$user->isPrivateProfile());
         $this->managerRegistry->getManager()->persist($user);
         $this->managerRegistry->getManager()->flush();
 
+        $token = $jwtManager->create($user);
+
         return new JsonResponse([
-            'private' => $user->isPrivateProfile()
-        ]);
+            'token' => $token,
+            'user' => [
+                'id' => $user->getId(),
+                'email' => $user->getEmail(),
+                'firstname' => $user->getFirstname(),
+                'lastname' => $user->getLastname(),
+                'completeName' => $user->getCompleteName(),
+                'username' => $user->getUsername(),
+                'avatar' => $user->getAvatar(),
+                'biography' => $user->getBiography()
+            ]
+        ], Response::HTTP_CREATED);
+    }
+
+    #[Route('/settings/password', name: 'update_password', options: ['expose' => true], methods: ['POST'])]
+    public function updatePassword(Request $request, JWTTokenManagerInterface $jwtManager, UserPasswordHasherInterface $passwordHasher): JsonResponse
+    {
+        if (!$this->getUser()) return new JsonResponse([], Response::HTTP_UNAUTHORIZED);
+
+        $data = json_decode($request->getContent(), true);
+
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if (!isset($data['current']) || !isset($data['password']) || !isset($data['passwordRepeat'])) {
+            return new JsonResponse([
+                'message' => 'Vous devez remplir les champs obligatoires.'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        if (!$passwordHasher->isPasswordValid($user, $data['current'])) {
+            return new JsonResponse([
+                'message' => 'Le mot de passe actuel est incorrect.'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        if ($data['password'] !== $data['passwordRepeat']) {
+            return new JsonResponse([
+                'message' => 'Les mots de passe ne correspondent pas.'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $user->setPassword($passwordHasher->hashPassword($user, $data['password']));
+
+        $this->managerRegistry->getManager()->persist($user);
+        $this->managerRegistry->getManager()->flush();
+
+        $token = $jwtManager->create($user);
+
+        return new JsonResponse([
+            'token' => $token,
+            'user' => [
+                'id' => $user->getId(),
+                'email' => $user->getEmail(),
+                'firstname' => $user->getFirstname(),
+                'lastname' => $user->getLastname(),
+                'completeName' => $user->getCompleteName(),
+                'username' => $user->getUsername(),
+                'avatar' => $user->getAvatar(),
+                'biography' => $user->getBiography()
+            ]
+        ], Response::HTTP_CREATED);
+    }
+
+    #[Route('/settings/disabled', name: 'disabled_account', options: ['expose' => true], methods: ['POST'])]
+    public function disabledAccount(): JsonResponse
+    {
+        if (!$this->getUser()) return new JsonResponse([], Response::HTTP_UNAUTHORIZED);
+
+        /** @var User $user */
+        $user = $this->getUser();
+        $user->setDisabled(new \DateTime());
+
+        $this->managerRegistry->getManager()->persist($user);
+        $this->managerRegistry->getManager()->flush();
+
+        return new JsonResponse([]);
     }
 }

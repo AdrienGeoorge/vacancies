@@ -74,7 +74,8 @@ class AuthController extends AbstractController
                 'lastname' => $user->getLastname(),
                 'completeName' => $user->getCompleteName(),
                 'username' => $user->getUsername(),
-                'avatar' => $user->getAvatar()
+                'avatar' => $user->getAvatar(),
+                'biography' => $user->getBiography()
             ]
         ], 201);
     }

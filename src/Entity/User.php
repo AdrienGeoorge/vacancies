@@ -86,6 +86,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Ignore]
     private Collection $userNotifications;
 
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTime $disabled = null;
+
     public function __construct()
     {
         $this->trips = new ArrayCollection();
@@ -458,6 +461,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $userNotification->setUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDisabled(): ?\DateTime
+    {
+        return $this->disabled;
+    }
+
+    public function setDisabled(?\DateTime $disabled): static
+    {
+        $this->disabled = $disabled;
 
         return $this;
     }

@@ -83,6 +83,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $biography = null;
 
     #[ORM\OneToMany(targetEntity: UserNotifications::class, mappedBy: 'user', orphanRemoval: true)]
+    #[ORM\OrderBy(['id' => 'DESC'])]
     #[Ignore]
     private Collection $userNotifications;
 

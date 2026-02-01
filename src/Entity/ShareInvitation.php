@@ -23,11 +23,14 @@ class ShareInvitation
     private ?Trip $trip = null;
 
     #[ORM\ManyToOne(inversedBy: 'shareInvitations')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?User $userToShareWith = null;
 
     #[ORM\Column]
     private ?\DateTimeImmutable $expireAt = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $email = null;
 
     public function getId(): ?int
     {
@@ -78,6 +81,18 @@ class ShareInvitation
     public function setExpireAt(\DateTimeImmutable $expireAt): static
     {
         $this->expireAt = $expireAt;
+
+        return $this;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(?string $email): static
+    {
+        $this->email = $email;
 
         return $this;
     }

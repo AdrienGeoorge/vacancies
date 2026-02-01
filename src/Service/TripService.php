@@ -553,12 +553,13 @@ class TripService
      * Envoi du mail de partage de voyage
      *
      * @param Trip $trip
-     * @param User $userToShareWith
+     * @param User|null $userToShareWith
+     * @param string|null $mail
      * @param string $invitedBy
      * @return false|ByteString
      * @throws TransportExceptionInterface
      */
-    public function sendSharingMail(Trip $trip, User $userToShareWith, string $invitedBy): bool|ByteString
+    public function sendSharingMail(Trip $trip, ?User $userToShareWith, ?string $mail, string $invitedBy): bool|ByteString
     {
         try {
             $token = ByteString::fromRandom(50);
@@ -566,10 +567,10 @@ class TripService
 
             $email = (new TemplatedEmail())
                 ->from('no-reply@adriengeorge.fr')
-                ->to($userToShareWith->getEmail())
+                ->to($userToShareWith ? $userToShareWith->getEmail() : $mail)
                 ->subject('Vacancies : invitation à rejoindre un voyage')
                 ->htmlTemplate('trip/share-mail.html.twig')
-                ->context(['url' => $url, 'invitedBy' => $invitedBy]);
+                ->context(['url' => $url, 'invitedBy' => $invitedBy, 'trip' => $trip]);
 
             $this->mailer->send($email);
         } catch (Exception) {
@@ -577,7 +578,8 @@ class TripService
         }
 
         $invitation = new ShareInvitation();
-        $invitation->setUserToShareWith($userToShareWith);
+        if ($userToShareWith) $invitation->setUserToShareWith($userToShareWith);
+        $invitation->setEmail($mail);
         $invitation->setTrip($trip);
         $invitation->setToken($token);
         $invitation->setExpireAt(new \DateTimeImmutable('+120 minutes'));

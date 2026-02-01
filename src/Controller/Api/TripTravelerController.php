@@ -68,40 +68,41 @@ class TripTravelerController extends AbstractController
     public function invite(Request $request, Trip $trip): Response
     {
         $data = json_decode($request->getContent(), true);
+        $mail = $data['email'] ?? null;
 
         $userToShareWith = $this->managerRegistry->getRepository(User::class)
-            ->findOneBy(['email' => $data['email'] ?? null]);
-
-        if (!$userToShareWith) {
-            return $this->json(['message' => 'Aucun utilisateur n\'a été trouvé avec cette adresse mail : veuillez recommencer.'], 404);
-        }
+            ->findOneBy(['email' => $mail]);
 
         $alreadyInvited = $this->managerRegistry->getRepository(ShareInvitation::class)
-            ->getInvitationByUser($userToShareWith, $trip);
+            ->getInvitationByUserOrMail($userToShareWith, $mail, $trip);
 
         if ($alreadyInvited) {
             return $this->json(['message' => 'Vous avez déjà invité cet utilisateur à rejoindre ce voyage.']);
         }
 
-        $alreadyInTrip = $this->managerRegistry->getRepository(TripTraveler::class)
-            ->findOneBy(['invited' => $userToShareWith, 'trip' => $trip]);
+        if ($userToShareWith) {
+            $alreadyInTrip = $this->managerRegistry->getRepository(TripTraveler::class)
+                ->findOneBy(['invited' => $userToShareWith, 'trip' => $trip]);
 
-        if ($alreadyInTrip || $userToShareWith === $trip->getTraveler()) {
-            return $this->json(['message' => 'Cet utilisateur a déjà rejoint ce voyage.']);
+            if ($alreadyInTrip || $userToShareWith === $trip->getTraveler()) {
+                return $this->json(['message' => 'Cet utilisateur a déjà rejoint ce voyage.']);
+            }
         }
 
-        $token = $this->tripService->sendSharingMail($trip, $userToShareWith, $this->getUser()->getCompleteName());
+        $token = $this->tripService->sendSharingMail($trip, $userToShareWith, $mail, $this->getUser()->getCompleteName());
 
         if ($token === false) {
             return $this->json(['message' => 'L\'email n\'a pas pu être envoyé en raison d\'une anomalie.'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
-        $this->managerRegistry->getRepository(UserNotifications::class)->sendNotification(
-            $userToShareWith,
-            sprintf('vous a invité à prendre part au voyage : %s', $trip->getName()),
-            $this->getUser(),
-            '/trip/' . $trip->getId() . '/accept-invitation/' . $token
-        );
+        if ($userToShareWith) {
+            $this->managerRegistry->getRepository(UserNotifications::class)->sendNotification(
+                $userToShareWith,
+                sprintf('vous a invité à prendre part au voyage : %s', $trip->getName()),
+                $this->getUser(),
+                '/trip/' . $trip->getId() . '/accept-invitation/' . $token
+            );
+        }
 
         return $this->json(['message' => 'L\'invitation à prendre part à ce voyage a bien été transmise.'], Response::HTTP_CREATED);
     }
@@ -116,18 +117,26 @@ class TripTravelerController extends AbstractController
             return $this->json(['message' => 'Cette invitation n\'existe pas.'], Response::HTTP_NOT_FOUND);
         }
 
+        if (!$this->getUser()) {
+            if ($invitation->getUserToShareWith() !== null) {
+                return $this->json(['message' => 'Vous devez être connecté pour accepter cette invitation.'], Response::HTTP_UNAUTHORIZED);
+            } else {
+                return $this->json(['message' => 'Vous devez créer un compte pour accepter cette invitation.'], Response::HTTP_UNAUTHORIZED);
+            }
+        }
+
         if ($invitation->getExpireAt() < new \DateTimeImmutable('now')) {
             return $this->json(['message' => 'Cette invitation a expiré. La personne à l\'origine de cette requête doit renouveler l\'invitation.'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
-        if ($invitation->getUserToShareWith() !== $this->getUser()) {
+        if (($invitation->getUserToShareWith() && $invitation->getUserToShareWith() !== $this->getUser()) || $this->getUser()->getEmail() !== $invitation->getEmail()) {
             return $this->json(['message' => 'Vous ne pouvez pas accepter une invitation qui ne vous est pas destinée.'], Response::HTTP_FORBIDDEN);
         }
 
         $traveler = new TripTraveler();
         $traveler->setTrip($invitation->getTrip());
-        $traveler->setName($invitation->getUserToShareWith()->getCompleteName());
-        $traveler->setInvited($invitation->getUserToShareWith());
+        $traveler->setName($this->getUser()->getCompleteName());
+        $traveler->setInvited($this->getUser());
 
         $this->managerRegistry->getManager()->persist($traveler);
         $this->managerRegistry->getManager()->remove($invitation);

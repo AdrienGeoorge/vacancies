@@ -23,11 +23,19 @@ class ShareInvitationRepository extends ServiceEntityRepository
         parent::__construct($registry, ShareInvitation::class);
     }
 
-    public function getInvitationByUser(User $user, Trip $trip)
+    public function getInvitationByUserOrMail(?User $user, ?string $mail, Trip $trip)
     {
-        return $this->createQueryBuilder('s')
-            ->andWhere('s.userToShareWith = :user')
+        $queryBuilder = $this->createQueryBuilder('s');
+
+        $orX = $queryBuilder->expr()->orX(
+            $queryBuilder->expr()->eq('s.userToShareWith', ':user'),
+            $queryBuilder->expr()->eq('s.email', ':mail')
+        );
+
+        return $queryBuilder
+            ->andWhere($orX)
             ->setParameter('user', $user)
+            ->setParameter('mail', $mail)
             ->andWhere('s.trip = :trip')
             ->setParameter('trip', $trip)
             ->andWhere('s.expireAt > :now')

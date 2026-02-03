@@ -54,6 +54,7 @@ class Trip
     private Collection $documents;
 
     #[ORM\OneToMany(targetEntity: PlanningEvent::class, mappedBy: 'trip', orphanRemoval: true)]
+    #[ORM\OrderBy(['start' => 'ASC'])]
     private Collection $planningEvents;
 
     #[ORM\OneToMany(targetEntity: ShareInvitation::class, mappedBy: 'trip', orphanRemoval: true)]

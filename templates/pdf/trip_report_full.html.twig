@@ -1,0 +1,482 @@
+{# templates/pdf/trip_report_full.html.twig #}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ trip.name }} - Vacancies</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @page {
+            margin-top: 30mm;     /* ← ESPACE POUR LE HEADER */
+            margin-bottom: 20mm;
+            margin-left: 10mm;
+            margin-right: 10mm;
+        }
+
+        .page-header {
+            position: fixed;
+            top: -30mm;  /* ← CORRESPOND AU MARGIN-TOP */
+            height: 25mm;
+        }
+
+        .content {
+            /* Pas de padding-top ! */
+        }
+
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            color: #1a1a1a;
+            font-size: 11pt;
+            line-height: 1.5;
+        }
+
+        .logo-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+        }
+
+        .app-name {
+            font-size: 14pt;
+            font-weight: 700;
+            color: #44B8A7;
+        }
+
+        .generate-date {
+            font-size: 9pt;
+            color: #6b7280;
+            display: block;
+            margin-top: 2mm;
+        }
+
+        /* Cover page */
+        .cover-page {
+            text-align: center;
+            padding: 20mm 0;
+        }
+
+        .cover-image {
+            width: 100%;
+            max-width: 150mm;
+            height: auto;
+            border-radius: 12px;
+            margin-bottom: 10mm;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .trip-title {
+            font-size: 32pt;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 2mm;
+        }
+
+        .trip-destination {
+            font-size: 18pt;
+            color: #44B8A7;
+            margin-bottom: 8mm;
+        }
+
+        .trip-dates {
+            font-size: 14pt;
+            color: #4b5563;
+            margin-bottom: 3mm;
+        }
+
+        .trip-duration {
+            font-size: 10pt;
+            color: #fff;
+            font-weight: 600;
+            background: #44B8A7;
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 30px;
+        }
+
+        .trip-description {
+            margin-top: 10mm;
+            font-size: 12pt;
+            color: #374151;
+            max-width: 140mm;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+        }
+
+        /* Section headings */
+        .section-title {
+            text-align: center;
+            font-size: 16pt;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin: 0 0 8mm 0;
+            padding-bottom: 3mm;
+            border-bottom: 2px solid #1a1a1a;
+        }
+
+        /* Section après page break */
+        .section-after-break {
+            padding-top: 15mm;
+        }
+
+        /* Budget section */
+        .budget-line {
+            margin: 8mm 0;
+            text-align: center;
+        }
+
+        .budget-detail {
+            display: inline-block;
+            font-size: 10pt;
+            margin: 0 2mm;
+            padding: 6px 12px;
+            border-radius: 30px;
+        }
+
+        .budget-to-pay {
+            background-color: #FBE5E6;
+            border: 1px solid rgba(235, 62, 91, 0.2);
+            color: #EB3E5B;
+        }
+
+        .budget-paid {
+            background-color: #F9FAFB;
+            border: 1px solid rgba(108, 113, 128, 0.2);
+            color: #4C5463;
+        }
+
+        .budget-table {
+            width: 80%;
+            margin: 0 auto 10mm auto;
+            border-collapse: collapse;
+        }
+
+        .budget-table th {
+            background: #44B8A7;
+            color: white;
+            padding: 10px 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .budget-table th:last-child {
+            text-align: right;
+        }
+
+        .budget-table td {
+            padding: 8px 15px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .budget-table td:last-child {
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .budget-table tr:nth-child(even) {
+            background: #f9fafb;
+        }
+
+        .budget-table tfoot td {
+            background: #d1fae5;
+            font-weight: 700;
+            font-size: 12pt;
+            border-top: 2px solid #44B8A7;
+            padding-top: 10px;
+        }
+
+        .budget-table small {
+            font-size: 9pt;
+            color: #6b7280;
+            font-weight: normal;
+        }
+
+        /* Planning section */
+        .planning-day {
+            margin-bottom: 8mm;
+            page-break-inside: avoid;
+        }
+
+        .day-header {
+            font-size: 14pt;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 5mm;
+            padding: 5px 10px;
+            background: #f3f4f6;
+            border-radius: 6px;
+        }
+
+        .event-card {
+            background: #f9fafb;
+            padding: 10px 15px;
+            margin-bottom: 5mm;
+            border-radius: 6px;
+            border-left: 4px solid #44B8A7;
+        }
+
+        .event-time-title {
+            font-size: 12pt;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 3px;
+        }
+
+        .event-time {
+            color: #44B8A7;
+        }
+
+        .event-category {
+            font-size: 9pt;
+            color: #6b7280;
+            font-style: italic;
+            margin-bottom: 5px;
+        }
+
+        .event-description {
+            font-size: 10pt;
+            color: #4b5563;
+            margin-top: 3px;
+        }
+
+        /* Stats section */
+        .stats-grid {
+            display: table;
+            width: 80%;
+            margin: 0 auto 10mm auto;
+        }
+
+        .stat-item {
+            display: table-row;
+            page-break-inside: avoid;
+        }
+
+        .stat-label,
+        .stat-value {
+            display: table-cell;
+            padding: 10px 15px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .stat-label {
+            font-weight: 600;
+            color: #374151;
+            width: 50%;
+        }
+
+        .stat-value {
+            text-align: right;
+            color: #1f2937;
+            font-size: 12pt;
+            font-weight: 600;
+        }
+
+        /* Notes section */
+        .notes-content {
+            background: #fffbeb;
+            padding: 15px;
+            border-left: 4px solid #f59e0b;
+            border-radius: 6px;
+            font-size: 10pt;
+            line-height: 1.6;
+        }
+
+        /* Page break utilities */
+        .page-break {
+            page-break-after: always;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        /* Utilities */
+        .no-break {
+            page-break-inside: avoid;
+        }
+    </style>
+</head>
+<body>
+<div class="page-header">
+    <div class="logo-container">
+        {% if logoPath %}
+            <img src="{{ logoPath }}" alt="Vacancies" class="logo">
+        {% else %}
+            <span style="font-size: 40px;">🏖️</span>
+        {% endif %}
+        <span class="app-name">Vacancies</span>
+    </div>
+    <span class="generate-date">Généré le {{ generatedAt|date('d/m/Y à H:i') }}</span>
+</div>
+
+{# Content #}
+<div class="content">
+    {# ==================== COVER PAGE ==================== #}
+    <div class="cover-page">
+        {% if trip.coverImage %}
+            <img src="{{ trip.coverImage }}" alt="{{ trip.name }}" class="cover-image">
+        {% endif %}
+
+        <h1 class="trip-title">{{ trip.name }}</h1>
+        <p class="trip-destination">{{ trip.destination }}</p>
+
+        <p class="trip-dates">
+            Du {{ trip.departureDate|date('d F Y') }} au {{ trip.returnDate|date('d F Y') }}
+        </p>
+
+        {% if trip.duration %}
+            <p class="trip-duration">{{ trip.duration }} jours</p>
+        {% endif %}
+
+        {% if trip.description %}
+            <div class="trip-description">
+                {{ trip.description }}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="page-break"></div>
+
+    {# ==================== BUDGET SECTION ==================== #}
+    {% if trip.budget %}
+        <div class="section-after-break">
+            <h2 class="section-title">Budget du voyage</h2>
+
+            <div class="budget-line">
+                    <span class="budget-detail budget-to-pay">
+                        <strong>Reste à payer :</strong> {{ trip.budget.toPay|number_format(2, ',', ' ') }} €
+                    </span>
+                <span class="budget-detail budget-paid">
+                        <strong>Payé :</strong> {{ trip.budget.paid|number_format(2, ',', ' ') }} €
+                    </span>
+            </div>
+
+            <table class="budget-table">
+                <thead>
+                <tr>
+                    <th>Catégorie</th>
+                    <th>Montant</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for category, data in trip.budget.details.reserved %}
+                    <tr>
+                        <td>
+                            {{ data.title }}
+                            {% if data.description %}
+                                <br><small>{{ data.description }}</small>
+                            {% endif %}
+                        </td>
+                        <td>{{ data.amount|number_format(2, ',', ' ') }} €</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+                <tfoot>
+                <tr>
+                    <td><strong>TOTAL</strong></td>
+                    <td>{{ trip.budget.total|number_format(2, ',', ' ') }} €</td>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+    {% endif %}
+
+    {# ==================== PLANNING SECTION ==================== #}
+    {% if trip.planning and trip.planning.events %}
+        <div class="page-break"></div>
+
+        <div class="section-after-break">
+            <h2 class="section-title">Planning du voyage</h2>
+
+            {% for event in trip.planning.events %}
+                <div class="planning-day no-break">
+                    <div class="event-card">
+                        <div class="event-time-title">
+                            <span class="event-time">{{ event.start|date('d/m/Y H:i') }}</span>
+                            {% if event.end %}
+                                - {{ event.end|date('H:i') }}
+                            {% endif %}
+                            • {{ event.title }}
+                        </div>
+                        <div class="event-category">
+                            📍 {{ event.type }}
+                            {% if event.timeToGo %}
+                                • ⏱️ {{ event.timeToGo }}
+                            {% endif %}
+                        </div>
+                        {% if event.description %}
+                            <div class="event-description">
+                                {{ event.description }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {# ==================== STATS SECTION ==================== #}
+    {% if trip.stats %}
+        <div class="page-break"></div>
+
+        <div class="section-after-break">
+            <h2 class="section-title">📊 Statistiques</h2>
+
+            <div class="stats-grid">
+                {% if trip.stats.days %}
+                    <div class="stat-item">
+                        <div class="stat-label">🗓️ Durée du voyage</div>
+                        <div class="stat-value">{{ trip.stats.days }} jours</div>
+                    </div>
+                {% endif %}
+
+                {% if trip.stats.activities %}
+                    <div class="stat-item">
+                        <div class="stat-label">🎯 Activités planifiées</div>
+                        <div class="stat-value">{{ trip.stats.activities }}</div>
+                    </div>
+                {% endif %}
+
+                {% if trip.budget and trip.stats.days %}
+                    <div class="stat-item">
+                        <div class="stat-label">💰 Budget par jour</div>
+                        <div class="stat-value">{{ (trip.budget.total / trip.stats.days)|number_format(2, ',', ' ') }} €</div>
+                    </div>
+                {% endif %}
+
+                {% if trip.budget and trip.travelers %}
+                    <div class="stat-item">
+                        <div class="stat-label">👤 Budget par personne</div>
+                        <div class="stat-value">{{ (trip.budget.total / trip.travelers|length)|number_format(2, ',', ' ') }} €</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+
+    {# ==================== NOTES SECTION ==================== #}
+    {% if trip.notes %}
+        <div class="page-break"></div>
+
+        <div class="section-after-break">
+            <h2 class="section-title">📝 Notes</h2>
+
+            <div class="notes-content">
+                {{ trip.notes|nl2br }}
+            </div>
+        </div>
+    {% endif %}
+</div>
+</body>
+</html>

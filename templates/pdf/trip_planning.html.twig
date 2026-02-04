@@ -10,18 +10,18 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         @page {
             margin: 15mm 10mm 20mm 10mm;
         }
-        
+
         body {
             font-family: 'DejaVu Sans', Arial, sans-serif;
             color: #1a1a1a;
             font-size: 11pt;
             line-height: 1.5;
         }
-        
+
         /* Header avec logo */
         .page-header {
             position: fixed;
@@ -34,24 +34,24 @@
             padding: 0 10mm;
             border-bottom: 1px solid #e5e7eb;
         }
-        
+
         .logo-container {
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        
+
         .logo {
             width: 28px;
             height: 28px;
         }
-        
+
         .app-name {
             font-size: 16pt;
             font-weight: 700;
             color: #2563eb;
         }
-        
+
         /* Footer */
         .page-footer {
             position: fixed;
@@ -67,12 +67,12 @@
             font-size: 9pt;
             color: #6b7280;
         }
-        
+
         /* Content */
         .content {
             padding-top: 5mm;
         }
-        
+
         .page-title {
             font-size: 28pt;
             font-weight: 700;
@@ -80,20 +80,20 @@
             text-align: center;
             margin-bottom: 5mm;
         }
-        
+
         .page-subtitle {
             font-size: 14pt;
             color: #6b7280;
             text-align: center;
             margin-bottom: 10mm;
         }
-        
+
         /* Planning */
         .planning-day {
             margin-bottom: 10mm;
             page-break-inside: avoid;
         }
-        
+
         .day-header {
             font-size: 14pt;
             font-weight: 700;
@@ -103,7 +103,7 @@
             background: #f3f4f6;
             border-radius: 6px;
         }
-        
+
         .event-card {
             background: #f9fafb;
             padding: 10px 15px;
@@ -111,25 +111,25 @@
             border-radius: 6px;
             border-left: 4px solid #3b82f6;
         }
-        
+
         .event-time-title {
             font-size: 12pt;
             font-weight: 700;
             color: #1f2937;
             margin-bottom: 3px;
         }
-        
+
         .event-time {
             color: #2563eb;
         }
-        
+
         .event-category {
             font-size: 9pt;
             color: #6b7280;
             font-style: italic;
             margin-bottom: 5px;
         }
-        
+
         .event-description {
             font-size: 10pt;
             color: #4b5563;
@@ -148,27 +148,27 @@
             <span class="app-name">Vacancies</span>
         </div>
     </div>
-    
+
     {# Footer #}
     <div class="page-footer">
         <span>Généré le {{ generatedAt|date('d/m/Y à H:i') }}</span>
         <span>Page <span class="pagenum"></span></span>
     </div>
-    
+
     {# Content #}
     <div class="content">
         <h1 class="page-title">Planning : {{ trip.name }}</h1>
         <p class="page-subtitle">
             Du {{ trip.startDate|date('d/m/Y') }} au {{ trip.endDate|date('d/m/Y') }}
         </p>
-        
+
         {% if trip.planning %}
             {% for day in trip.planning %}
                 <div class="planning-day">
                     <h3 class="day-header">
                         {{ day.date|date('l d F Y') }}
                     </h3>
-                    
+
                     {% for event in day.events %}
                         <div class="event-card">
                             <div class="event-time-title">
@@ -195,7 +195,7 @@
             </p>
         {% endif %}
     </div>
-    
+
     {# Script pour numérotation #}
     <script type="text/php">
         if (isset($pdf)) {

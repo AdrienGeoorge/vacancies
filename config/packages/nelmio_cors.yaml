@@ -1,6 +1,8 @@
 nelmio_cors:
   defaults:
-    allow_origin: ['%env(CORS_ALLOW_ORIGIN)%']
+    allow_origin:
+      - '%env(CORS_ALLOW_ORIGIN)%'
+      - capacitor://localhost
     allow_credentials: false
     allow_headers: ['Content-Type', 'Authorization', 'Accept']
     expose_headers: ['Authorization', 'Content-Disposition', 'Content-Type', 'Content-Length']

@@ -22,8 +22,11 @@ class TripPDFController extends AbstractController
     {
     }
 
+    /**
+     * @throws \Exception
+     */
     #[Route('/{trip}/export/pdf', name: 'trip_export_pdf', requirements: ['trip' => '\d+'], methods: ['GET'])]
-//    #[IsGranted('view', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
+    #[IsGranted('view', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
     public function exportPDF(?Trip $trip, Request $request): Response
     {
         if (!$trip) {
@@ -40,13 +43,6 @@ class TripPDFController extends AbstractController
         $formattedData = $this->formatTripDataForPDF($trip);
         $logoPath = $this->domain . '/images/logo.png';
 
-//        dd($formattedData);
-//        return $this->render('pdf/trip_report_full.html.twig', [
-//        'trip' => $formattedData,
-//        'logoPath' => $logoPath,
-//        'generatedAt' => new \DateTime()
-//    ]);
-        // Generate PDF
         try {
             if ($type === 'full') {
                 $pdfContent = $this->pdfGenerator->generateFullReport($formattedData, $logoPath);
@@ -54,10 +50,8 @@ class TripPDFController extends AbstractController
                 $pdfContent = $this->pdfGenerator->generatePlanningOnly($formattedData, $logoPath);
             }
             
-            // Prepare filename
             $filename = $this->sanitizeFilename($trip->getName()) . '_' . $type . '_' . time() . '.pdf';
             
-            // Return PDF as download
             $response = new Response($pdfContent);
             $response->headers->set('Content-Type', 'application/pdf');
             $response->headers->set('Content-Disposition', 'attachment; filename="' . $filename . '"');
@@ -78,6 +72,9 @@ class TripPDFController extends AbstractController
         return strtolower($filename);
     }
 
+    /**
+     * @throws \Exception
+     */
     private function formatTripDataForPDF(Trip $trip): array
     {
         return [
@@ -100,7 +97,7 @@ class TripPDFController extends AbstractController
             'budget' => $this->tripService->getBudget($trip),
 
             // Planning
-            'planning' => $this->tripService->getPlanning($trip),
+            'planning' => $this->tripService->getEventsByDay($trip),
 
             // Stats
             'stats' => [

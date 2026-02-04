@@ -2,6 +2,8 @@
 
 namespace App\Service;
 
+use App\Entity\Trip;
+use App\Entity\TripTraveler;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Twig\Environment;
@@ -11,47 +13,65 @@ use Twig\Error\SyntaxError;
 
 class PdfService
 {
-    private Environment $twig;
-    
-    public function __construct(Environment $twig)
+    public function __construct(
+        private readonly Environment $twig,
+        private readonly TripService $tripService,
+        private readonly string     $domain
+    )
     {
-        $this->twig = $twig;
     }
 
     /**
-     * @throws RuntimeError
+     * @throws \Exception
+     */
+    public function formatTripDataForPDF(Trip $trip): array
+    {
+        return [
+            'name' => $trip->getName(),
+            'destination' => $trip->getCountry()->getName(),
+            'departureDate' => $trip->getDepartureDate(),
+            'returnDate' => $trip->getReturnDate(),
+            'duration' => $trip->getDepartureDate()->diff($trip->getReturnDate())->days + 1,
+            'description' => $trip->getDescription(),
+            'coverImage' => $trip->getImage() ?: null,
+
+            // Travelers
+            'travelers' => array_map(function (TripTraveler $traveler) {
+                return [
+                    'name' => $traveler->getId() ? $traveler->getInvited()->getCompleteName() : $traveler->getName(),
+                ];
+            }, $trip->getTripTravelers()->toArray()),
+
+            // Budget
+            'budget' => $this->tripService->getBudget($trip),
+
+            // Planning
+            'planning' => $this->tripService->getEventsByDay($trip),
+
+            // Stats
+            'stats' => [
+                'days' => $trip->getDepartureDate()->diff($trip->getReturnDate())->days + 1,
+                'activities' => $trip->getActivities()->count(),
+            ],
+
+            // Notes
+            'notes' => $trip->getBlocNotes()
+        ];
+    }
+
+    /**
      * @throws SyntaxError
+     * @throws RuntimeError
      * @throws LoaderError
      */
-    public function generateFullReport(array $trip, ?string $logoPath = null): string
+    public function generatePDF(array $trip): string
     {
         $html = $this->twig->render('pdf/trip_report_full.html.twig', [
             'trip' => $trip,
-            'logoPath' => $logoPath,
+            'logoPath' => $this->domain . '/images/logo.png',
             'generatedAt' => new \DateTime()
         ]);
-        
-        return $this->generatePDF($html);
-    }
 
-    /**
-     * @throws SyntaxError
-     * @throws RuntimeError
-     * @throws LoaderError
-     */
-    public function generatePlanningOnly(array $trip, ?string $logoPath = null): string
-    {
-        $html = $this->twig->render('pdf/trip_planning.html.twig', [
-            'trip' => $trip,
-            'logoPath' => $logoPath,
-            'generatedAt' => new \DateTime()
-        ]);
-        
-        return $this->generatePDF($html);
-    }
-
-    private function generatePDF(string $html): string
-    {
         $options = new Options();
         $options->set('isHtml5ParserEnabled', true);
         $options->set('isRemoteEnabled', true); // Pour charger les images
@@ -64,5 +84,11 @@ class PdfService
         $dompdf->render();
         
         return $dompdf->output();
+    }
+
+    public function sanitizeFilename(string $filename): string
+    {
+        $filename = preg_replace('/[^a-z0-9_\-]/i', '_', $filename);
+        return strtolower($filename);
     }
 }

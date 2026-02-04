@@ -479,6 +479,20 @@ class TripService
     }
 
     /**
+     * @throws Exception
+     */
+    public function getEventsByDay(Trip $trip): array
+    {
+        $events = $this->eventsToArray($trip);
+        $eventsByDay = [];
+        foreach ($events as $event) {
+            $eventsByDay[(new \DateTime($event['start']))->format('Y-m-d')][] = $event;
+        }
+
+        return $eventsByDay;
+    }
+
+    /**
      * Retourne les évènements prévus dans le planning
      * @param Trip $trip
      * @return array

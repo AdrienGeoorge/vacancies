@@ -143,6 +143,8 @@ class TripTravelerController extends AbstractController
         $this->managerRegistry->getManager()->flush();
 
         foreach ($invitation->getTrip()->getTripTravelers() as $tripTraveler) {
+            if ($tripTraveler->getInvited() === $this->getUser()) continue;
+
             $this->managerRegistry->getRepository(UserNotifications::class)->sendNotification(
                 $tripTraveler->getInvited(),
                 sprintf('a rejoint le voyage : %s', $invitation->getTrip()->getName()),

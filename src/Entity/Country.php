@@ -45,6 +45,12 @@ class Country
     #[MaxDepth(1)]
     private ?Currency $currency = null;
 
+    #[ORM\Column(length: 25, nullable: true)]
+    private ?string $plugTypes = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $timezone = null;
+
     public function __construct()
     {
         $this->trips = new ArrayCollection();
@@ -129,6 +135,30 @@ class Country
     public function setCurrency(?Currency $currency): static
     {
         $this->currency = $currency;
+
+        return $this;
+    }
+
+    public function getPlugTypes(): ?string
+    {
+        return $this->plugTypes;
+    }
+
+    public function setPlugTypes(?string $plugTypes): static
+    {
+        $this->plugTypes = $plugTypes;
+
+        return $this;
+    }
+
+    public function getTimezone(): ?string
+    {
+        return $this->timezone;
+    }
+
+    public function setTimezone(?string $timezone): static
+    {
+        $this->timezone = $timezone;
 
         return $this;
     }

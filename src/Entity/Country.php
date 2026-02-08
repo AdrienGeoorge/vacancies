@@ -51,6 +51,9 @@ class Country
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $timezone = null;
 
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $capital = null;
+
     public function __construct()
     {
         $this->trips = new ArrayCollection();
@@ -159,6 +162,18 @@ class Country
     public function setTimezone(?string $timezone): static
     {
         $this->timezone = $timezone;
+
+        return $this;
+    }
+
+    public function getCapital(): ?string
+    {
+        return $this->capital;
+    }
+
+    public function setCapital(?string $capital): static
+    {
+        $this->capital = $capital;
 
         return $this;
     }

@@ -37,6 +37,10 @@ services:
       arguments:
         $weatherApiKey: '%env(WEATHER_API_KEY)%'
 
+    App\Service\WeatherDataService:
+      arguments:
+        $httpClient: '@http_client'
+
     App\Command\ImportClimateDataCommand:
       arguments:
         $weatherApiKey: '%env(WEATHER_API_KEY)%'

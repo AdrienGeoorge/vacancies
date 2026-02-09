@@ -2,8 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\ClimateData;
-use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Psr\Log\LoggerInterface;
 
@@ -15,7 +13,7 @@ class WeatherService
         private readonly HttpClientInterface $httpClient,
         private readonly LoggerInterface     $logger,
         private readonly string              $weatherApiKey,
-        private readonly ManagerRegistry     $managerRegistry
+        private readonly WeatherDataService  $weatherDataService
     )
     {
     }
@@ -25,6 +23,7 @@ class WeatherService
      */
     public function getWeatherForTrip(
         string     $cityName,
+        ?string    $country,
         ?\DateTime $departureDate,
         ?\DateTime $returnDate
     ): ?array
@@ -39,7 +38,7 @@ class WeatherService
                 return $this->getRealForecast($cityName, $returnDate);
             } else {
                 // Moyennes historiques
-                return $this->getHistoricalAverages($cityName, $departureDate, $returnDate);
+                return $this->getHistoricalAverages($cityName, $country, $departureDate, $returnDate);
             }
 
         } catch (\Exception $e) {
@@ -77,14 +76,13 @@ class WeatherService
     }
 
     private function getHistoricalAverages(
-        string    $cityName,
-        \DateTime $departureDate,
-        \DateTime $returnDate
+        string     $cityName,
+        ?string    $country,
+        \DateTime  $departureDate,
+        ?\DateTime $returnDate
     ): array
     {
         $tripDays = $departureDate->diff($returnDate)->days + 1;
-
-        // Identifier tous les mois concernés
         $monthsData = [];
         $currentDate = clone $departureDate;
 
@@ -93,13 +91,13 @@ class WeatherService
             $year = (int)$currentDate->format('Y');
 
             if (!isset($monthsData[$month])) {
-                // Récupérer les données de ce mois
-                $result = $this->managerRegistry->getRepository(ClimateData::class)->findOneBy([
-                    'city' => $cityName,
-                    'month' => $month,
-                ]);
+                $weatherData = $this->weatherDataService->getWeatherForCity(
+                    $cityName,
+                    $country,
+                    $month
+                );
 
-                if (!$result) {
+                if (isset($weatherData['error'])) {
                     throw new \Exception("Pas de données pour {$cityName} mois {$month}");
                 }
 
@@ -107,11 +105,10 @@ class WeatherService
                 $monthStart = max($currentDate, new \DateTime("{$year}-{$month}-01"));
                 $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
                 $monthEnd = min($returnDate, new \DateTime("{$year}-{$month}-{$daysInMonth}"));
-
                 $daysInThisMonth = $monthStart->diff($monthEnd)->days + 1;
 
                 $monthsData[$month] = [
-                    'data' => $result,
+                    'data' => $weatherData,
                     'days' => $daysInThisMonth,
                     'weight' => $daysInThisMonth / $tripDays
                 ];
@@ -121,24 +118,21 @@ class WeatherService
         }
 
         if (count($monthsData) === 1) {
-            /**
-             * @var ClimateData $data
-             */
             $data = reset($monthsData)['data'];
 
             return [
-                'temp_min' => (int)$data->getTempMinAvg(),
-                'temp_max' => (int)$data->getTempMaxAvg(),
-                'rainfall_days' => (int)$data->getRainyDays(),
-                'rainfall_mm' => (float)$data->getPrecipitationMm(),
-                'daylight_hours' => (float)$data->getSunshineHours(),
-                'humidity' => (int)$data->getHumidityAvg(),
+                'temp_min' => (int)$data['temp_min'],
+                'temp_max' => (int)$data['temp_max'],
+                'rainfall_days' => (int)$data['rainfall_days'],
+                'rainfall_mm' => (float)$data['rainfall_mm'],
+                'daylight_hours' => (float)$data['daylight_hours'],
+                'humidity' => (int)$data['humidity'],
                 'advice' => $this->generateAdvice(
-                    (int)$data->getTempMinAvg(),
-                    (int)$data->getTempMaxAvg(),
-                    (int)$data->getRainyDays(),
-                    (float)$data->getPrecipitationMm(),
-                    (int)$data->getHumidityAvg(),
+                    (int)$data['temp_min'],
+                    (int)$data['temp_max'],
+                    (int)$data['rainfall_days'],
+                    (float)$data['rainfall_mm'],
+                    (int)$data['humidity'],
                     ''
                 ),
                 'main_condition' => '',
@@ -157,18 +151,15 @@ class WeatherService
         ];
 
         foreach ($monthsData as $month => $info) {
-            /**
-             * @var ClimateData $data
-             */
             $data = $info['data'];
             $weight = $info['weight'];
 
-            $weightedData['temp_min'] += $data->getTempMinAvg() * $weight;
-            $weightedData['temp_max'] += $data->getTempMaxAvg() * $weight;
-            $weightedData['rainfall_days'] += $data->getRainyDays() * $weight;
-            $weightedData['rainfall_mm'] += $data->getPrecipitationMm() * $weight;
-            $weightedData['daylight_hours'] += $data->getSunshineHours() * $weight;
-            $weightedData['humidity'] += $data->getHumidityAvg() * $weight;
+            $weightedData['temp_min'] += $data['temp_min'] * $weight;
+            $weightedData['temp_max'] += $data['temp_max'] * $weight;
+            $weightedData['rainfall_days'] += $data['rainfall_days'] * $weight;
+            $weightedData['rainfall_mm'] += $data['rainfall_mm'] * $weight;
+            $weightedData['daylight_hours'] += $data['daylight_hours'] * $weight;
+            $weightedData['humidity'] += $data['humidity'] * $weight;
         }
 
         return [

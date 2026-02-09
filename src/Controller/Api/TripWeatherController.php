@@ -31,22 +31,45 @@ class TripWeatherController extends AbstractController
     #[IsGranted('view', subject: 'trip', message: 'Vous ne pouvez pas consulter ce voyage.', statusCode: 403)]
     public function getWeather(?Trip $trip = null): JsonResponse
     {
-        $country = $trip->getCountry();
+        $destinations = $trip->getDestinations();
 
-        if (!$country->getCapital()) {
-            return new JsonResponse(['error' => 'Capitale non définie pour ce pays'], Response::HTTP_BAD_REQUEST);
+        if ($destinations->isEmpty()) {
+            return new JsonResponse(['error' => 'Aucune destination définie pour ce voyage'], Response::HTTP_BAD_REQUEST);
         }
 
-        $weatherData = $this->weatherService->getWeatherForTrip(
-            $country->getCapital(),
-            $trip->getDepartureDate(),
-            $trip->getReturnDate()
-        );
+        $weatherByDestination = [];
 
-        if (!$weatherData) {
+        foreach ($destinations as $destination) {
+            $country = $destination->getCountry();
+            $cityName = $country->getCapital();
+
+            if (!$cityName) continue;
+
+            $weatherData = $this->weatherService->getWeatherForTrip(
+                $cityName,
+                $country->getName(),
+                $destination->getDepartureDate() ?: $trip->getDepartureDate(),
+                $destination->getReturnDate() ?: $trip->getReturnDate()
+            );
+
+            if ($weatherData) {
+                $weatherByDestination[] = [
+                    'destination' => [
+                        'id' => $destination->getId(),
+                        'country' => $country->getName(),
+                        'city' => $cityName,
+                        'arrivalDate' => $destination->getDepartureDate()?->format('Y-m-d'),
+                        'departureDate' => $destination->getReturnDate()?->format('Y-m-d'),
+                    ],
+                    'weather' => $weatherData
+                ];
+            }
+        }
+
+        if (empty($weatherByDestination)) {
             return new JsonResponse(['message' => 'Données météo non disponibles'], Response::HTTP_NOT_FOUND);
         }
 
-        return new JsonResponse($weatherData);
+        return new JsonResponse($weatherByDestination);
     }
 }

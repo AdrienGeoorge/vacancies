@@ -35,10 +35,6 @@ class Country
     #[ORM\Column(length: 255)]
     private ?string $continent = null;
 
-    #[ORM\OneToMany(targetEntity: Trip::class, mappedBy: 'country')]
-    #[Ignore]
-    private Collection $trips;
-
     #[ORM\ManyToOne(targetEntity: Currency::class)]
     #[JoinColumn(name: 'currency', referencedColumnName: 'code')]
     #[ApiProperty(readableLink: true)]
@@ -53,11 +49,6 @@ class Country
 
     #[ORM\Column(length: 100, nullable: true)]
     private ?string $capital = null;
-
-    public function __construct()
-    {
-        $this->trips = new ArrayCollection();
-    }
 
     public function getId(): ?int
     {
@@ -96,36 +87,6 @@ class Country
     public function setContinent(string $continent): static
     {
         $this->continent = $continent;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Trip>
-     */
-    public function getTrips(): Collection
-    {
-        return $this->trips;
-    }
-
-    public function addTrip(Trip $trip): static
-    {
-        if (!$this->trips->contains($trip)) {
-            $this->trips->add($trip);
-            $trip->setCountry($this);
-        }
-
-        return $this;
-    }
-
-    public function removeTrip(Trip $trip): static
-    {
-        if ($this->trips->removeElement($trip)) {
-            // set the owning side to null (unless already changed)
-            if ($trip->getCountry() === $this) {
-                $trip->setCountry(null);
-            }
-        }
 
         return $this;
     }

@@ -16,7 +16,7 @@ class PdfService
     public function __construct(
         private readonly Environment $twig,
         private readonly TripService $tripService,
-        private readonly string     $domain
+        private readonly string      $domain
     )
     {
     }
@@ -28,7 +28,7 @@ class PdfService
     {
         return [
             'name' => $trip->getName(),
-            'destination' => $trip->getCountry()->getName(),
+            'destination' => $this->tripService->formateDestinationsForString($this->tripService->getDestinations($trip)),
             'departureDate' => $trip->getDepartureDate(),
             'returnDate' => $trip->getReturnDate(),
             'duration' => $trip->getDepartureDate()->diff($trip->getReturnDate())->days + 1,
@@ -77,12 +77,12 @@ class PdfService
         $options->set('isRemoteEnabled', true); // Pour charger les images
         $options->set('defaultFont', 'DejaVu Sans');
         $options->set('dpi', 96);
-        
+
         $dompdf = new Dompdf($options);
         $dompdf->loadHtml($html);
         $dompdf->setPaper('A4');
         $dompdf->render();
-        
+
         return $dompdf->output();
     }
 

@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Trip;
 use App\Service\TextFormateService;
+use App\Service\TripService;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -19,7 +20,8 @@ class TripRepository extends ServiceEntityRepository
 {
     public function __construct(
         ManagerRegistry                     $registry,
-        private readonly TextFormateService $textFormateService
+        private readonly TextFormateService $textFormateService,
+        private readonly TripService $tripService,
     )
     {
         parent::__construct($registry, Trip::class);
@@ -38,13 +40,25 @@ class TripRepository extends ServiceEntityRepository
         )->setParameter('traveler', $user);
 
         if ($nextOnly) {
-            return $qb->andWhere($qb->expr()->isNotNull('t.departureDate'))
+            /**
+             * @var Trip|null $result
+             */
+            $result = $qb->andWhere($qb->expr()->isNotNull('t.departureDate'))
                 ->andWhere($qb->expr()->gte('t.departureDate', ':today'))
                 ->setParameter('today', (new \DateTime())->format('Y-m-d'))
                 ->orderBy('t.departureDate', 'ASC')
                 ->setMaxResults(1)
                 ->getQuery()
                 ->getOneOrNullResult();
+
+            if ($result) {
+                return [
+                    'trip' => $result,
+                    'destinations' => $this->tripService->getDestinations($result)
+                ];
+            }
+
+            return null;
         } else {
             return $qb->andWhere(
                 $qb->expr()->orX(
@@ -79,7 +93,19 @@ class TripRepository extends ServiceEntityRepository
             ->orderBy('t.departureDate', 'DESC');
 
         if ($lastOnly) {
-            return $qb->setMaxResults(1)->getQuery()->getOneOrNullResult();
+            /**
+             * @var Trip|null $result
+             */
+            $result = $qb->setMaxResults(1)->getQuery()->getOneOrNullResult();
+
+            if ($result) {
+                return [
+                    'trip' => $result,
+                    'destinations' => $this->tripService->getDestinations($result)
+                ];
+            }
+
+            return null;
         } else {
             return $qb->getQuery()->getResult();
         }
@@ -247,24 +273,7 @@ class TripRepository extends ServiceEntityRepository
     {
         $trip = $this->find($tripId);
 
-        if (!$trip) {
-            return null;
-        }
-
-        $destinations = [];
-        foreach ($trip->getDestinations() as $destination) {
-            $destinations[] = [
-                'id' => $destination->getId(),
-                'displayOrder' => $destination->getDisplayOrder(),
-                'country' => [
-                    'id' => $destination->getCountry()->getId(),
-                    'code' => $destination->getCountry()->getCode(),
-                    'name' => $destination->getCountry()->getName(),
-                ],
-                'departureDate' => $destination->getDepartureDate()?->format('Y-m-d'),
-                'returnDate' => $destination->getReturnDate()?->format('Y-m-d'),
-            ];
-        }
+        if (!$trip) return null;
 
         return [
             'name' => $trip->getName(),
@@ -273,7 +282,7 @@ class TripRepository extends ServiceEntityRepository
             'returnDate' => $trip->getReturnDate()?->format('Y-m-d'),
             'image' => $trip->getImage(),
             'ownerId' => $trip->getTraveler()?->getId(),
-            'destinations' => $destinations,
+            'destinations' => $this->tripService->getDestinations($trip),
         ];
     }
 }

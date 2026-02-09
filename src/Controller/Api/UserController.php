@@ -40,8 +40,8 @@ class UserController extends AbstractController
             $nbCountries = $this->managerRegistry->getRepository(Country::class)->count();
             $badges = $this->managerRegistry->getRepository(UserBadges::class)->findBy(['user' => $user]);
 
-            $lastTripObject = $this->managerRegistry->getRepository(Trip::class)->getPassedTrips($this->getUser(), true);
-            $nextTripObject = $this->managerRegistry->getRepository(Trip::class)->getFutureTrips($this->getUser(), true);
+            $lastTrip = $this->managerRegistry->getRepository(Trip::class)->getPassedTrips($this->getUser(), true);
+            $nextTrip = $this->managerRegistry->getRepository(Trip::class)->getFutureTrips($this->getUser(), true);
 
             /** @var User $user */
             return $this->json([
@@ -51,13 +51,13 @@ class UserController extends AbstractController
                 'countryMostVisited' => $countryMostVisited,
                 'percentCountries' => round(($countPassedCountries / $nbCountries) * 100, 2),
                 'badges' => $badges,
-                'lastTrip' => $lastTripObject ? [
-                    'country' => $lastTripObject->getCountry()->getName(),
-                    'countDays' => $this->tripService->countDaysBeforeOrAfter($lastTripObject)
+                'lastTrip' => $lastTrip ? [
+                    'country' => $this->tripService->formateDestinationsForString($lastTrip['destinations']),
+                    'countDays' => $this->tripService->countDaysBeforeOrAfter($lastTrip['trip'])
                 ] : null,
-                'nextTrip' => $nextTripObject ? [
-                    'country' => $nextTripObject->getCountry()->getName(),
-                    'countDays' => $this->tripService->countDaysBeforeOrAfter($nextTripObject)
+                'nextTrip' => $nextTrip ? [
+                    'country' => $this->tripService->formateDestinationsForString($nextTrip['destinations']),
+                    'countDays' => $this->tripService->countDaysBeforeOrAfter($nextTrip['trip'])
                 ] : null
             ]);
         } else {

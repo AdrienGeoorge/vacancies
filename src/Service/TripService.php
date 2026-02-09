@@ -603,4 +603,35 @@ class TripService
 
         return $token;
     }
+
+    public function getDestinations(Trip $trip): array
+    {
+        $destinations = [];
+
+        foreach ($trip->getDestinations() as $destination) {
+            $destinations[] = [
+                'id' => $destination->getId(),
+                'displayOrder' => $destination->getDisplayOrder(),
+                'country' => [
+                    'id' => $destination->getCountry()->getId(),
+                    'code' => $destination->getCountry()->getCode(),
+                    'name' => $destination->getCountry()->getName(),
+                ],
+                'departureDate' => $destination->getDepartureDate()?->format('Y-m-d'),
+                'returnDate' => $destination->getReturnDate()?->format('Y-m-d'),
+            ];
+        }
+
+        return $destinations;
+    }
+
+    public function formateDestinationsForString(array $destinations) {
+        if (count($destinations) === 1) {
+            return $destinations[0]['country']['name'];
+        } elseif (count($destinations) === 2) {
+            return $destinations[0]['country']['name'] . ' et ' . $destinations[1]['country']['name'];
+        } else {
+            return implode(', ', array_slice($destinations, 0, -1)) . ' et ' . $destinations[count($destinations) - 1]['country']['name'];
+        }
+    }
 }

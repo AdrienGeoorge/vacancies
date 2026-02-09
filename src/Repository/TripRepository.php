@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Trip;
+use App\Service\TextFormateService;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -16,7 +17,10 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class TripRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    public function __construct(
+        ManagerRegistry                     $registry,
+        private readonly TextFormateService $textFormateService
+    )
     {
         parent::__construct($registry, Trip::class);
     }
@@ -86,38 +90,37 @@ class TripRepository extends ServiceEntityRepository
         $today = new \DateTime('today');
 
         $qb = $this->createQueryBuilder('t')
-            ->select('DISTINCT t.id, t.name, t.description, t.departureDate, t.returnDate, t.image, c.name AS countryName')
+            ->select('DISTINCT t.id, t.name, t.description, t.departureDate, t.returnDate, t.image')
             ->addSelect("
-                CASE
-                    WHEN (t.departureDate IS NOT NULL
-                         AND t.returnDate IS NOT NULL
-                         AND t.departureDate <= :today
-                         AND t.returnDate >= :today)
-                      OR (t.departureDate IS NOT NULL AND t.returnDate IS NULL
-                         AND t.departureDate <= :today)
-                    THEN 1 -- en cours
-                        
-                    WHEN (t.departureDate IS NOT NULL AND t.returnDate IS NOT NULL AND t.returnDate > :today)
-                      OR (t.departureDate IS NOT NULL AND t.returnDate IS NULL AND t.departureDate > :today)
-                        THEN 2 -- à venir
-            
-                    WHEN (t.departureDate IS NULL AND t.returnDate IS NULL)
-                      OR (t.departureDate IS NOT NULL AND t.returnDate IS NULL)
-                      OR (t.departureDate IS NULL AND t.returnDate IS NOT NULL)
-                        THEN 3 -- non planifié
-            
-                    WHEN t.departureDate IS NOT NULL
+            CASE
+                WHEN (t.departureDate IS NOT NULL
                      AND t.returnDate IS NOT NULL
-                     AND t.returnDate < :today
-                        THEN 4 -- passé
-            
-                    ELSE 4
-                END AS state
-            ")
-            ->leftJoin('t.tripTravelers', 'tt')
-            ->leftJoin('t.country', 'c');
+                     AND t.departureDate <= :today
+                     AND t.returnDate >= :today)
+                  OR (t.departureDate IS NOT NULL AND t.returnDate IS NULL
+                     AND t.departureDate <= :today)
+                THEN 1 -- en cours
+                    
+                WHEN (t.departureDate IS NOT NULL AND t.returnDate IS NOT NULL AND t.returnDate > :today)
+                  OR (t.departureDate IS NOT NULL AND t.returnDate IS NULL AND t.departureDate > :today)
+                    THEN 2 -- à venir
+        
+                WHEN (t.departureDate IS NULL AND t.returnDate IS NULL)
+                  OR (t.departureDate IS NOT NULL AND t.returnDate IS NULL)
+                  OR (t.departureDate IS NULL AND t.returnDate IS NOT NULL)
+                    THEN 3 -- non planifié
+        
+                WHEN t.departureDate IS NOT NULL
+                 AND t.returnDate IS NOT NULL
+                 AND t.returnDate < :today
+                    THEN 4 -- passé
+        
+                ELSE 4
+            END AS state
+        ")
+            ->leftJoin('t.tripTravelers', 'tt');
 
-        return $qb->andWhere(
+        $trips = $qb->andWhere(
             $qb->expr()->orX(
                 $qb->expr()->eq('t.traveler', ':traveler'),
                 $qb->expr()->eq('tt.invited', ':traveler')
@@ -125,18 +128,55 @@ class TripRepository extends ServiceEntityRepository
         )
             ->setParameter('traveler', $user)
             ->setParameter('today', $today)
+            ->groupBy('t.id, t.name, t.description, t.departureDate, t.returnDate, t.image')
             ->orderBy('state', 'ASC')
             ->addOrderBy('t.departureDate', 'DESC')
             ->addOrderBy('t.returnDate', 'DESC')
             ->getQuery()
             ->getResult();
+
+        if (empty($trips)) {
+            return [];
+        }
+
+        $tripIds = array_column($trips, 'id');
+
+        $countries = $this->createQueryBuilder('t2')
+            ->select('t2.id AS tripId, c.name AS countryName')
+            ->leftJoin('t2.destinations', 'td')
+            ->leftJoin('td.country', 'c')
+            ->where('t2.id IN (:tripIds)')
+            ->andWhere('c.id IS NOT NULL')
+            ->setParameter('tripIds', $tripIds)
+            ->orderBy('td.displayOrder', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        $countriesByTrip = [];
+        foreach ($countries as $country) {
+            $tripId = $country['tripId'];
+            if (!isset($countriesByTrip[$tripId])) {
+                $countriesByTrip[$tripId] = [];
+            }
+            $countriesByTrip[$tripId][] = $country['countryName'];
+        }
+
+        foreach ($trips as &$trip) {
+            $trip['countryName'] = isset($countriesByTrip[$trip['id']])
+                ? $this->textFormateService->formatList($countriesByTrip[$trip['id']])
+                : null;
+        }
+
+        return $trips;
     }
 
     public function countPassedCountries($user)
     {
         $qb = $this->createQueryBuilder('t')
-            ->select('COUNT(DISTINCT t.country)')
-            ->leftJoin('t.tripTravelers', 'tt');
+            ->select('COUNT(DISTINCT c.id)')
+            ->leftJoin('t.tripTravelers', 'tt')
+            ->leftJoin('t.destinations', 'td')
+            ->leftJoin('td.country', 'c');
 
         return $qb->andWhere(
             $qb->expr()->orX(
@@ -147,6 +187,7 @@ class TripRepository extends ServiceEntityRepository
             ->andWhere('t.departureDate IS NOT NULL')
             ->andWhere('t.returnDate IS NOT NULL')
             ->andWhere('t.returnDate < :today')
+            ->andWhere('c.id IS NOT NULL')
             ->setParameter('today', (new \DateTime())->format('Y-m-d'))
             ->getQuery()
             ->getSingleScalarResult();
@@ -155,9 +196,10 @@ class TripRepository extends ServiceEntityRepository
     public function getCountryMostVisited($user)
     {
         $qb = $this->createQueryBuilder('t')
-            ->select('country.name AS countryName, COUNT(DISTINCT country.code) AS visitCount, MIN(t.departureDate) AS firstVisitDate')
+            ->select('c.name AS countryName, COUNT(c.id) AS visitCount, MIN(t.departureDate) AS firstVisitDate')
             ->leftJoin('t.tripTravelers', 'tt')
-            ->leftJoin('t.country', 'country');
+            ->leftJoin('t.destinations', 'td')
+            ->leftJoin('td.country', 'c');
 
         return $qb->andWhere(
             $qb->expr()->orX(
@@ -169,8 +211,9 @@ class TripRepository extends ServiceEntityRepository
             ->andWhere('t.departureDate IS NOT NULL')
             ->andWhere('t.returnDate IS NOT NULL')
             ->andWhere('t.returnDate < :today')
+            ->andWhere('c.id IS NOT NULL')
             ->setParameter('today', (new \DateTime())->format('Y-m-d'))
-            ->groupBy('country.name')
+            ->groupBy('c.name')
             ->orderBy('visitCount', 'DESC')
             ->addOrderBy('firstVisitDate', 'ASC')
             ->setMaxResults(1)
@@ -181,17 +224,18 @@ class TripRepository extends ServiceEntityRepository
     public function getTopCountries()
     {
         $qb = $this->createQueryBuilder('t')
-            ->select('country.name AS countryName, country.code AS countryCode, COUNT(DISTINCT country.code) AS visitCount, MIN(t.departureDate) AS firstVisitDate')
+            ->select('c.name AS countryName, c.code AS countryCode, COUNT(c.id) AS visitCount, MIN(t.departureDate) AS firstVisitDate')
             ->leftJoin('t.tripTravelers', 'tt')
-            ->leftJoin('t.country', 'country');
+            ->leftJoin('t.destinations', 'td')
+            ->leftJoin('td.country', 'c');
 
         return $qb
-            ->where('t.country IS NOT NULL')
+            ->where('c.id IS NOT NULL')
             ->andWhere('t.departureDate IS NOT NULL')
             ->andWhere('t.returnDate IS NOT NULL')
             ->andWhere('t.returnDate < :today')
             ->setParameter('today', (new \DateTime())->format('Y-m-d'))
-            ->groupBy('country.name, country.code')
+            ->groupBy('c.name, c.code')
             ->orderBy('visitCount', 'DESC')
             ->addOrderBy('firstVisitDate', 'ASC')
             ->setMaxResults(5)
@@ -199,15 +243,37 @@ class TripRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function getOneTrip(?int $tripId)
+    public function getOneTrip(?int $tripId): ?array
     {
-        return $this->createQueryBuilder('t')
-            ->select('t.name, t.description, t.departureDate, t.returnDate, t.image, c.code AS selectedCountry, owner.id AS ownerId')
-            ->leftJoin('t.traveler', 'owner')
-            ->leftJoin('t.country', 'c')
-            ->andWhere('t.id = :id')
-            ->setParameter('id', $tripId)
-            ->getQuery()
-            ->getOneOrNullResult();
+        $trip = $this->find($tripId);
+
+        if (!$trip) {
+            return null;
+        }
+
+        $destinations = [];
+        foreach ($trip->getDestinations() as $destination) {
+            $destinations[] = [
+                'id' => $destination->getId(),
+                'displayOrder' => $destination->getDisplayOrder(),
+                'country' => [
+                    'id' => $destination->getCountry()->getId(),
+                    'code' => $destination->getCountry()->getCode(),
+                    'name' => $destination->getCountry()->getName(),
+                ],
+                'departureDate' => $destination->getDepartureDate()?->format('Y-m-d'),
+                'returnDate' => $destination->getReturnDate()?->format('Y-m-d'),
+            ];
+        }
+
+        return [
+            'name' => $trip->getName(),
+            'description' => $trip->getDescription(),
+            'departureDate' => $trip->getDepartureDate()?->format('Y-m-d'),
+            'returnDate' => $trip->getReturnDate()?->format('Y-m-d'),
+            'image' => $trip->getImage(),
+            'ownerId' => $trip->getTraveler()?->getId(),
+            'destinations' => $destinations,
+        ];
     }
 }

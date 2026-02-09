@@ -16,10 +16,13 @@ class TripRequestDTO
     )]
     public string $name;
 
-    #[Assert\NotBlank(message: 'Vous devez sélectionner un pays.')]
-    #[Assert\Country(message: 'Le pays choisi est incorrect.')]
-    #[Assert\Length(exactly: 2, exactMessage: 'Le code du pays doit faire 2 caractères.')]
-    public string $selectedCountry;
+    #[Assert\NotBlank(message: 'Vous devez sélectionner au moins une destination.')]
+    #[Assert\Type('array', message: 'Les destinations doivent être un tableau.')]
+    #[Assert\Count(
+        min: 1,
+        minMessage: 'Vous devez sélectionner au moins une destination.'
+    )]
+    public array $destinations = [];
 
     #[Assert\Type(\DateTime::class)]
     public ?\DateTime $departureDate;

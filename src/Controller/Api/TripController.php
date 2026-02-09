@@ -7,6 +7,7 @@ namespace App\Controller\Api;
 use App\DTO\TripRequestDTO;
 use App\Entity\Country;
 use App\Entity\Trip;
+use App\Entity\TripDestination;
 use App\Entity\TripTraveler;
 use App\Entity\User;
 use App\Service\FileUploaderService;
@@ -89,9 +90,9 @@ class TripController extends AbstractController
         return $this->json([
             'name' => $trip['name'],
             'description' => $trip['description'],
-            'departureDate' => $trip['departureDate']?->format('Y-m-d'),
-            'returnDate' => $trip['returnDate']?->format('Y-m-d'),
-            'selectedCountry' => $trip['selectedCountry'],
+            'departureDate' => $trip['departureDate'],
+            'returnDate' => $trip['returnDate'],
+            'destinations' => $trip['destinations'],
             'image' => $trip['image']
         ]);
     }
@@ -134,7 +135,7 @@ class TripController extends AbstractController
     {
         $dto = new TripRequestDTO();
         $dto->name = $request->request->get('name');
-        $dto->selectedCountry = $request->request->get('selectedCountry');
+        $dto->destinations = $request->request->all()['destinations'] ?? [];
         $dto->description = $request->request->get('description');
         $dto->image = $request->files->get('image');
 
@@ -165,6 +166,8 @@ class TripController extends AbstractController
         }
 
         try {
+            $isEdit = $request->get('_route') === 'api_trip_edit';
+
             if ($dto->image) {
                 $imageFileName = $this->uploaderService->upload($dto->image);
                 $trip->setImage('/' . $this->getParameter('upload_directory') . '/' . $imageFileName);
@@ -174,8 +177,93 @@ class TripController extends AbstractController
                 ->setDescription($dto->description)
                 ->setDepartureDate($dto->departureDate)
                 ->setReturnDate($dto->returnDate)
-                ->setCountry($this->managerRegistry->getRepository(Country::class)->findOneBy(['code' => $dto->selectedCountry]))
                 ->setTraveler($this->getUser());
+
+            if ($isEdit) {
+                // Récupérer les destinations actuelles du voyage
+                $existingDestinations = $trip->getDestinations();
+                $existingCountryIds = [];
+                $destinationsById = [];
+
+                foreach ($existingDestinations as $dest) {
+                    $countryId = $dest->getCountry()->getId();
+                    $existingCountryIds[] = $countryId;
+                    $destinationsById[$countryId] = $dest;
+                }
+
+                // Récupérer les nouveaux pays depuis le formulaire
+                $newCountryIds = [];
+                foreach ($dto->destinations as $destinationData) {
+                    $countryIri = $destinationData['country'] ?? '';
+                    $countryId = (int) basename($countryIri);
+                    $newCountryIds[] = $countryId;
+                }
+
+                // Trouver les pays à supprimer (présents avant mais plus maintenant)
+                $toDelete = array_diff($existingCountryIds, $newCountryIds);
+                foreach ($toDelete as $countryId) {
+                    if (isset($destinationsById[$countryId])) {
+                        $trip->removeDestination($destinationsById[$countryId]);
+                        $this->managerRegistry->getManager()->remove($destinationsById[$countryId]);
+                    }
+                }
+
+                // Trouver les pays à ajouter (nouveaux)
+                $toAdd = array_diff($newCountryIds, $existingCountryIds);
+
+                // Traiter toutes les destinations dans l'ordre
+                foreach ($dto->destinations as $index => $destinationData) {
+                    $countryIri = $destinationData['country'] ?? '';
+                    $countryId = (int) basename($countryIri);
+
+                    $country = $this->managerRegistry->getRepository(Country::class)->find($countryId);
+                    if (!$country) {
+                        return $this->json([
+                            'message' => 'Un des pays sélectionnés est invalide.'
+                        ], Response::HTTP_BAD_REQUEST);
+                    }
+
+                    // Si c'est une nouvelle destination
+                    if (in_array($countryId, $toAdd)) {
+                        $destination = new TripDestination();
+                        $destination->setTrip($trip)
+                            ->setCountry($country)
+                            ->setDisplayOrder($index);
+
+                        $trip->addDestination($destination);
+                        $this->managerRegistry->getManager()->persist($destination);
+                    }
+                    // Si c'est une destination existante, juste mettre à jour l'ordre
+                    else if (isset($destinationsById[$countryId])) {
+                        $destinationsById[$countryId]->setDisplayOrder($index);
+                        $this->managerRegistry->getManager()->persist($destinationsById[$countryId]);
+                    }
+                }
+
+                $this->managerRegistry->getManager()->flush();
+            } else {
+                // Mode création
+                foreach ($dto->destinations as $destinationData) {
+                    $countryIri = $destinationData['country'] ?? '';
+                    $countryId = (int) basename($countryIri);
+
+                    $country = $this->managerRegistry->getRepository(Country::class)->find($countryId);
+
+                    if (!$country) {
+                        return $this->json([
+                            'message' => 'Un des pays sélectionnés est invalide.'
+                        ], Response::HTTP_BAD_REQUEST);
+                    }
+
+                    $destination = new TripDestination();
+                    $destination->setTrip($trip)
+                        ->setCountry($country)
+                        ->setDisplayOrder((int)($destinationData['displayOrder'] ?? 0));
+
+                    $trip->addDestination($destination);
+                    $this->managerRegistry->getManager()->persist($destination);
+                }
+            }
 
             if ($trip->getTripTravelers()->count() === 0) {
                 $traveler = (new TripTraveler())
@@ -189,7 +277,7 @@ class TripController extends AbstractController
             $this->managerRegistry->getManager()->persist($trip);
             $this->managerRegistry->getManager()->flush();
 
-            if ($request->get('_route') === 'api_trip_edit') {
+            if ($isEdit) {
                 return $this->json([
                     'message' => 'Les informations de ton voyage ont bien été modifiées.',
                     'id' => $trip->getId()

@@ -73,10 +73,10 @@ class Trip
     #[ORM\Column(length: 9, nullable: true)]
     private ?string $visibility = null;
 
-    #[ApiProperty(readableLink: true)]
+    #[ORM\OneToMany(targetEntity: TripDestination::class, mappedBy: 'trip', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[ORM\OrderBy(['displayOrder' => 'ASC'])]
     #[MaxDepth(1)]
-    #[ORM\ManyToOne(inversedBy: 'trips')]
-    private ?Country $country = null;
+    private Collection $destinations;
 
     public function __construct()
     {
@@ -89,6 +89,7 @@ class Trip
         $this->shareInvitations = new ArrayCollection();
         $this->onSiteExpenses = new ArrayCollection();
         $this->tripTravelers = new ArrayCollection();
+        $this->destinations = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -462,15 +463,30 @@ class Trip
         return $this;
     }
 
-    public function getCountry(): ?Country
+    /**
+     * @return Collection<int, TripDestination>
+     */
+    public function getDestinations(): Collection
     {
-        return $this->country;
+        return $this->destinations;
     }
 
-    public function setCountry(?Country $country): static
+    public function addDestination(TripDestination $destination): self
     {
-        $this->country = $country;
+        if (!$this->destinations->contains($destination)) {
+            $this->destinations->add($destination);
+            $destination->setTrip($this);
+        }
+        return $this;
+    }
 
+    public function removeDestination(TripDestination $destination): self
+    {
+        if ($this->destinations->removeElement($destination)) {
+            if ($destination->getTrip() === $this) {
+                $destination->setTrip(null);
+            }
+        }
         return $this;
     }
 }

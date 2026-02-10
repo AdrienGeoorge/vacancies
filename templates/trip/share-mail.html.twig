@@ -1,215 +1,295 @@
 <style>
     body {
-        background-color: #23232e !important;
-        font-size: 17px;
+        background-color: #1a1a2e !important;
+        font-size: 16px;
         font-family: "Raleway", Arial, sans-serif;
+        margin: 0;
+        padding: 0;
     }
 
-    .text-size {
-        font-size: 15px;
+    .mail-wrapper {
+        width: 560px;
+        margin: 0 auto;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
     }
 
     .mail-head {
-        background: #55B5A6; /* fallback for old browsers */
-        background: -webkit-linear-gradient(to right, #55B5A6, #F2C14B); /* Chrome 10-25, Safari 5.1-6 */
-        background: linear-gradient(to right, #55B5A6, #F2C14B); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
-        width: 675px;
-        padding: 1.5em;
-    }
-
-    .mail-head-content {
-        display: flex;
-        flex-direction: row;
-        gap: 1em;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .mail-head-text {
-        color: #fff !important;
-        font-size: 23px;
+        background: linear-gradient(135deg, #0f9b8e 0%, #1ab394 30%, #f2c14b 100%);
+        padding: 2.5em 2em 2em;
+        text-align: center;
     }
 
     .mail-logo {
-        width: 5em;
+        width: 4.5em;
+        border-radius: 12px;
+    }
+
+    .mail-head-tagline {
+        color: #ffffff;
+        font-size: 14px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        opacity: 0.9;
+        text-align: center;
     }
 
     .mail-content {
-        background-color: #f0f0f0;
-        color: #3d3d51;
+        background-color: #ffffff;
     }
 
-    .mail-content-padding {
-        padding: 1.5em;
+    .mail-content-inner {
+        padding: 2.5em 2.5em 2em;
     }
 
     .mail-hello {
-        font-size: 20px;
+        font-size: 22px;
         font-weight: bold;
+        color: #2d2d44;
+    }
+
+    .mail-text {
+        font-size: 15px;
+        color: #4a4a5a;
+        line-height: 1.6;
+    }
+
+    .mail-trip-card {
+        background: linear-gradient(135deg, #f8f9ff 0%, #eef6f5 100%);
+        border-left: 4px solid #0f9b8e;
+        border-radius: 0 8px 8px 0;
+        padding: 1.2em 1.5em;
+    }
+
+    .mail-trip-name {
+        font-size: 18px;
+        font-weight: bold;
+        color: #2d2d44;
+    }
+
+    .mail-trip-destinations {
+        font-size: 14px;
+        color: #0f9b8e;
+        margin-top: 0.3em;
     }
 
     .mail-warning {
-        color: #c45959;
+        background-color: #fff8f0;
+        border: 1px solid #f0d9b5;
+        border-radius: 8px;
+        padding: 0.8em 1.2em;
+        font-size: 13px;
+        color: #b8860b;
+        text-align: center;
     }
 
-    .mail-button-position {
-        margin: 0.5em;
-        display: flex;
-        justify-content: center;
+    .mail-button-container {
+        text-align: center;
+        padding: 0.5em 0;
     }
 
     .mail-button {
-        background-color: #526271;
-        border: 2px solid #677a8c;
-        border-radius: 1.5em;
+        background: linear-gradient(135deg, #0f9b8e, #1ab394);
+        border-radius: 50px;
         color: #ffffff !important;
         text-align: center;
         text-decoration: none;
-        padding: 1em 1.5em;
+        padding: 1em 2.5em;
+        font-size: 16px;
+        font-weight: bold;
+        letter-spacing: 0.5px;
+        display: inline-block;
     }
 
-    .mail-see-you-later {
-        display: flex;
-        flex-direction: column;
+    .mail-note {
+        font-size: 13px;
+        color: #8a8a9a;
+        text-align: center;
+    }
+
+    .mail-signature {
+        font-size: 15px;
+        color: #4a4a5a;
+    }
+
+    .mail-divider {
+        border: none;
+        border-top: 1px solid #eee;
+        margin: 0;
     }
 
     .mail-footer {
-        background: #424257;
+        background-color: #2d2d44;
+        padding: 1.5em 2em;
+        text-align: center;
     }
 
     .mail-footer-text {
-        color: #fff;
-        text-align: center;
-        font-size: 13px;
+        font-size: 12px;
+        color: #9a9ab0;
+        line-height: 1.6;
     }
 
     .mail-link {
-        color: #fff;
+        color: #1ab394;
+        text-decoration: none;
         font-weight: bold;
     }
 </style>
 
-<table style="margin: 0 auto; width: 525px;">
+<table style="margin: 0 auto; width: 560px;" cellpadding="0" cellspacing="0">
     <tbody>
     <tr>
+        <td height="40"></td>
+    </tr>
+    <tr>
         <td>
-            <table style="width: 525px;">
+            <table class="mail-wrapper" cellpadding="0" cellspacing="0" style="width: 560px;">
                 <tbody>
                 <tr>
-                    <td height="40"></td>
-                </tr>
-                <tr>
                     <td class="mail-head">
-                        <table style="width: 525px;">
-                            <tbody class="mail-head-content">
-                            <tr></tr>
+                        <table style="width: 100%;" cellpadding="0" cellspacing="0">
+                            <tbody>
                             <tr>
-                                <td>
+                                <td style="text-align: center;">
                                     <a href="{{ domain }}/" target="_blank">
-                                        <img src="{{ domain ~ '/images/index.png' }}" class="mail-logo"
+                                        <img src="{{ domain ~ '/images/logo.png' }}" class="mail-logo"
                                              alt="{{ app_name }}">
                                     </a>
                                 </td>
                             </tr>
                             <tr>
-                                <td class="mail-head-text">Prévois tes voyages!</td>
-                            </tr>
-                            <tr></tr>
-                            </tbody>
-                        </table>
-                    </td>
-                </tr>
-                <tr class="mail-content">
-                    <td class="mail-content-padding">
-                        <table>
-                            <tbody>
-                            <tr>
-                                <td>
-                                    <div class="mail-hello">Bonjour,</div>
-                                </td>
-                            </tr>
-                            <tr>
                                 <td height="15"></td>
                             </tr>
                             <tr>
-                                <td class="text-size">Vous avez été invité par {{ invitedBy }} à rejoindre les
-                                    préparatifs d'un voyage!
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="text-size">
-                                   <b>{{ trip.country.name }} - {{ trip.name }}</b>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td height="10"></td>
-                            </tr>
-                            <tr>
-                                <td class="text-size">
-                                    Cliquez sur le bouton ci-dessous pour accepter l'invitation et prendre part à
-                                    l'organisation de votre prochain séjour.
-                                </td>
-                            </tr>
-                            <tr>
-                                <td height="5"></td>
-                            </tr>
-                            <tr>
-                                <td class="text-size">
-                                    <b>Attention pour rejoindre ce voyage vous devez être connecté à {{ app_name }}.</b>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td height="10"></td>
-                            </tr>
-                            <tr>
-                                <td class="text-size">
-                                    <b class="mail-warning">
-                                        Cette invitation est uniquement valable durant les 2 heures qui suivent la
-                                        réception de ce mail.
-                                    </b>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td height="15"></td>
-                            </tr>
-                            <tr>
-                                <td class="mail-button-position text-size">
-                                    <a href="{{ url }}" class="mail-button"
-                                       target="_blank">Accepter l'invitation</a>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td height="20"></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="text-size">A bientôt,</div>
-                                    <div class="text-size">L'équipe {{ app_name }}</div>
-                                </td>
+                                <td class="mail-head-tagline">Prévois tes voyages</td>
                             </tr>
                             </tbody>
                         </table>
                     </td>
                 </tr>
-                <tr class="mail-footer">
-                    <td>
-                        <table style="width: 100%;">
+                <tr>
+                    <td class="mail-content">
+                        <table style="width: 100%;" cellpadding="0" cellspacing="0">
                             <tbody>
                             <tr>
-                                <td height="20"></td>
+                                <td class="mail-content-inner">
+                                    <table style="width: 100%;" cellpadding="0" cellspacing="0">
+                                        <tbody>
+                                        <tr>
+                                            <td class="mail-hello">Bonjour &#128075;</td>
+                                        </tr>
+                                        <tr>
+                                            <td height="20"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="mail-text">
+                                                <b>{{ invitedBy }}</b> vous invite à rejoindre les
+                                                préparatifs d'un voyage. Préparez vos valises, l'aventure
+                                                vous attend.
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td height="20"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <table class="mail-trip-card" style="width: 100%;" cellpadding="0"
+                                                       cellspacing="0">
+                                                    <tbody>
+                                                    <tr>
+                                                        <td class="mail-trip-name">{{ trip.name }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="mail-trip-destinations">
+                                                            &#128205;
+                                                            {% for destination in trip.destinations %}
+                                                                {{ destination.country.name }}{% if not loop.last %} &middot; {% endif %}
+                                                            {% endfor %}
+                                                        </td>
+                                                    </tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td height="20"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="mail-text">
+                                                Cliquez sur le bouton ci-dessous pour accepter l'invitation et
+                                                participer à l'organisation de votre prochain séjour.
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td height="25"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="mail-button-container">
+                                                <a href="{{ url }}" class="mail-button"
+                                                   target="_blank">&#127881; Accepter l'invitation</a>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td height="20"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="mail-note">
+                                                Vous devez être connecté à {{ app_name }} pour rejoindre ce voyage.
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td height="15"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="mail-warning">
+                                                &#9203; Cette invitation expire 2 heures après réception de ce mail.
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td height="25"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <hr class="mail-divider">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td height="20"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="mail-signature">
+                                                Bon voyage ! &#127758;<br>
+                                                L'équipe <b>{{ app_name }}</b>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mail-footer">
+                        <table style="width: 100%;" cellpadding="0" cellspacing="0">
+                            <tbody>
+                            <tr>
+                                <td class="mail-footer-text">
+                                    &copy; {{ 'now'|date('Y') }}
+                                    <a href="{{ domain }}" target="_blank" class="mail-link">{{ app_name }}</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td height="8"></td>
                             </tr>
                             <tr>
                                 <td class="mail-footer-text">
-                                    <div>© {{ 'now'|date('Y') }} <a href="{{ domain }}" target="_blank"
-                                                                    class="mail-link">{{ domain }}</a>.
-                                    </div>
-                                    <div>Si vous n''êtes pas familier avec {{ app_name }} ou la personne qui vous a
-                                        invité, veuillez ignorer ce message.
-                                    </div>
+                                    Si vous n'êtes pas familier avec {{ app_name }} ou la personne
+                                    qui vous a invité, veuillez ignorer ce message.
                                 </td>
-                            </tr>
-                            <tr>
-                                <td height="20"></td>
                             </tr>
                             </tbody>
                         </table>

@@ -81,14 +81,14 @@ class AccommodationService
     {
         $eurCurrency = $this->managerRegistry->getRepository(Currency::class)->findOneBy(['code' => 'EUR']);
 
-        if ($eurCurrency !== $dto->originalCurrency && $accommodation->getOriginalPrice() !== $dto->originalPrice) {
+        if ($dto->originalCurrency && $eurCurrency !== $dto->originalCurrency && $accommodation->getOriginalPrice() !== $dto->originalPrice) {
             $convertedDeposit = $this->converterService->convert($dto->originalPrice, $dto->originalCurrency, $eurCurrency);
             $accommodation->setConvertedPrice($convertedDeposit['amount']);
             $accommodation->setExchangeRate($convertedDeposit['rate']);
             $accommodation->setConvertedAt(new \DateTimeImmutable());
         }
 
-        if ($eurCurrency !== $dto->originalDepositCurrency && $accommodation->getOriginalDeposit() !== $dto->originalDeposit) {
+        if ($dto->originalDeposit && $eurCurrency !== $dto->originalDepositCurrency && $accommodation->getOriginalDeposit() !== $dto->originalDeposit) {
             $convertedDeposit = $this->converterService->convert($dto->originalDeposit, $dto->originalDepositCurrency, $eurCurrency);
             $accommodation->setConvertedDeposit($convertedDeposit['amount']);
         }

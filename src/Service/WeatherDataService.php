@@ -138,8 +138,8 @@ class WeatherDataService
     private function fetchFromOpenMeteo(float $lat, float $lon, int $month): array
     {
         try {
-            $startYear = date('Y') - 10;
-            $endYear = date('Y');
+            $startYear = date('Y') - 11;
+            $endYear = date('Y') - 1;
 
             $allTempsMin = [];
             $allTempsMax = [];

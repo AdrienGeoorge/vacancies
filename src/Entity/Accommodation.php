@@ -20,7 +20,7 @@ class Accommodation
     #[ORM\Column(length: 500)]
     private ?string $name = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $address = null;
 
     #[ORM\Column(length: 10, nullable: true)]

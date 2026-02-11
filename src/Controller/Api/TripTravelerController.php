@@ -107,6 +107,23 @@ class TripTravelerController extends AbstractController
         return $this->json(['message' => 'L\'invitation à prendre part à ce voyage a bien été transmise.'], Response::HTTP_CREATED);
     }
 
+    #[Route('/get-infos/{token}', name: 'get_infos', requirements: ['token' => '\w+'], methods: ['GET'])]
+    public function getInfos(string $token, Trip $trip): JsonResponse
+    {
+        $invitation = $this->managerRegistry->getRepository(ShareInvitation::class)
+            ->findOneBy(['token' => $token]);
+
+        if (!$invitation) {
+            return $this->json(['message' => 'Cette invitation n\'existe pas.'], Response::HTTP_NOT_FOUND);
+        }
+
+        return $this->json([
+            'trip' => $trip,
+            'creator' => $trip->getTraveler(),
+            'budget' => $this->tripService->getBudget($trip),
+        ]);
+    }
+
     #[Route('/accept/{token}', name: 'accept', requirements: ['token' => '\w+'], methods: ['GET'])]
     public function acceptInvitation(string $token, Trip $trip): JsonResponse
     {

@@ -17,13 +17,15 @@ class TokenService
     protected string $token;
     protected string $appSecret;
     protected string $domain;
+    protected string $fromMail;
 
-    public function __construct(ManagerRegistry $managerRegistry, MailerInterface $mailer, string $appSecret, string $domain, ?string $token_value = null)
+    public function __construct(ManagerRegistry $managerRegistry, MailerInterface $mailer, string $appSecret, string $domain, string $fromMail, ?string $token_value = null)
     {
         $this->appSecret = $appSecret;
         $this->managerRegistry = $managerRegistry;
         $this->mailer = $mailer;
         $this->domain = $domain;
+        $this->fromMail = $fromMail;
 
         try {
             $this->token = bin2hex(random_bytes(16));
@@ -36,7 +38,6 @@ class TokenService
     public function create(User $user): bool
     {
         $hash = $this->getHash();
-        dump($hash);
         $passwordReset = (new PasswordReset())
             ->setUser($user)
             ->setEmail($user->getEmail())
@@ -52,9 +53,9 @@ class TokenService
     private function sendMail(User $user, string $hash): bool
     {
         $email = (new TemplatedEmail())
-            ->from('no-reply@adriengeorge.fr')
+            ->from($this->fromMail)
             ->to($user->getEmail())
-            ->subject('Vacancies : réinitialisation de votre mot de passe')
+            ->subject('TripLaning : réinitialisation de votre mot de passe')
             ->htmlTemplate('password-claim/mail.html.twig')
             ->context(['url' => $this->domain . '/password/reset/' . $hash]);
 

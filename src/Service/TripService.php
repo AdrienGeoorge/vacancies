@@ -23,12 +23,14 @@ class TripService
     private MailerInterface $mailer;
     private ManagerRegistry $managerRegistry;
     protected string $domain;
+    protected string $fromMail;
 
-    public function __construct(MailerInterface $mailer, ManagerRegistry $managerRegistry, string $domain)
+    public function __construct(MailerInterface $mailer, ManagerRegistry $managerRegistry, string $domain, string $fromMail)
     {
         $this->mailer = $mailer;
         $this->managerRegistry = $managerRegistry;
         $this->domain = $domain;
+        $this->fromMail = $fromMail;
     }
 
     /**
@@ -580,9 +582,9 @@ class TripService
             $url = $this->domain . '/trip/' . $trip->getId() . '/accept-invitation/' . $token;
 
             $email = (new TemplatedEmail())
-                ->from('no-reply@adriengeorge.fr')
+                ->from($this->fromMail)
                 ->to($userToShareWith ? $userToShareWith->getEmail() : $mail)
-                ->subject('Vacancies : invitation à rejoindre un voyage')
+                ->subject('TripLaning : invitation à rejoindre un voyage')
                 ->htmlTemplate('trip/share-mail.html.twig')
                 ->context(['url' => $url, 'invitedBy' => $invitedBy, 'trip' => $trip]);
 

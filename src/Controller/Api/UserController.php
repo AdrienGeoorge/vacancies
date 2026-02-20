@@ -31,6 +31,28 @@ class UserController extends AbstractController
         $this->uploaderService = $uploaderService;
     }
 
+    #[Route('/me', name: 'me', options: ['expose' => true], methods: ['GET'])]
+    public function me(): JsonResponse
+    {
+        if (!$this->getUser()) return new JsonResponse([], Response::HTTP_UNAUTHORIZED);
+
+        /** @var User $user */
+        $user = $this->getUser();
+        return new JsonResponse([
+            'user' => [
+                'id' => $user->getId(),
+                'email' => $user->getEmail(),
+                'firstname' => $user->getFirstname(),
+                'lastname' => $user->getLastname(),
+                'completeName' => $user->getCompleteName(),
+                'username' => $user->getUsername(),
+                'avatar' => $user->getAvatar(),
+                'biography' => $user->getBiography(),
+                'theme' => $user->getTheme()
+            ]
+        ], Response::HTTP_CREATED);
+    }
+
     #[Route('/profile/{username}', name: 'profile_for_user')]
     public function profile(?string $username): Response
     {
@@ -169,6 +191,43 @@ class UserController extends AbstractController
         }
     }
 
+    #[Route('/settings/theme', name: 'update_theme', options: ['expose' => true], methods: ['POST'])]
+    public function updateTheme(Request $request, JWTTokenManagerInterface $jwtManager): JsonResponse
+    {
+        if (!$this->getUser()) return new JsonResponse([], Response::HTTP_UNAUTHORIZED);
+
+        $data = json_decode($request->getContent(), true);
+
+        if (!$data['theme'] && !in_array($data['theme'], ['light', 'dark', 'system'])) {
+            return new JsonResponse([
+                'message' => 'Une erreur est survenue lors du changement de thème.'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        /** @var User $user */
+        $user = $this->getUser();
+        $user->setTheme($data['theme']);
+        $this->managerRegistry->getManager()->persist($user);
+        $this->managerRegistry->getManager()->flush();
+
+        $token = $jwtManager->create($user);
+
+        return new JsonResponse([
+            'token' => $token,
+            'user' => [
+                'id' => $user->getId(),
+                'email' => $user->getEmail(),
+                'firstname' => $user->getFirstname(),
+                'lastname' => $user->getLastname(),
+                'completeName' => $user->getCompleteName(),
+                'username' => $user->getUsername(),
+                'avatar' => $user->getAvatar(),
+                'biography' => $user->getBiography(),
+                'theme' => $user->getTheme()
+            ]
+        ], Response::HTTP_CREATED);
+    }
+
     #[Route('/settings/personal-data', name: 'update_personal_data', options: ['expose' => true], methods: ['POST'])]
     public function updatePersonalData(Request $request, JWTTokenManagerInterface $jwtManager): JsonResponse
     {
@@ -213,7 +272,8 @@ class UserController extends AbstractController
                 'completeName' => $user->getCompleteName(),
                 'username' => $user->getUsername(),
                 'avatar' => $user->getAvatar(),
-                'biography' => $user->getBiography()
+                'biography' => $user->getBiography(),
+                'theme' => $user->getTheme()
             ]
         ], Response::HTTP_CREATED);
     }
@@ -263,7 +323,8 @@ class UserController extends AbstractController
                 'completeName' => $user->getCompleteName(),
                 'username' => $user->getUsername(),
                 'avatar' => $user->getAvatar(),
-                'biography' => $user->getBiography()
+                'biography' => $user->getBiography(),
+                'theme' => $user->getTheme()
             ]
         ], Response::HTTP_CREATED);
     }

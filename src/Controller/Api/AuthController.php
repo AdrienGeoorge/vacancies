@@ -78,7 +78,8 @@ class AuthController extends AbstractController
                 'completeName' => $user->getCompleteName(),
                 'username' => $user->getUsername(),
                 'avatar' => $user->getAvatar(),
-                'biography' => $user->getBiography()
+                'biography' => $user->getBiography(),
+                'theme' => $user->getTheme()
             ]
         ], Response::HTTP_CREATED);
     }

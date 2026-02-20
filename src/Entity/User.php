@@ -93,6 +93,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTime $disabled = null;
 
+    #[ORM\Column(length: 6, options: ['default' => 'system'])]
+    private ?string $theme = 'system';
+
     public function __construct()
     {
         $this->trips = new ArrayCollection();
@@ -489,6 +492,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setDisabled(?\DateTime $disabled): static
     {
         $this->disabled = $disabled;
+
+        return $this;
+    }
+
+    public function getTheme(): ?string
+    {
+        return $this->theme;
+    }
+
+    public function setTheme(string $theme): static
+    {
+        $this->theme = $theme;
 
         return $this;
     }

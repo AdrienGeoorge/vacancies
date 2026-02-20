@@ -129,4 +129,48 @@ class TripTravelerRepository extends ServiceEntityRepository
             ['userId' => $user->getId(), 'today' => (new \DateTime())->format('Y-m-d')]
         )->fetchFirstColumn();
     }
+
+    /**
+     * @param User $user
+     * @return array
+     * @throws Exception
+     */
+    public function countMuseum(User $user): array
+    {
+        return $this->getEntityManager()->getConnection()->executeQuery(
+            "SELECT count(a.id) as nbMuseums
+                FROM trip t
+                 LEFT JOIN activity a ON a.trip_id = t.id
+                 LEFT JOIN event_type et ON et.id = a.activity_type_id
+                WHERE t.traveler_id = :userId
+                  AND t.departure_date IS NOT NULL
+                  AND t.return_date IS NOT NULL
+                  AND t.return_date < :today
+                  AND a.booked = true
+                  AND et.name = 'Musee et expo'",
+            ['userId' => $user->getId(), 'today' => (new \DateTime())->format('Y-m-d')]
+        )->fetchAssociative();
+    }
+
+    /**
+     * @param User $user
+     * @return array
+     * @throws Exception
+     */
+    public function countAmusementPark(User $user): array
+    {
+        return $this->getEntityManager()->getConnection()->executeQuery(
+            "SELECT count(a.id) as nbParks
+                FROM trip t
+                 LEFT JOIN activity a ON a.trip_id = t.id
+                 LEFT JOIN event_type et ON et.id = a.activity_type_id
+                WHERE t.traveler_id = :userId
+                  AND t.departure_date IS NOT NULL
+                  AND t.return_date IS NOT NULL
+                  AND t.return_date < :today
+                  AND a.booked = true
+                  AND et.name = 'Parc d\'attraction'",
+            ['userId' => $user->getId(), 'today' => (new \DateTime())->format('Y-m-d')]
+        )->fetchAssociative();
+    }
 }

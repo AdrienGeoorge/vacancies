@@ -270,6 +270,57 @@ class CheckEcussonsCommand extends Command
 
             $this->addBadge($user, $badgeData);
         }
+
+        /**
+         * Objectif : styles de voyages
+         */
+        $countMuseum = $this->managerRegistry->getRepository(TripTraveler::class)->countMuseum($user);
+        if ($countMuseum) {
+            $badgeData = ['name' => 'museum'];
+
+            switch ($countMuseum['nbMuseums']) {
+                case $countMuseum['nbMuseums'] < 10:
+                    $badgeData = array_merge($badgeData, [
+                        'title' => 'Historien urbain',
+                        'description' => 'Apprenti historien en pleine découverte.',
+                        'level' => 1
+                    ]);
+                    break;
+                case $countMuseum['nbMuseums'] >= 10:
+                    $badgeData = array_merge($badgeData, [
+                        'title' => 'Ami des galeries',
+                        'description' => 'Passion culturelle affirmée, curiosité insatiable.',
+                        'level' => 2
+                    ]);
+                    break;
+            }
+
+            $this->addBadge($user, $badgeData);
+        }
+
+        $countParks = $this->managerRegistry->getRepository(TripTraveler::class)->countAmusementPark($user);
+        if ($countParks) {
+            $badgeData = ['name' => 'park'];
+
+            switch ($countMuseum['nbParks']) {
+                case $countMuseum['nbParks'] < 10:
+                    $badgeData = array_merge($badgeData, [
+                        'title' => 'Amateur de sensation',
+                        'description' => 'Premiers frissons, l’adrénaline monte doucement.',
+                        'level' => 1
+                    ]);
+                    break;
+                case $countMuseum['nbParks'] >= 10:
+                    $badgeData = array_merge($badgeData, [
+                        'title' => 'Légende du looping',
+                        'description' => 'Maître des loopings et des descentes vertigineuses.',
+                        'level' => 2
+                    ]);
+                    break;
+            }
+
+            $this->addBadge($user, $badgeData);
+        }
     }
 
     private function addBadge(User $user, array $data): void

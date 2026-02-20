@@ -28,7 +28,8 @@ class PdfService
     {
         return [
             'name' => $trip->getName(),
-            'destination' => $this->tripService->formateDestinationsForString($this->tripService->getDestinations($trip)),
+            'destinationTitle' => $this->tripService->formateDestinationsForString($this->tripService->getDestinations($trip)),
+            'destinations' => $this->tripService->getDestinations($trip, true),
             'departureDate' => $trip->getDepartureDate(),
             'returnDate' => $trip->getReturnDate(),
             'duration' => $trip->getDepartureDate()->diff($trip->getReturnDate())->days + 1,

@@ -25,10 +25,12 @@ class TripService
     protected string $domain;
     protected string $fromMail;
     protected string $appName;
+    private $weatherService;
 
     public function __construct(
         MailerInterface $mailer,
         ManagerRegistry $managerRegistry,
+        WeatherService $weatherService,
         string          $domain,
         string          $fromMail,
         string          $appName
@@ -36,6 +38,7 @@ class TripService
     {
         $this->mailer = $mailer;
         $this->managerRegistry = $managerRegistry;
+        $this->weatherService = $weatherService;
         $this->domain = $domain;
         $this->fromMail = $fromMail;
         $this->appName = $appName;
@@ -614,11 +617,22 @@ class TripService
         return $token;
     }
 
-    public function getDestinations(Trip $trip): array
+    public function getDestinations(Trip $trip, $hasWeather = false): array
     {
+        if ($hasWeather) {
+            $cities = $this->weatherService->getCities($trip);
+            $weatherByDestinations = $this->weatherService->getWeatherByDestinations($cities, $trip);
+        }
+
         $destinations = [];
 
         foreach ($trip->getDestinations() as $destination) {
+            if ($hasWeather) {
+                $getWeather = array_filter($weatherByDestinations, function ($weather) use ($destination) {
+                    return $weather['destination']['country'] === $destination->getCountry()->getName();
+                });
+            }
+
             $destinations[] = [
                 'id' => $destination->getId(),
                 'displayOrder' => $destination->getDisplayOrder(),
@@ -629,8 +643,13 @@ class TripService
                 ],
                 'departureDate' => $destination->getDepartureDate()?->format('Y-m-d'),
                 'returnDate' => $destination->getReturnDate()?->format('Y-m-d'),
+                'weather' => $getWeather ?? null
             ];
         }
+
+        usort($destinations, function ($a, $b) {
+            return $a['displayOrder'] <=> $b['displayOrder'];
+        });
 
         return $destinations;
     }

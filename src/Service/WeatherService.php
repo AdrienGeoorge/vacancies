@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Trip;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Psr\Log\LoggerInterface;
 
@@ -16,6 +17,63 @@ class WeatherService
         private readonly WeatherDataService  $weatherDataService
     )
     {
+    }
+
+    public function getCities(Trip $trip): array
+    {
+        $cities = [];
+
+        foreach ($trip->getAccommodations() as $accommodation) {
+            $cities[] = [
+                'name' => $accommodation?->getCity(),
+                'country' => $accommodation?->getCountry(),
+                'arrivalDate' => $accommodation?->getArrivalDate(),
+                'departureDate' => $accommodation?->getDepartureDate(),
+            ];
+        }
+
+        if (empty($cities)) {
+            foreach ($trip->getDestinations() as $destination) {
+                $cities[] = [
+                    'name' => $destination->getCountry()?->getCapital(),
+                    'country' => $destination->getCountry()?->getName(),
+                    'arrivalDate' => $destination->getDepartureDate(),
+                    'departureDate' => $destination->getReturnDate(),
+                ];
+            }
+        }
+
+        return $cities;
+    }
+
+    public function getWeatherByDestinations(array $cities, Trip $trip): array
+    {
+        $weatherByDestination = [];
+
+        foreach ($cities as $city) {
+            if (!$city['name']) continue;
+
+            $weatherData = $this->getWeatherForTrip(
+                $city['name'],
+                $city['country'],
+                $city['arrivalDate'] ?: $trip->getDepartureDate(),
+                $city['departureDate'] ?: $trip->getReturnDate()
+            );
+
+            if ($weatherData) {
+                $weatherByDestination[] = [
+                    'destination' => [
+                        'country' => $city['country'],
+                        'city' => $city['name'],
+                        'arrivalDate' => $city['arrivalDate']?->format('Y-m-d') ?: $trip->getDepartureDate()?->format('Y-m-d'),
+                        'departureDate' => $city['departureDate']?->format('Y-m-d') ?: $trip->getReturnDate()?->format('Y-m-d'),
+                    ],
+                    'weather' => $weatherData
+                ];
+            }
+        }
+
+        return $weatherByDestination;
     }
 
     /**

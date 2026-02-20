@@ -11,7 +11,7 @@
         }
 
         html {
-            margin: 8mm 0;
+            margin: 7mm 0;
         }
 
         body {
@@ -23,10 +23,10 @@
 
         .page-footer {
             position: fixed;
-            bottom: -5mm;
+            bottom: -6mm;
             left: 0;
             right: 0;
-            height: 13mm;
+            height: 10mm;
             text-align: center;
             padding: 2mm 10mm;
             border-top: 1px solid #e5e7eb;
@@ -46,13 +46,13 @@
         }
 
         .app-name {
-            font-size: 14pt;
+            font-size: 13pt;
             font-weight: 700;
             color: #44B8A7;
         }
 
         .generate-date {
-            font-size: 9pt;
+            font-size: 8pt;
             color: #6b7280;
             display: block;
             margin-top: -2mm;
@@ -109,6 +109,7 @@
             margin-left: auto;
             margin-right: auto;
             text-align: center;
+            white-space: pre-line;
         }
 
         /* Section headings */
@@ -192,6 +193,94 @@
             font-weight: normal;
         }
 
+        /* Destinations section */
+        .one-destination {
+            width: 80%;
+            margin: 2mm auto;
+        }
+
+        .destination-header {
+            font-size: 13pt;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 4mm;
+        }
+
+        .destination-card {
+            background: #f9fafb;
+            padding: 10px 15px;
+            margin-bottom: 2.5mm;
+            border-left: 4px solid #44B8A7;
+        }
+
+        .destination-card-title {
+            font-size: 12pt;
+            font-weight: 700;
+            color: #44B8A7;
+            margin-bottom: 2px;
+        }
+
+        .weather-card {
+            background: #f0fdfa;
+            border: 1px solid #b2e8e1;
+            margin-top: 5px;
+            margin-bottom: 4px;
+        }
+
+        .weather-card-city {
+            background: #44B8A7;
+            color: white;
+            font-size: 10pt;
+            font-weight: 700;
+            padding: 4px 10px;
+        }
+
+        .weather-stats-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .weather-stats-table td {
+            padding: 6px 10px;
+            text-align: center;
+            border-right: 1px solid #b2e8e1;
+            width: 25%;
+            vertical-align: top;
+        }
+
+        .weather-stats-table td:last-child {
+            border-right: none;
+        }
+
+        .weather-stat-label {
+            font-size: 7pt;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .weather-stat-value {
+            font-size: 10pt;
+            font-weight: 700;
+            color: #1f2937;
+            display: block;
+        }
+
+        .weather-advice {
+            border-top: 1px solid #b2e8e1;
+            padding: 5px 10px;
+            font-size: 9pt;
+            color: #374151;
+            font-style: italic;
+            background: #e6faf7;
+        }
+
+        .margin-top-2 {
+            margin-top: 2px;
+        }
+
         /* Planning section */
         .planning-day {
             width: 80%;
@@ -241,8 +330,10 @@
         }
 
         .event-description {
+            margin-top: -20px;
             font-size: 10pt;
             color: #4b5563;
+            white-space: pre-line;
         }
 
         /* Stats section */
@@ -313,7 +404,7 @@
         {% endif %}
 
         <h1 class="trip-title">{{ trip.name }}</h1>
-        <p class="trip-destination">{{ trip.destination }}</p>
+        <p class="trip-destination">{{ trip.destinationTitle }}</p>
 
         <p class="trip-dates">
             Du {{ trip.departureDate|format_datetime(locale='fr',pattern="EEEE dd MMMM YYYY") }}
@@ -372,6 +463,60 @@
             </tr>
             </tfoot>
         </table>
+    {% endif %}
+
+    {% if trip.destinations|length > 1 %}
+        <div class="page-break"></div>
+
+        <div class="section-after-break">
+            <h2 class="section-title">Destinations lors du voyage</h2>
+
+            {% for destination in trip.destinations %}
+                <div class="one-destination">
+                    <h3 class="destination-header">{{ destination.country.name }}</h3>
+
+                    <div class="destination-card">
+                        <div class="destination-card-title">Dates</div>
+                        {{ destination.departureDate|format_datetime(locale='fr',pattern="EEEE dd MMMM YYYY")|capitalize }}
+                        {% if destination.returnDate %}
+                            au {{ destination.returnDate|format_datetime(locale='fr',pattern="EEEE dd MMMM YYYY") }}
+                        {% endif %}
+
+                        {% if destination.weather %}
+                            <div class="destination-card-title margin-top-2">Tendances météo</div>
+                            {% for weather in destination.weather %}
+                                <div class="weather-card">
+                                    <div class="weather-card-city">{{ weather.destination.city }}</div>
+                                    <table class="weather-stats-table">
+                                        <tr>
+                                            <td>
+                                                <span class="weather-stat-label">Température</span>
+                                                <span class="weather-stat-value">{{ weather.weather.temp_min }}° – {{ weather.weather.temp_max }}°C</span>
+                                            </td>
+                                            <td>
+                                                <span class="weather-stat-label">Précipitations</span>
+                                                <span class="weather-stat-value">{{ weather.weather.rainfall_days }}j · {{ weather.weather.rainfall_mm }}mm</span>
+                                            </td>
+                                            <td>
+                                                <span class="weather-stat-label">Ensoleillement</span>
+                                                <span class="weather-stat-value">{{ weather.weather.daylight_hours }}h/jour</span>
+                                            </td>
+                                            <td>
+                                                <span class="weather-stat-label">Humidité</span>
+                                                <span class="weather-stat-value">{{ weather.weather.humidity }}%</span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    {% if weather.weather.advice %}
+                                        <div class="weather-advice">{{ weather.weather.advice }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
     {% endif %}
 
     {% if trip.planning %}

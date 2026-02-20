@@ -31,56 +31,13 @@ class TripWeatherController extends AbstractController
     #[IsGranted('view', subject: 'trip', message: 'Vous ne pouvez pas consulter ce voyage.', statusCode: 403)]
     public function getWeather(?Trip $trip = null): JsonResponse
     {
-        $cities = [];
-
-        foreach ($trip->getAccommodations() as $accommodation) {
-            $cities[] = [
-                'name' => $accommodation?->getCity(),
-                'country' => $accommodation?->getCountry(),
-                'arrivalDate' => $accommodation?->getArrivalDate(),
-                'departureDate' => $accommodation?->getDepartureDate(),
-            ];
-        }
-
-        if (empty($cities)) {
-            foreach ($trip->getDestinations() as $destination) {
-                $cities[] = [
-                    'name' => $destination->getCountry()?->getCapital(),
-                    'country' => $destination->getCountry()?->getName(),
-                    'arrivalDate' => $destination->getDepartureDate(),
-                    'departureDate' => $destination->getReturnDate(),
-                ];
-            }
-        }
+        $cities = $this->weatherService->getCities($trip);
 
         if (empty($cities)) {
             return new JsonResponse(['error' => 'Aucune destination définie pour ce voyage'], Response::HTTP_BAD_REQUEST);
         }
 
-        $weatherByDestination = [];
-
-        foreach ($cities as $city) {
-            if (!$city['name']) continue;
-
-            $weatherData = $this->weatherService->getWeatherForTrip(
-                $city['name'],
-                $city['country'],
-                $city['arrivalDate'] ?: $trip->getDepartureDate(),
-                $city['departureDate'] ?: $trip->getReturnDate()
-            );
-
-            if ($weatherData) {
-                $weatherByDestination[] = [
-                    'destination' => [
-                        'country' => $city['country'],
-                        'city' => $city['name'],
-                        'arrivalDate' => $city['arrivalDate']?->format('Y-m-d') ?: $trip->getDepartureDate()?->format('Y-m-d'),
-                        'departureDate' => $city['departureDate']?->format('Y-m-d') ?: $trip->getReturnDate()?->format('Y-m-d'),
-                    ],
-                    'weather' => $weatherData
-                ];
-            }
-        }
+        $weatherByDestination = $this->weatherService->getWeatherByDestinations($cities, $trip);
 
         if (empty($weatherByDestination)) {
             return new JsonResponse(['message' => 'Données météo non disponibles'], Response::HTTP_NOT_FOUND);

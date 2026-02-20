@@ -74,6 +74,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $avatar = null;
 
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $banner = null;
+
     #[ORM\OneToMany(targetEntity: UserBadges::class, mappedBy: 'user', orphanRemoval: true)]
     #[ORM\OrderBy(['id' => 'DESC'])]
     #[Ignore]
@@ -390,6 +393,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setAvatar(?string $avatar): static
     {
         $this->avatar = $avatar;
+
+        return $this;
+    }
+
+    public function getBanner(): ?string
+    {
+        return $this->banner;
+    }
+
+    public function setBanner(?string $banner): static
+    {
+        $this->banner = $banner;
 
         return $this;
     }

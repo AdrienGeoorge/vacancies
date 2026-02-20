@@ -6,6 +6,7 @@
 parameters:
     upload_directory: '%env(UPLOAD_DIRECTORY)%'
     avatar_directory: '%env(AVATAR_DIRECTORY)%'
+    banner_directory: '%env(BANNER_DIRECTORY)%'
     bag_directory: '%env(BAG_DIRECTORY)%'
     exchangerate_api_key: '%env(EXCHANGERATE_API_KEY)%'
     exchangerate_api_url: 'https://api.exchangeratesapi.io/v1'

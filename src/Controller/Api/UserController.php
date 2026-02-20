@@ -120,6 +120,55 @@ class UserController extends AbstractController
         }
     }
 
+    #[Route('/settings/banner', name: 'update_banner', options: ['expose' => true], methods: ['POST'])]
+    public function updateBanner(Request $request, JWTTokenManagerInterface $jwtManager): JsonResponse
+    {
+        if (!$this->getUser()) return new JsonResponse([], Response::HTTP_UNAUTHORIZED);
+
+        $banner = $request->files->get('banner');
+        if (!$banner) {
+            return new JsonResponse(['message' => 'Vous devez ajouter une bannière.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        if ($banner->getSize() > 4 * 1024 * 1024) {
+            return new JsonResponse(['message' => 'La bannière doit faire au maximum 2MB.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        if (!in_array($banner->getMimeType(), ['image/png', 'image/jpeg', 'image/gif'])) {
+            return new JsonResponse(['message' => 'La bannière doit être au format JPG, GIF ou PNG.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        /** @var User $user */
+        $user = $this->getUser();
+
+        try {
+            $directory = $this->getParameter('banner_directory');
+            $fileName = $this->uploaderService->upload($banner, null, $directory);
+            $user->setBanner($directory . '/' . $fileName);
+
+            $this->managerRegistry->getManager()->persist($user);
+            $this->managerRegistry->getManager()->flush();
+
+            $token = $jwtManager->create($user);
+
+            return new JsonResponse([
+                'token' => $token,
+                'user' => [
+                    'id' => $user->getId(),
+                    'email' => $user->getEmail(),
+                    'firstname' => $user->getFirstname(),
+                    'lastname' => $user->getLastname(),
+                    'completeName' => $user->getCompleteName(),
+                    'username' => $user->getUsername(),
+                    'avatar' => $user->getAvatar(),
+                    'biography' => $user->getBiography()
+                ]
+            ], Response::HTTP_CREATED);
+        } catch (\Exception $e) {
+            return $this->json(['message' => 'Une erreur est survenue lors du changement de la bannière.'], Response::HTTP_BAD_REQUEST);
+        }
+    }
+
     #[Route('/settings/personal-data', name: 'update_personal_data', options: ['expose' => true], methods: ['POST'])]
     public function updatePersonalData(Request $request, JWTTokenManagerInterface $jwtManager): JsonResponse
     {

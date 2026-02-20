@@ -334,7 +334,7 @@ class TripController extends AbstractController
             $this->managerRegistry->getManager()->persist($trip);
             $this->managerRegistry->getManager()->flush();
 
-            return $this->json([]);
+            return $this->json($trip->getBlocNotes());
         } catch (\Exception) {
             return $this->json(['message' => 'Une erreur est survenue lors de la sauvegarde des notes.x'], Response::HTTP_BAD_REQUEST);
         }

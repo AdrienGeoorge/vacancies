@@ -18,14 +18,24 @@ class TokenService
     protected string $appSecret;
     protected string $domain;
     protected string $fromMail;
+    protected string $appName;
 
-    public function __construct(ManagerRegistry $managerRegistry, MailerInterface $mailer, string $appSecret, string $domain, string $fromMail, ?string $token_value = null)
+    public function __construct(
+        ManagerRegistry $managerRegistry,
+        MailerInterface $mailer,
+        string          $appSecret,
+        string          $domain,
+        string          $fromMail,
+        string          $appName,
+        ?string         $token_value = null
+    )
     {
         $this->appSecret = $appSecret;
         $this->managerRegistry = $managerRegistry;
         $this->mailer = $mailer;
         $this->domain = $domain;
         $this->fromMail = $fromMail;
+        $this->appName = $appName;
 
         try {
             $this->token = bin2hex(random_bytes(16));
@@ -55,7 +65,7 @@ class TokenService
         $email = (new TemplatedEmail())
             ->from($this->fromMail)
             ->to($user->getEmail())
-            ->subject('TripLaning : réinitialisation de votre mot de passe')
+            ->subject($this->appName . ' : réinitialisation de votre mot de passe')
             ->htmlTemplate('password-claim/mail.html.twig')
             ->context(['url' => $this->domain . '/password/reset/' . $hash]);
 

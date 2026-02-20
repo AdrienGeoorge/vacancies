@@ -24,13 +24,21 @@ class TripService
     private ManagerRegistry $managerRegistry;
     protected string $domain;
     protected string $fromMail;
+    protected string $appName;
 
-    public function __construct(MailerInterface $mailer, ManagerRegistry $managerRegistry, string $domain, string $fromMail)
+    public function __construct(
+        MailerInterface $mailer,
+        ManagerRegistry $managerRegistry,
+        string          $domain,
+        string          $fromMail,
+        string          $appName
+    )
     {
         $this->mailer = $mailer;
         $this->managerRegistry = $managerRegistry;
         $this->domain = $domain;
         $this->fromMail = $fromMail;
+        $this->appName = $appName;
     }
 
     /**
@@ -584,7 +592,7 @@ class TripService
             $email = (new TemplatedEmail())
                 ->from($this->fromMail)
                 ->to($userToShareWith ? $userToShareWith->getEmail() : $mail)
-                ->subject('TripLaning : invitation à rejoindre un voyage')
+                ->subject($this->appName . ' : invitation à rejoindre un voyage')
                 ->htmlTemplate('trip/share-mail.html.twig')
                 ->context(['url' => $url, 'invitedBy' => $invitedBy, 'trip' => $trip]);
 
@@ -627,7 +635,8 @@ class TripService
         return $destinations;
     }
 
-    public function formateDestinationsForString(array $destinations) {
+    public function formateDestinationsForString(array $destinations)
+    {
         if (count($destinations) === 1) {
             return $destinations[0]['country']['name'];
         } elseif (count($destinations) === 2) {

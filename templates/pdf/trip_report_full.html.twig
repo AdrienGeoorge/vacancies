@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>{{ trip.name }} - Vacancies</title>
+    <title>{{ trip.name }} - {{ app_name }}</title>
     <style>
         * {
             margin: 0;
@@ -300,8 +300,8 @@
 <body>
 <div class="page-footer">
     <div class="logo-container">
-        <img src="{{ logoPath }}" alt="Vacancies" class="logo">
-        <span class="app-name">Vacancies</span>
+        <img src="{{ logoPath }}" alt="{{ app_name }}" class="logo">
+        <span class="app-name">{{ app_name }}</span>
     </div>
     <span class="generate-date">Généré le {{ generatedAt|date('d/m/Y à H:i') }}</span>
 </div>

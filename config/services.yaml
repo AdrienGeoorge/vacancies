@@ -18,6 +18,7 @@ services:
             $appSecret: '%env(APP_SECRET)%'
             $domain: '%env(DOMAIN)%'
             $fromMail: '%env(FROM_MAIL)%'
+            $appName: '%env(APP_NAME)%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
@@ -49,6 +50,7 @@ services:
     App\Service\TokenService:
       arguments:
         $fromMail: '%env(FROM_MAIL)%'
+        $appName: '%env(APP_NAME)%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

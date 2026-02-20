@@ -6,6 +6,7 @@ use App\Entity\Country;
 use App\Entity\Trip;
 use App\Entity\User;
 use App\Entity\UserBadges;
+use App\Service\FileUploaderService;
 use App\Service\TripService;
 use Doctrine\Persistence\ManagerRegistry;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
@@ -21,11 +22,13 @@ class UserController extends AbstractController
 {
     private ManagerRegistry $managerRegistry;
     private TripService $tripService;
+    private FileUploaderService $uploaderService;
 
-    public function __construct(ManagerRegistry $managerRegistry, TripService $tripService)
+    public function __construct(ManagerRegistry $managerRegistry, TripService $tripService, FileUploaderService $uploaderService)
     {
         $this->managerRegistry = $managerRegistry;
         $this->tripService = $tripService;
+        $this->uploaderService = $uploaderService;
     }
 
     #[Route('/profile/{username}', name: 'profile_for_user')]
@@ -62,6 +65,58 @@ class UserController extends AbstractController
             ]);
         } else {
             return $this->json([], Response::HTTP_NOT_FOUND);
+        }
+    }
+
+    /**
+     * @throws \Exception
+     */
+    #[Route('/settings/avatar', name: 'update_avatar', options: ['expose' => true], methods: ['POST'])]
+    public function updateAvatar(Request $request, JWTTokenManagerInterface $jwtManager): JsonResponse
+    {
+        if (!$this->getUser()) return new JsonResponse([], Response::HTTP_UNAUTHORIZED);
+
+        $avatar = $request->files->get('avatar');
+        if (!$avatar) {
+            return new JsonResponse(['message' => 'Vous devez ajouter une photo de profil.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        if ($avatar->getSize() > 1024 * 1024) {
+            return new JsonResponse(['message' => 'La photo de profil doit faire au maximum 1MB.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        if (!in_array($avatar->getMimeType(), ['image/png', 'image/jpeg', 'image/gif'])) {
+            return new JsonResponse(['message' => 'La photo de profil doit être au format JPG, GIF ou PNG.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        /** @var User $user */
+        $user = $this->getUser();
+
+        try {
+            $directory = $this->getParameter('avatar_directory');
+            $fileName = $this->uploaderService->upload($avatar, null, $directory);
+            $user->setAvatar($directory . '/' . $fileName);
+
+            $this->managerRegistry->getManager()->persist($user);
+            $this->managerRegistry->getManager()->flush();
+
+            $token = $jwtManager->create($user);
+
+            return new JsonResponse([
+                'token' => $token,
+                'user' => [
+                    'id' => $user->getId(),
+                    'email' => $user->getEmail(),
+                    'firstname' => $user->getFirstname(),
+                    'lastname' => $user->getLastname(),
+                    'completeName' => $user->getCompleteName(),
+                    'username' => $user->getUsername(),
+                    'avatar' => $user->getAvatar(),
+                    'biography' => $user->getBiography()
+                ]
+            ], Response::HTTP_CREATED);
+        } catch (\Exception $e) {
+            return $this->json(['message' => 'Une erreur est survenue lors du changement de la photo de profil.'], Response::HTTP_BAD_REQUEST);
         }
     }
 

@@ -91,7 +91,7 @@ class WeatherService
 
             $daysUntilDeparture = (new \DateTime())->diff($departureDate)->days;
 
-            if ($daysUntilDeparture < 15) {
+            if ($daysUntilDeparture < 4) {
                 // Prévisions réelles
                 return $this->getRealForecast($cityName, $returnDate);
             } else {
@@ -109,14 +109,14 @@ class WeatherService
     }
 
     /**
-     * Prévisions réelles (< 15 jours)
+     * Prévisions réelles (< 4 jours)
      */
     private function getRealForecast(
         string    $cityName,
         \DateTime $returnDate
     ): array
     {
-        $daysToFetch = min(14, (new \DateTime())->diff($returnDate)->days + 1);
+        $daysToFetch = min(3, (new \DateTime())->diff($returnDate)->days + 1);
 
         $response = $this->httpClient->request('GET', self::API_BASE_URL . '/forecast.json', [
             'query' => [
@@ -195,6 +195,7 @@ class WeatherService
                 ),
                 'main_condition' => '',
                 'is_forecast' => false,
+                'source' => $data['source']
             ];
         }
 

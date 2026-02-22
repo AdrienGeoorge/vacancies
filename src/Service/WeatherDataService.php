@@ -24,11 +24,13 @@ class WeatherDataService
      * Stratégie intelligente :
      * 1. Chercher en BDD (capitales + villes déjà cherchées)
      * 2. Si absent : Open-Meteo + sauvegarde automatique en BDD
+     * @throws \Exception
      */
     public function getWeatherForCity(string $city, ?string $country, int $month): array
     {
         // Chercher en BDD
         $climateData = $this->climateRepo->findByCityAndMonth($city, $month, $country);
+        $needsUpdate = null;
 
         if ($climateData) {
             $this->logger->info("Météo trouvée en BDD", [
@@ -38,19 +40,27 @@ class WeatherDataService
                 'source' => $climateData->getSource()
             ]);
 
-            return $climateData->toArray();
+            $daysSinceUpdate = (new \DateTime())->diff($climateData->getLastUpdated())->days;
+
+            // Si > 5 ans (1825 jours), mettre à jour
+            if ($daysSinceUpdate > 1825) {
+                $this->logger->info("Données météo pour {$city} périmée (sauvegardé il y a {$daysSinceUpdate} jours), mise à jour...");
+                $needsUpdate = $climateData;
+            } else {
+                return $climateData->toArray();
+            }
         }
 
         // Pas en BDD : appeler Open-Meteo et sauvegarder
-        $this->logger->info("Météo non trouvée, appel Open-Meteo", [
+        $this->logger->info("Météo non trouvée ou périmée, appel Open-Meteo", [
             'city' => $city,
             'country' => $country
         ]);
 
-        return $this->fetchAndStoreFromOpenMeteo($city, $country, $month);
+        return $this->fetchAndStoreFromOpenMeteo($city, $country, $month, $needsUpdate);
     }
 
-    private function fetchAndStoreFromOpenMeteo(string $city, ?string $country, int $month): array
+    private function fetchAndStoreFromOpenMeteo(string $city, ?string $country, int $month, ?ClimateData $needsUpdate): array
     {
         try {
             // Étape 1 : Géocoder la ville
@@ -61,16 +71,27 @@ class WeatherDataService
                 return ['error' => true, 'message' => 'Ville introuvable'];
             }
 
-            // Étape 2 : Vérifier si une ville proche existe déjà en BDD
-            $nearbyCity = $this->climateRepo->findNearbyCity($coords['lat'], $coords['lon'], $month, 50);
+            if (null === $needsUpdate) {
+                // Étape 2 : Vérifier si une ville proche existe déjà en BDD si pas en UPDATE
+                $nearbyCity = $this->climateRepo->findNearbyCity($coords['lat'], $coords['lon'], $month, 50);
 
-            if ($nearbyCity) {
-                $this->logger->info("Ville proche trouvée en BDD", [
-                    'searched' => $city,
-                    'found' => $nearbyCity->getCity(),
-                    'distance' => '< 50km'
-                ]);
-                return $nearbyCity->toArray();
+                if ($nearbyCity) {
+                    $this->logger->info("Ville proche trouvée en BDD", [
+                        'searched' => $city,
+                        'found' => $nearbyCity->getCity(),
+                        'distance' => '< 50km'
+                    ]);
+
+                    $lastUpdated = new \DateTime($nearbyCity->getLastUpdated());
+                    $daysSinceUpdate = (new \DateTime())->diff($lastUpdated)->days;
+
+                    // Si > 5 ans (1825 jours), mettre à jour
+                    if ($daysSinceUpdate > 1825) {
+                        $this->logger->info("Données météo pour {$city} périmée (sauvegardé il y a {$daysSinceUpdate} jours), mise à jour...");
+                    } else {
+                        return $nearbyCity->toArray();
+                    }
+                }
             }
 
             // Étape 3 : Récupérer les données climatiques depuis Open-Meteo
@@ -81,7 +102,7 @@ class WeatherDataService
             }
 
             // Étape 4 : Sauvegarder en BDD pour les prochaines fois
-            $this->saveClimateData($city, $country, $month, $weatherData, $coords);
+            $this->saveClimateData($city, $country, $month, $weatherData, $coords, $needsUpdate);
 
             $this->logger->info("💾 Données Open-Meteo sauvegardées en BDD", [
                 'city' => $city,
@@ -202,14 +223,20 @@ class WeatherDataService
     }
 
     private function saveClimateData(
-        string  $city,
-        ?string $country,
-        int     $month,
-        array   $weatherData,
-        array   $coords
+        string       $city,
+        ?string      $country,
+        int          $month,
+        array        $weatherData,
+        array        $coords,
+        ?ClimateData $needsUpdate
     ): void
     {
-        $climateData = new ClimateData();
+        if ($needsUpdate !== null) {
+            $climateData = $needsUpdate;
+        } else {
+            $climateData = new ClimateData();
+        }
+
         $climateData->setCity($city);
         $climateData->setCountry($country);
         $climateData->setMonth($month);

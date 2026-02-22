@@ -121,7 +121,7 @@ class WeatherDataService
         }
     }
 
-    private function geocodeCity(string $city, ?string $country): ?array
+    public function geocodeCity(string $city, ?string $country): ?array
     {
         try {
             $query = $city . ($country ? ", $country" : "");

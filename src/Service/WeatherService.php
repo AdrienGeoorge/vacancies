@@ -8,7 +8,7 @@ use Psr\Log\LoggerInterface;
 
 class WeatherService
 {
-    private const API_BASE_URL = 'https://api.weatherapi.com/v1';
+    private const API_BASE_URL = 'https://api.openweathermap.org/data/2.5/forecast';
 
     public function __construct(
         private readonly HttpClientInterface $httpClient,
@@ -91,7 +91,7 @@ class WeatherService
 
             $daysUntilDeparture = (new \DateTime())->diff($departureDate)->days;
 
-            if ($daysUntilDeparture < 4) {
+            if ($daysUntilDeparture <= 5) {
                 // Prévisions réelles, avec fallback sur les moyennes historiques
                 try {
                     $forecast = $this->getRealForecast($cityName, $returnDate);
@@ -106,7 +106,6 @@ class WeatherService
                 }
             }
 
-            // Moyennes historiques
             return $this->getHistoricalAverages($cityName, $country, $departureDate, $returnDate);
         } catch (\Exception $e) {
             $this->logger->error('Erreur WeatherService', [
@@ -118,30 +117,35 @@ class WeatherService
     }
 
     /**
-     * Prévisions réelles (< 4 jours)
+     * Prévisions réelles J+5 via OpenWeatherMap (créneaux 3h)
+     * @throws \Exception
      */
     private function getRealForecast(
         string    $cityName,
         \DateTime $returnDate
     ): array
     {
-        $daysToFetch = min(3, (new \DateTime())->diff($returnDate)->days + 1);
+        $daysToFetch = min(5, (new \DateTime())->diff($returnDate)->days + 1);
+        $cnt = $daysToFetch * 8; // 8 créneaux de 3h par jour
 
-        $response = $this->httpClient->request('GET', self::API_BASE_URL . '/forecast.json', [
+        $response = $this->httpClient->request('GET', self::API_BASE_URL, [
             'query' => [
-                'key' => $this->weatherApiKey,
+                'appid' => $this->weatherApiKey,
                 'q' => $cityName,
-                'days' => $daysToFetch,
+                'cnt' => $cnt,
+                'units' => 'metric',
                 'lang' => 'fr',
             ],
         ]);
 
         $data = $response->toArray();
-        $forecastDays = $data['forecast']['forecastday'];
 
-        return $this->analyzeWeatherData($forecastDays);
+        return $this->analyzeWeatherData($data['list'] ?? [], $returnDate, $data['city'] ?? []);
     }
 
+    /**
+     * @throws \Exception
+     */
     private function getHistoricalAverages(
         string     $cityName,
         ?string    $country,
@@ -251,40 +255,72 @@ class WeatherService
     }
 
     /**
-     * Analyse les données météo prévisionnelles
+     * Analyse les données météo prévisionnelles OpenWeatherMap (créneaux 3h)
+     * @throws \Exception
      */
-    private function analyzeWeatherData(array $days): array
+    private function analyzeWeatherData(array $intervals, \DateTime $returnDate, array $city = []): array
     {
         $weatherData = [
             'forecast' => true,
             'days' => [],
         ];
 
-        foreach ($days as $day) {
-            $weatherData['days'][$day['date']] = [
+        // Grouper les créneaux par date
+        $byDay = [];
+        foreach ($intervals as $interval) {
+            $date = substr($interval['dt_txt'], 0, 10);
+            $byDay[$date][] = $interval;
+        }
+
+        foreach ($byDay as $date => $dayIntervals) {
+            if ((new \DateTime($date))->diff($returnDate)->days < 0) continue;
+
+            $tempsMin = array_map(fn($i) => $i['main']['temp_min'], $dayIntervals);
+            $tempsMax = array_map(fn($i) => $i['main']['temp_max'], $dayIntervals);
+            $humidities = array_map(fn($i) => $i['main']['humidity'], $dayIntervals);
+            $windSpeeds = array_map(fn($i) => $i['wind']['speed'] ?? 0, $dayIntervals);
+            $precipMm = array_sum(array_map(fn($i) => $i['rain']['3h'] ?? 0, $dayIntervals));
+            $snowCm = array_sum(array_map(fn($i) => ($i['snow']['3h'] ?? 0) / 10, $dayIntervals));
+
+            $visibilityValues = array_filter(array_map(fn($i) => $i['visibility'] ?? null, $dayIntervals));
+            $minVisibility = !empty($visibilityValues) ? (int)min($visibilityValues) : null;
+
+            $noonInterval = $this->getNoonInterval($dayIntervals);
+            $condition = $noonInterval['weather'][0] ?? [];
+
+            $tempMin = (int)round(min($tempsMin));
+            $tempMax = (int)round(max($tempsMax));
+            $humidity = (int)round(array_sum($humidities) / count($humidities));
+
+            $weatherData['days'][$date] = [
                 'temperature' => [
-                    'min' => $day['day']['mintemp_c'],
-                    'max' => $day['day']['maxtemp_c'],
+                    'min' => $tempMin,
+                    'max' => $tempMax,
                 ],
-                'wind' => $day['day']['maxwind_kph'],
-                'precipitation' => $day['day']['totalprecip_mm'],
-                'snow' => $day['day']['totalsnow_cm'],
-                'humidity' => $day['day']['avghumidity'],
-                'uv' => round($day['day']['uv'], 0, PHP_ROUND_HALF_UP),
-                'daylight' => round($this->calculateDaylight($day), 1),
+                'visibility' => $minVisibility,  // pire de la journée
+                'wind' => round(max($windSpeeds) * 3.6, 1), // m/s → km/h
+                'precipitation' => round($precipMm, 1),
+                'snow' => round($snowCm, 1),
+                'humidity' => $humidity,
+                'daylight' => round($this->calculateDaylightFromCity($city, $date), 1),
                 'condition' => [
-                    'text' => $day['day']['condition']['text'],
-                    'icon' => $day['day']['condition']['icon'],
+                    'text' => $condition['description'] ?? '',
+                    'icon' => isset($condition['icon'])
+                        ? 'https://openweathermap.org/img/wn/' . $condition['icon'] . '@2x.png'
+                        : '',
                 ],
                 'advice' => $this->generateAdvice(
-                    $day['day']['mintemp_c'],
-                    $day['day']['maxtemp_c'],
-                    $day['day']['totalprecip_mm'] > 0,
-                    $day['day']['totalprecip_mm'],
-                    $day['day']['avghumidity'],
-                    $day['day']['condition']['text'],
-                    true
-                )
+                    $tempMin,
+                    $tempMax,
+                    0,
+                    round($precipMm, 1),
+                    $humidity,
+                    $condition['description'] ?? '',
+                    true,
+                    round(max($windSpeeds) * 3.6, 1),
+                    $snowCm,
+                    $minVisibility
+                ),
             ];
         }
 
@@ -292,27 +328,40 @@ class WeatherService
     }
 
     /**
-     * Calcule les heures de jour (lever/coucher du soleil)
+     * Retourne le créneau le plus proche de midi pour représenter la journée
      */
-    private function calculateDaylight(array $day): float
+    private function getNoonInterval(array $intervals): array
     {
-        // Si l'API fournit les données astro (lever/coucher de soleil)
-        if (isset($day['astro']['sunrise']) && isset($day['astro']['sunset'])) {
-            $sunrise = $day['astro']['sunrise'];
-            $sunset = $day['astro']['sunset'];
+        $best = null;
+        $minDiff = PHP_INT_MAX;
 
-            $sunriseTime = \DateTime::createFromFormat('h:i A', $sunrise);
-            $sunsetTime = \DateTime::createFromFormat('h:i A', $sunset);
-
-            if ($sunriseTime && $sunsetTime) {
-                $diff = $sunsetTime->diff($sunriseTime);
-                return $diff->h + ($diff->i / 60);
+        foreach ($intervals as $interval) {
+            $hour = (int)substr($interval['dt_txt'], 11, 2);
+            $diff = abs($hour - 12);
+            if ($diff < $minDiff) {
+                $minDiff = $diff;
+                $best = $interval;
             }
         }
 
-        // Fallback : utiliser le mois pour estimer
-        $month = (int)date('n');
-        return $this->getFallbackDaylightHours($month);
+        return $best ?? $intervals[0];
+    }
+
+    /**
+     * Calcule les heures de jour depuis les données city OWM (timestamps Unix)
+     * @throws \Exception
+     */
+    private function calculateDaylightFromCity(array $city, string $date): float
+    {
+        if (isset($city['sunrise'], $city['sunset'])) {
+            $sunrise = new \DateTime('@' . $city['sunrise']);
+            $sunset = new \DateTime('@' . $city['sunset']);
+            $diff = $sunset->diff($sunrise);
+
+            return $diff->h + ($diff->i / 60);
+        }
+
+        return $this->getFallbackDaylightHours((int)date('n', strtotime($date)));
     }
 
     /**
@@ -329,18 +378,6 @@ class WeatherService
         return $daylightByMonth[$month] ?? 12.0;
     }
 
-    /**
-     * Trouve l'élément le plus fréquent dans un tableau
-     */
-    private function getMostFrequent(array $items): string
-    {
-        if (empty($items)) return '';
-
-        $counts = array_count_values($items);
-        arsort($counts);
-        return array_key_first($counts);
-    }
-
     private function generateAdvice(
         int    $tempMin,
         int    $tempMax,
@@ -348,64 +385,115 @@ class WeatherService
         float  $totalPrecipMm,
         int    $avgHumidity,
         string $condition,
-        bool   $isForecast = false
+        bool   $isForecast = false,
+        ?float $windKph = null,
+        ?float $snowCm = null,
+        ?int   $visibilityM = null
     ): string
     {
         $advices = [];
+        $condLower = mb_strtolower($condition);
 
         if ($tempMax > 35) {
-            $advices[] = "chaleur intense attendue : une hydratation régulière est indispensable";
-            $advices[] = "prévoir des vêtements très légers et amples";
+            $advices[] = "chaleur intense : hydratation régulière indispensable, protection solaire indispensable";
+            $advices[] = "vêtements très légers et amples recommandés";
         } elseif ($tempMax > 30) {
-            $advices[] = "temps très chaud : une protection solaire est nécessaire";
+            $advices[] = "temps très chaud : protection solaire nécessaire";
             $advices[] = "vêtements légers recommandés";
         } elseif ($tempMax > 25) {
             $advices[] = "temps chaud et agréable";
             if (($tempMax - $tempMin) > 10) {
-                $advices[] = "prévoir une petite couche pour les soirées";
+                $advices[] = "prévoir une couche pour les soirées";
             }
-        } elseif ($tempMax >= 15 && $tempMax <= 25 && $tempMin >= 10) {
+        } elseif ($tempMax >= 15 && $tempMin >= 10) {
             $advices[] = "températures douces et agréables";
             if (($tempMax - $tempMin) >= 8) {
-                $advices[] = "prévoir des vêtements légers pour la journée et une petite couche pour les soirées plus fraîches";
+                $advices[] = "prévoir des vêtements légers pour la journée et une couche pour les soirées plus fraîches";
             } elseif (($tempMax - $tempMin) >= 5) {
                 $advices[] = "une veste légère peut être utile en soirée";
             }
-        } elseif ($tempMin < 5 && $tempMin >= 0) {
-            $advices[] = "températures fraîches nécessitant des vêtements chauds";
+        } elseif ($tempMin >= 0) {
+            $advices[] = "températures fraîches : vêtements chauds nécessaires";
             $advices[] = "prévoir manteau, écharpe et gants";
-        } elseif ($tempMin < 0) {
-            $advices[] = "températures négatives : un équipement d'hiver est indispensable";
-            $advices[] = "vêtements thermiques, manteau chaud, bonnet et gants recommandés";
+        } else {
+            $advices[] = "températures négatives : équipement hivernal indispensable";
+            $advices[] = "vêtements thermiques, manteau chaud, écharpe, bonnet et gants recommandés";
         }
 
-        if ($rainyDays > 15) {
-            $advices[] = sprintf(
-                "nombreux jours de pluie sont à prévoir (≈%s mm sur le mois) : un parapluie ou un manteau imperméable est indispensable",
-                round($totalPrecipMm)
-            );
-        } elseif ($rainyDays >= 7) {
-            $advices[] = sprintf(
-                "plusieurs jours de pluie sont à prévoir (≈%s mm sur le mois) : un parapluie est recommandé",
-                round($totalPrecipMm)
-            );
-        } elseif ($rainyDays > 2) {
-            $advices[] = sprintf(
-                "quelques averses sont possibles (≈%s mm sur le mois)",
-                round($totalPrecipMm)
-            );
-        } elseif ($rainyDays <= 1 && $totalPrecipMm < 10 && $avgHumidity < 40) {
-            $advices[] = "climat très sec : une hydratation régulière est recommandée";
-        } elseif ($totalPrecipMm < 30 && $avgHumidity < 50) {
-            $advices[] = "climat sec";
-        } elseif ($rainyDays <= 2 && $totalPrecipMm < 20 && $avgHumidity > 70) {
-            $advices[] = "peu de précipitations attendues";
-        } elseif ($rainyDays === 0 && $totalPrecipMm < 5) {
-            $advices[] = "temps sec";
+        if ($isForecast) {
+            // Neige (prioritaire sur la pluie si les deux sont présents)
+            if ($snowCm !== null && $snowCm >= 0.5) {
+                if ($snowCm >= 10) {
+                    $advices[] = sprintf("chutes de neige importantes prévues (≈%.0f cm) : chaussures imperméables indispensables", $snowCm);
+                } elseif ($snowCm >= 2) {
+                    $advices[] = sprintf("neige attendue (≈%.0f cm) : chaussures adaptées recommandées", $snowCm);
+                } else {
+                    $advices[] = "quelques flocons possibles";
+                }
+            }
+
+            // Pluie journalière
+            if ($totalPrecipMm > 15) {
+                $advices[] = sprintf("fortes pluies prévues (≈%.0f mm) : imperméable indispensable", $totalPrecipMm);
+            } elseif ($totalPrecipMm > 5) {
+                $advices[] = sprintf("pluie prévue (≈%.0f mm) : prévoir un parapluie", $totalPrecipMm);
+            } elseif ($totalPrecipMm > 1) {
+                $advices[] = "quelques averses possibles : un parapluie est conseillé";
+            } elseif ($totalPrecipMm > 0) {
+                $advices[] = "légères précipitations possibles";
+            } elseif ($avgHumidity < 40) {
+                $advices[] = "temps sec : hydratation recommandée";
+            }
+        } else {
+            // Mode historique : logique en jours/mois
+            if ($rainyDays > 15) {
+                $advices[] = sprintf(
+                    "nombreux jours de pluie à prévoir (≈%s mm/mois) : imperméable indispensable",
+                    round($totalPrecipMm)
+                );
+            } elseif ($rainyDays >= 7) {
+                $advices[] = sprintf(
+                    "plusieurs jours de pluie (≈%s mm/mois) : prévoir un parapluie",
+                    round($totalPrecipMm)
+                );
+            } elseif ($rainyDays > 2) {
+                $advices[] = sprintf("quelques averses possibles (≈%s mm/mois)", round($totalPrecipMm));
+            } elseif ($totalPrecipMm < 10 && $avgHumidity < 40) {
+                $advices[] = "climat très sec : hydratation régulière recommandée";
+            } elseif ($totalPrecipMm < 30 && $avgHumidity < 50) {
+                $advices[] = "climat sec";
+            } elseif ($totalPrecipMm < 20 && $avgHumidity > 70) {
+                $advices[] = "peu de précipitations attendues";
+            }
         }
 
-        if ($condition && stripos($condition, 'orage') !== false) {
-            $advices[] = "risques d'orages";
+        if ($isForecast && $windKph !== null) {
+            if ($windKph >= 90) {
+                $advices[] = sprintf("vents très forts (%.0f km/h) : prudence lors des déplacements", $windKph);
+            } elseif ($windKph >= 60) {
+                $advices[] = sprintf("vent fort (%.0f km/h) : prévoir une veste coupe-vent", $windKph);
+            } elseif ($windKph >= 40) {
+                $advices[] = sprintf("vent modéré (%.0f km/h) : une veste peut être appréciée", $windKph);
+            }
+        }
+
+        if ($isForecast && $visibilityM !== null) {
+            if ($visibilityM < 200) {
+                $advices[] = sprintf("brouillard très dense (visibilité ≈%d m) : déplacements très difficiles, extrême prudence", $visibilityM);
+            } elseif ($visibilityM < 1000) {
+                $advices[] = sprintf("visibilité très réduite (≈%d m) : prudence lors des déplacements", $visibilityM);
+            } elseif ($visibilityM < 3000) {
+                $advices[] = sprintf("visibilité limitée possible (≈%.1f km)", $visibilityM / 1000);
+            }
+        } elseif (str_contains($condLower, 'brouillard') || str_contains($condLower, 'brume')) {
+            // Fallback si pas de donnée de visibilité
+            $advices[] = "brouillard prévu : vigilance lors des déplacements";
+        }
+
+        if (str_contains($condLower, 'orage')) {
+            $advices[] = "risques d'orages : éviter les zones exposées";
+        } elseif (str_contains($condLower, 'grêle')) {
+            $advices[] = "risque de grêle";
         }
 
         if (empty($advices)) {

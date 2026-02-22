@@ -92,13 +92,22 @@ class WeatherService
             $daysUntilDeparture = (new \DateTime())->diff($departureDate)->days;
 
             if ($daysUntilDeparture < 4) {
-                // Prévisions réelles
-                return $this->getRealForecast($cityName, $returnDate);
-            } else {
-                // Moyennes historiques
-                return $this->getHistoricalAverages($cityName, $country, $departureDate, $returnDate);
+                // Prévisions réelles, avec fallback sur les moyennes historiques
+                try {
+                    $forecast = $this->getRealForecast($cityName, $returnDate);
+                    if (!empty($forecast['days'])) {
+                        return $forecast;
+                    }
+                } catch (\Exception $e) {
+                    $this->logger->warning('Prévisions réelles indisponibles, fallback sur moyennes historiques', [
+                        'city' => $cityName,
+                        'error' => $e->getMessage()
+                    ]);
+                }
             }
 
+            // Moyennes historiques
+            return $this->getHistoricalAverages($cityName, $country, $departureDate, $returnDate);
         } catch (\Exception $e) {
             $this->logger->error('Erreur WeatherService', [
                 'city' => $cityName,
@@ -242,67 +251,44 @@ class WeatherService
     }
 
     /**
-     * Analyse les données météo (prévisions ou historique)
+     * Analyse les données météo prévisionnelles
      */
     private function analyzeWeatherData(array $days): array
     {
-        $temperatures = [];
-        $precipitations = [];
-        $daylightHours = [];
-        $humidities = [];
-        $conditions = [];
+        $weatherData = [
+            'forecast' => true,
+            'days' => [],
+        ];
 
         foreach ($days as $day) {
-            $dayData = $day['day'];
-
-            // Températures
-            $temperatures[] = [
-                'min' => $dayData['mintemp_c'],
-                'max' => $dayData['maxtemp_c'],
+            $weatherData['days'][$day['date']] = [
+                'temperature' => [
+                    'min' => $day['day']['mintemp_c'],
+                    'max' => $day['day']['maxtemp_c'],
+                ],
+                'wind' => $day['day']['maxwind_kph'],
+                'precipitation' => $day['day']['totalprecip_mm'],
+                'snow' => $day['day']['totalsnow_cm'],
+                'humidity' => $day['day']['avghumidity'],
+                'uv' => round($day['day']['uv'], 0, PHP_ROUND_HALF_UP),
+                'daylight' => round($this->calculateDaylight($day), 1),
+                'condition' => [
+                    'text' => $day['day']['condition']['text'],
+                    'icon' => $day['day']['condition']['icon'],
+                ],
+                'advice' => $this->generateAdvice(
+                    $day['day']['mintemp_c'],
+                    $day['day']['maxtemp_c'],
+                    $day['day']['totalprecip_mm'] > 0,
+                    $day['day']['totalprecip_mm'],
+                    $day['day']['avghumidity'],
+                    $day['day']['condition']['text'],
+                    true
+                )
             ];
-
-            $precipitations[] = $dayData['totalprecip_mm'];
-            $humidities[] = $dayData['avghumidity'];
-
-            if (isset($dayData['condition']['text'])) {
-                $conditions[] = $dayData['condition']['text'];
-            }
-
-            $daylightHours[] = $this->calculateDaylight($day);
         }
 
-        $tempMin = round(min(array_column($temperatures, 'min')));
-        $tempMax = round(max(array_column($temperatures, 'max')));
-
-        $totalPrecipMm = round(array_sum($precipitations), 1);
-        $rainyDays = count(array_filter($precipitations, fn($p) => $p > 1));
-
-        $avgDaylight = round(array_sum($daylightHours) / count($daylightHours), 1);
-        $avgHumidity = round(array_sum($humidities) / count($humidities));
-
-        $mainCondition = $this->getMostFrequent($conditions);
-
-        $advice = $this->generateAdvice(
-            $tempMin,
-            $tempMax,
-            $rainyDays,
-            $totalPrecipMm,
-            $avgHumidity,
-            $mainCondition,
-            true
-        );
-
-        return [
-            'temp_min' => $tempMin,
-            'temp_max' => $tempMax,
-            'rainfall_days' => $rainyDays,
-            'rainfall_mm' => $totalPrecipMm,
-            'daylight_hours' => $avgDaylight,
-            'humidity' => $avgHumidity,
-            'advice' => $advice,
-            'main_condition' => $mainCondition,
-            'is_forecast' => true,
-        ];
+        return $weatherData;
     }
 
     /**

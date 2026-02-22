@@ -103,8 +103,8 @@ class UserController extends AbstractController
             return new JsonResponse(['message' => 'Vous devez ajouter une photo de profil.'], Response::HTTP_BAD_REQUEST);
         }
 
-        if ($avatar->getSize() > 1024 * 1024) {
-            return new JsonResponse(['message' => 'La photo de profil doit faire au maximum 1MB.'], Response::HTTP_BAD_REQUEST);
+        if ($avatar->getSize() > 3 * 1024 * 1024) {
+            return new JsonResponse(['message' => 'La photo de profil doit faire au maximum 3MB.'], Response::HTTP_BAD_REQUEST);
         }
 
         if (!in_array($avatar->getMimeType(), ['image/png', 'image/jpeg', 'image/gif'])) {
@@ -152,8 +152,8 @@ class UserController extends AbstractController
             return new JsonResponse(['message' => 'Vous devez ajouter une bannière.'], Response::HTTP_BAD_REQUEST);
         }
 
-        if ($banner->getSize() > 4 * 1024 * 1024) {
-            return new JsonResponse(['message' => 'La bannière doit faire au maximum 2MB.'], Response::HTTP_BAD_REQUEST);
+        if ($banner->getSize() > 8 * 1024 * 1024) {
+            return new JsonResponse(['message' => 'La bannière doit faire au maximum 8MB.'], Response::HTTP_BAD_REQUEST);
         }
 
         if (!in_array($banner->getMimeType(), ['image/png', 'image/jpeg', 'image/gif'])) {

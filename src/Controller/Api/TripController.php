@@ -12,6 +12,7 @@ use App\Entity\TripTraveler;
 use App\Entity\User;
 use App\Service\FileUploaderService;
 use App\Service\TripService;
+use App\Service\WeatherService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,7 +28,8 @@ class TripController extends AbstractController
     public function __construct(
         private readonly ManagerRegistry     $managerRegistry,
         private readonly FileUploaderService $uploaderService,
-        private readonly TripService         $tripService
+        private readonly TripService         $tripService,
+        private readonly WeatherService      $weatherService
     )
     {
     }
@@ -103,6 +105,7 @@ class TripController extends AbstractController
     {
         return $this->json([
             'trip' => $trip,
+            'cities' => $this->weatherService->getCities($trip),
             'countDaysBeforeOrAfter' => $this->tripService->countDaysBeforeOrAfter($trip)
         ]);
     }
@@ -195,7 +198,7 @@ class TripController extends AbstractController
                 $newCountryIds = [];
                 foreach ($dto->destinations as $destinationData) {
                     $countryIri = $destinationData['country'] ?? '';
-                    $countryId = (int) basename($countryIri);
+                    $countryId = (int)basename($countryIri);
                     $newCountryIds[] = $countryId;
                 }
 
@@ -214,7 +217,7 @@ class TripController extends AbstractController
                 // Traiter toutes les destinations dans l'ordre
                 foreach ($dto->destinations as $index => $destinationData) {
                     $countryIri = $destinationData['country'] ?? '';
-                    $countryId = (int) basename($countryIri);
+                    $countryId = (int)basename($countryIri);
 
                     $country = $this->managerRegistry->getRepository(Country::class)->find($countryId);
                     if (!$country) {
@@ -232,8 +235,7 @@ class TripController extends AbstractController
 
                         $trip->addDestination($destination);
                         $this->managerRegistry->getManager()->persist($destination);
-                    }
-                    // Si c'est une destination existante, juste mettre à jour l'ordre
+                    } // Si c'est une destination existante, juste mettre à jour l'ordre
                     else if (isset($destinationsById[$countryId])) {
                         $destinationsById[$countryId]->setDisplayOrder($index);
                         $this->managerRegistry->getManager()->persist($destinationsById[$countryId]);
@@ -245,7 +247,7 @@ class TripController extends AbstractController
                 // Mode création
                 foreach ($dto->destinations as $destinationData) {
                     $countryIri = $destinationData['country'] ?? '';
-                    $countryId = (int) basename($countryIri);
+                    $countryId = (int)basename($countryIri);
 
                     $country = $this->managerRegistry->getRepository(Country::class)->find($countryId);
 

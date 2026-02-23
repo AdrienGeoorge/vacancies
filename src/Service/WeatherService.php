@@ -94,10 +94,11 @@ class WeatherService
             if (false === $forExport) {
                 $daysUntilDeparture = (new \DateTime())->diff($departureDate)->days;
 
-                if ($daysUntilDeparture <= 5) {
+                // On veut afficher minimum 2j de forecast, donc le départ doit être dans ≤ 3j (car OWM donne max 5j)
+                if ($daysUntilDeparture <= 3) {
                     // Prévisions réelles, avec fallback sur les moyennes historiques
                     try {
-                        $forecast = $this->getRealForecast($cityName, $country, $returnDate);
+                        $forecast = $this->getRealForecast($cityName, $country, $departureDate, $returnDate);
                         if (!empty($forecast['days'])) {
                             return $forecast;
                         }
@@ -127,6 +128,7 @@ class WeatherService
     private function getRealForecast(
         string    $cityName,
         string    $country,
+        \DateTime $departureDate,
         \DateTime $returnDate
     ): array
     {
@@ -155,7 +157,7 @@ class WeatherService
 
         $airPollution = $this->fetchAirPollutionForecast($coords['lat'], $coords['lon']);
 
-        return $this->analyzeWeatherData($data['list'] ?? [], $returnDate, $data['city'] ?? [], $airPollution);
+        return $this->analyzeWeatherData($data['list'] ?? [], $departureDate, $returnDate, $data['city'] ?? [], $airPollution);
     }
 
     /**
@@ -300,12 +302,15 @@ class WeatherService
      * Analyse les données météo prévisionnelles OpenWeatherMap (créneaux 3h)
      * @throws \Exception
      */
-    private function analyzeWeatherData(array $intervals, \DateTime $returnDate, array $city = [], array $airPollution = []): array
+    private function analyzeWeatherData(array $intervals, \DateTime $departureDate, \DateTime $returnDate, array $city = [], array $airPollution = []): array
     {
         $weatherData = [
             'forecast' => true,
             'days' => [],
         ];
+
+        $departureDateStr = $departureDate->format('Y-m-d');
+        $returnDateStr = $returnDate->format('Y-m-d');
 
         // Grouper les créneaux par date
         $byDay = [];
@@ -315,7 +320,8 @@ class WeatherService
         }
 
         foreach ($byDay as $date => $dayIntervals) {
-            if ((new \DateTime($date))->diff($returnDate)->days < 0) continue;
+            // Exclure les jours avant la date de départ et après la date de retour
+            if ($date < $departureDateStr || $date > $returnDateStr) continue;
 
             $tempsMin = array_map(fn($i) => $i['main']['temp_min'], $dayIntervals);
             $tempsMax = array_map(fn($i) => $i['main']['temp_max'], $dayIntervals);

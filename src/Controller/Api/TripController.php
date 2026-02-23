@@ -267,6 +267,12 @@ class TripController extends AbstractController
                 }
             }
 
+            if ($trip->getDestinations()->count() === 1 && $trip->getDepartureDate() && $trip->getReturnDate()) {
+                $trip->getDestinations()->first()
+                    ->setDepartureDate($trip->getDepartureDate())
+                    ->setReturnDate($trip->getReturnDate());
+            }
+
             if ($trip->getTripTravelers()->count() === 0) {
                 $traveler = (new TripTraveler())
                     ->setName($this->getUser()->getFirstname() . ' ' . $this->getUser()->getLastname())

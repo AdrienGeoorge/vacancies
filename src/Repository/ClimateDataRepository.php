@@ -14,6 +14,20 @@ class ClimateDataRepository extends ServiceEntityRepository
         parent::__construct($registry, ClimateData::class);
     }
 
+    public function findCoordsByCity(string $city, string $country = null): ?ClimateData
+    {
+        $qb = $this->createQueryBuilder('c')
+            ->where('c.city = :city')
+            ->andWhere('c.country = :country')
+            ->andWhere('c.latitude IS NOT NULL')
+            ->andWhere('c.longitude IS NOT NULL')
+            ->setParameter('city', $city)
+            ->setParameter('country', $country)
+            ->setMaxResults(1);
+
+        return $qb->getQuery()->getOneOrNullResult();
+    }
+
     public function findByCityAndMonth(string $city, int $month, ?string $country = null): ?ClimateData
     {
         $qb = $this->createQueryBuilder('c')

@@ -8,7 +8,7 @@ use Psr\Log\LoggerInterface;
 
 class WeatherService
 {
-    private const API_BASE_URL = 'https://api.openweathermap.org/data/2.5/forecast';
+    private const API_BASE_URL = 'https://api.openweathermap.org/data/2.5';
 
     public function __construct(
         private readonly HttpClientInterface $httpClient,
@@ -46,7 +46,7 @@ class WeatherService
         return $cities;
     }
 
-    public function getWeatherByDestinations(array $cities, Trip $trip): array
+    public function getWeatherByDestinations(array $cities, Trip $trip, bool $forExport = false): array
     {
         $weatherByDestination = [];
 
@@ -57,7 +57,8 @@ class WeatherService
                 $city['name'],
                 $city['country'],
                 $city['arrivalDate'] ?: $trip->getDepartureDate(),
-                $city['departureDate'] ?: $trip->getReturnDate()
+                $city['departureDate'] ?: $trip->getReturnDate(),
+                $forExport
             );
 
             if ($weatherData) {
@@ -83,26 +84,29 @@ class WeatherService
         string     $cityName,
         ?string    $country,
         ?\DateTime $departureDate,
-        ?\DateTime $returnDate
+        ?\DateTime $returnDate,
+        bool       $forExport = false
     ): ?array
     {
         try {
             if (!$departureDate) return null;
 
-            $daysUntilDeparture = (new \DateTime())->diff($departureDate)->days;
+            if (false === $forExport) {
+                $daysUntilDeparture = (new \DateTime())->diff($departureDate)->days;
 
-            if ($daysUntilDeparture <= 5) {
-                // Prévisions réelles, avec fallback sur les moyennes historiques
-                try {
-                    $forecast = $this->getRealForecast($cityName, $returnDate);
-                    if (!empty($forecast['days'])) {
-                        return $forecast;
+                if ($daysUntilDeparture <= 5) {
+                    // Prévisions réelles, avec fallback sur les moyennes historiques
+                    try {
+                        $forecast = $this->getRealForecast($cityName, $country, $returnDate);
+                        if (!empty($forecast['days'])) {
+                            return $forecast;
+                        }
+                    } catch (\Exception $e) {
+                        $this->logger->warning('Prévisions réelles indisponibles, fallback sur moyennes historiques', [
+                            'city' => $cityName,
+                            'error' => $e->getMessage()
+                        ]);
                     }
-                } catch (\Exception $e) {
-                    $this->logger->warning('Prévisions réelles indisponibles, fallback sur moyennes historiques', [
-                        'city' => $cityName,
-                        'error' => $e->getMessage()
-                    ]);
                 }
             }
 
@@ -122,16 +126,25 @@ class WeatherService
      */
     private function getRealForecast(
         string    $cityName,
+        string    $country,
         \DateTime $returnDate
     ): array
     {
         $daysToFetch = min(5, (new \DateTime())->diff($returnDate)->days + 1);
         $cnt = $daysToFetch * 8; // 8 créneaux de 3h par jour
 
-        $response = $this->httpClient->request('GET', self::API_BASE_URL, [
+        $coords = $this->weatherDataService->getCoordsForCity($cityName, $country);
+
+        if (!$coords) {
+            $this->logger->warning("Géocodage échoué", ['city' => $cityName, 'country' => $country]);
+            return ['error' => true, 'message' => 'Ville introuvable'];
+        }
+
+        $response = $this->httpClient->request('GET', self::API_BASE_URL . '/forecast', [
             'query' => [
                 'appid' => $this->weatherApiKey,
-                'q' => $cityName,
+                'lat' => $coords['lat'],
+                'lon' => $coords['lon'],
                 'cnt' => $cnt,
                 'units' => 'metric',
                 'lang' => 'fr',
@@ -140,7 +153,36 @@ class WeatherService
 
         $data = $response->toArray();
 
-        return $this->analyzeWeatherData($data['list'] ?? [], $returnDate, $data['city'] ?? []);
+        $airPollution = $this->fetchAirPollutionForecast($coords['lat'], $coords['lon']);
+
+        return $this->analyzeWeatherData($data['list'] ?? [], $returnDate, $data['city'] ?? [], $airPollution);
+    }
+
+    /**
+     * Récupère les prévisions de qualité de l'air (AQI 1–5) par jour
+     */
+    private function fetchAirPollutionForecast(float $lat, float $lon): array
+    {
+        try {
+            $response = $this->httpClient->request('GET', self::API_BASE_URL . '/air_pollution/forecast', [
+                'query' => [
+                    'appid' => $this->weatherApiKey,
+                    'lat' => $lat,
+                    'lon' => $lon,
+                ],
+            ]);
+
+            $aqiByDay = [];
+            foreach ($response->toArray()['list'] ?? [] as $entry) {
+                $date = date('Y-m-d', $entry['dt']);
+                $aqiByDay[$date] = max($aqiByDay[$date] ?? 1, $entry['main']['aqi']);
+            }
+
+            return $aqiByDay;
+        } catch (\Exception $e) {
+            $this->logger->warning('Air Pollution API indisponible', ['error' => $e->getMessage()]);
+            return [];
+        }
     }
 
     /**
@@ -258,7 +300,7 @@ class WeatherService
      * Analyse les données météo prévisionnelles OpenWeatherMap (créneaux 3h)
      * @throws \Exception
      */
-    private function analyzeWeatherData(array $intervals, \DateTime $returnDate, array $city = []): array
+    private function analyzeWeatherData(array $intervals, \DateTime $returnDate, array $city = [], array $airPollution = []): array
     {
         $weatherData = [
             'forecast' => true,
@@ -291,6 +333,7 @@ class WeatherService
             $tempMin = (int)round(min($tempsMin));
             $tempMax = (int)round(max($tempsMax));
             $humidity = (int)round(array_sum($humidities) / count($humidities));
+            $aqi = $airPollution[$date] ?? null;
 
             $weatherData['days'][$date] = [
                 'temperature' => [
@@ -302,6 +345,7 @@ class WeatherService
                 'precipitation' => round($precipMm, 1),
                 'snow' => round($snowCm, 1),
                 'humidity' => $humidity,
+                'aqi' => $aqi, // 1=Bon 2=Correct 3=Modéré 4=Mauvais 5=Très mauvais
                 'daylight' => round($this->calculateDaylightFromCity($city, $date), 1),
                 'condition' => [
                     'text' => $condition['description'] ?? '',
@@ -319,7 +363,8 @@ class WeatherService
                     true,
                     round(max($windSpeeds) * 3.6, 1),
                     $snowCm,
-                    $minVisibility
+                    $minVisibility,
+                    $aqi
                 ),
             ];
         }
@@ -388,7 +433,8 @@ class WeatherService
         bool   $isForecast = false,
         ?float $windKph = null,
         ?float $snowCm = null,
-        ?int   $visibilityM = null
+        ?int   $visibilityM = null,
+        ?int   $aqi = null
     ): string
     {
         $advices = [];
@@ -494,6 +540,16 @@ class WeatherService
             $advices[] = "risques d'orages : éviter les zones exposées";
         } elseif (str_contains($condLower, 'grêle')) {
             $advices[] = "risque de grêle";
+        }
+
+        if ($isForecast && $aqi !== null && $aqi >= 3) {
+            if ($aqi === 5) {
+                $advices[] = "qualité de l'air très mauvaise : limiter les sorties au strict minimum, masque indispensable en extérieur";
+            } elseif ($aqi === 4) {
+                $advices[] = "qualité de l'air mauvaise : éviter les activités physiques en extérieur, masque conseillé";
+            } else {
+                $advices[] = "qualité de l'air modérée : les personnes sensibles doivent limiter les activités prolongées en extérieur";
+            }
         }
 
         if (empty($advices)) {

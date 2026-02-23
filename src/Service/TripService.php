@@ -617,17 +617,17 @@ class TripService
         return $token;
     }
 
-    public function getDestinations(Trip $trip, $hasWeather = false): array
+    public function getDestinations(Trip $trip, $forExport = false): array
     {
-        if ($hasWeather) {
+        if ($forExport) {
             $cities = $this->weatherService->getCities($trip);
-            $weatherByDestinations = $this->weatherService->getWeatherByDestinations($cities, $trip);
+            $weatherByDestinations = $this->weatherService->getWeatherByDestinations($cities, $trip, $forExport);
         }
 
         $destinations = [];
 
         foreach ($trip->getDestinations() as $destination) {
-            if ($hasWeather) {
+            if ($forExport) {
                 $getWeather = array_filter($weatherByDestinations, function ($weather) use ($destination) {
                     return $weather['destination']['country'] === $destination->getCountry()->getName();
                 });

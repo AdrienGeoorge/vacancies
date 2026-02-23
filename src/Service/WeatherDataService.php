@@ -121,6 +121,25 @@ class WeatherDataService
         }
     }
 
+    /**
+     * Retourne les coordonnées d'une ville : BDD en priorité, Nominatim en fallback
+     */
+    public function getCoordsForCity(string $city, string $country): ?array
+    {
+        $cached = $this->climateRepo->findCoordsByCity($city, $country);
+
+        if ($cached) {
+            $this->logger->info("Coordonnées trouvées en BDD, géocodage Nominatim évité", ['city' => $city]);
+            return [
+                'lat' => $cached->getLatitude(),
+                'lon' => $cached->getLongitude(),
+                'display_name' => $city,
+            ];
+        }
+
+        return $this->geocodeCity($city, $country);
+    }
+
     public function geocodeCity(string $city, ?string $country): ?array
     {
         try {

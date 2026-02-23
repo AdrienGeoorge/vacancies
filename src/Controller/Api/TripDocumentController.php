@@ -68,7 +68,6 @@ class TripDocumentController extends AbstractController
 
         $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
         $response->headers->set('Pragma', 'no-cache');
-        // Expose headers so that a frontend (e.g., Vue) can read them via fetch/axios across origins
         $response->headers->set('Access-Control-Expose-Headers', 'Content-Disposition, Content-Type, Content-Length');
 
         return $response;

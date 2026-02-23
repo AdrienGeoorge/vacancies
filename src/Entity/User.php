@@ -233,7 +233,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeTrip(Trip $trip): static
     {
         if ($this->trips->removeElement($trip)) {
-            // set the owning side to null (unless already changed)
             if ($trip->getTraveler() === $this) {
                 $trip->setTraveler(null);
             }
@@ -263,7 +262,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeShareInvitation(ShareInvitation $shareInvitation): static
     {
         if ($this->shareInvitations->removeElement($shareInvitation)) {
-            // set the owning side to null (unless already changed)
             if ($shareInvitation->getUserToShareWith() === $this) {
                 $shareInvitation->setUserToShareWith(null);
             }
@@ -339,7 +337,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeFollow(Follows $follow): static
     {
         if ($this->follows->removeElement($follow)) {
-            // set the owning side to null (unless already changed)
             if ($follow->getFollower() === $this) {
                 $follow->setFollower(null);
             }
@@ -379,7 +376,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeFollowedBy(Follows $followedBy): static
     {
         if ($this->followedBy->removeElement($followedBy)) {
-            // set the owning side to null (unless already changed)
             if ($followedBy->getFollowedBy() === $this) {
                 $followedBy->setFollowedBy(null);
             }
@@ -433,7 +429,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeUserBadge(UserBadges $userBadge): static
     {
         if ($this->userBadges->removeElement($userBadge)) {
-            // set the owning side to null (unless already changed)
             if ($userBadge->getUser() === $this) {
                 $userBadge->setUser(null);
             }
@@ -475,7 +470,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeUserNotification(UserNotifications $userNotification): static
     {
         if ($this->userNotifications->removeElement($userNotification)) {
-            // set the owning side to null (unless already changed)
             if ($userNotification->getUser() === $this) {
                 $userNotification->setUser(null);
             }

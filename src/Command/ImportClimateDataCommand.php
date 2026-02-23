@@ -70,7 +70,6 @@ class ImportClimateDataCommand extends Command
 
                 } catch (\Exception $e) {
                     if ($attempt >= $maxAttempts) {
-                        // Échec définitif après toutes les tentatives
                         $this->climateLogger->error("Échec définitif pour {$cityData['name']}: {$e->getMessage()}");
                         $io->progressAdvance();
                     } else {

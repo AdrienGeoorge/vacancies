@@ -190,7 +190,6 @@ class Trip
     public function removeAccommodation(Accommodation $accommodation): static
     {
         if ($this->accommodations->removeElement($accommodation)) {
-            // set the owning side to null (unless already changed)
             if ($accommodation->getTrip() === $this) {
                 $accommodation->setTrip(null);
             }
@@ -220,7 +219,6 @@ class Trip
     public function removeTransport(Transport $transport): static
     {
         if ($this->transports->removeElement($transport)) {
-            // set the owning side to null (unless already changed)
             if ($transport->getTrip() === $this) {
                 $transport->setTrip(null);
             }
@@ -250,7 +248,6 @@ class Trip
     public function removeActivity(Activity $activity): static
     {
         if ($this->activities->removeElement($activity)) {
-            // set the owning side to null (unless already changed)
             if ($activity->getTrip() === $this) {
                 $activity->setTrip(null);
             }
@@ -280,7 +277,6 @@ class Trip
     public function removeVariousExpensife(VariousExpensive $variousExpensife): static
     {
         if ($this->variousExpensives->removeElement($variousExpensife)) {
-            // set the owning side to null (unless already changed)
             if ($variousExpensife->getTrip() === $this) {
                 $variousExpensife->setTrip(null);
             }
@@ -310,7 +306,6 @@ class Trip
     public function removeDocument(TripDocument $document): static
     {
         if ($this->documents->removeElement($document)) {
-            // set the owning side to null (unless already changed)
             if ($document->getTrip() === $this) {
                 $document->setTrip(null);
             }
@@ -340,7 +335,6 @@ class Trip
     public function removePlanningEvent(PlanningEvent $planningEvent): static
     {
         if ($this->planningEvents->removeElement($planningEvent)) {
-            // set the owning side to null (unless already changed)
             if ($planningEvent->getTrip() === $this) {
                 $planningEvent->setTrip(null);
             }
@@ -370,7 +364,6 @@ class Trip
     public function removeShareInvitation(ShareInvitation $shareInvitation): static
     {
         if ($this->shareInvitations->removeElement($shareInvitation)) {
-            // set the owning side to null (unless already changed)
             if ($shareInvitation->getTrip() === $this) {
                 $shareInvitation->setTrip(null);
             }
@@ -400,7 +393,6 @@ class Trip
     public function removeOnSiteExpense(OnSiteExpense $onSiteExpense): static
     {
         if ($this->onSiteExpenses->removeElement($onSiteExpense)) {
-            // set the owning side to null (unless already changed)
             if ($onSiteExpense->getTrip() === $this) {
                 $onSiteExpense->setTrip(null);
             }
@@ -430,7 +422,6 @@ class Trip
     public function removeTripTraveler(TripTraveler $tripTraveler): static
     {
         if ($this->tripTravelers->removeElement($tripTraveler)) {
-            // set the owning side to null (unless already changed)
             if ($tripTraveler->getTrip() === $this) {
                 $tripTraveler->setTrip(null);
             }

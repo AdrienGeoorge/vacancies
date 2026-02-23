@@ -1,9 +1,10 @@
 <?php
-// src/Service/WeatherDataService.php
 
 namespace App\Service;
 
+use App\Entity\City;
 use App\Entity\ClimateData;
+use App\Repository\CityRepository;
 use App\Repository\ClimateDataRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
@@ -14,6 +15,7 @@ class WeatherDataService
     public function __construct(
         private readonly ManagerRegistry       $managerRegistry,
         private readonly ClimateDataRepository $climateRepo,
+        private readonly CityRepository        $cityRepo,
         private readonly HttpClientInterface   $httpClient,
         private readonly LoggerInterface       $logger
     )
@@ -63,8 +65,8 @@ class WeatherDataService
     private function fetchAndStoreFromOpenMeteo(string $city, ?string $country, int $month, ?ClimateData $needsUpdate): array
     {
         try {
-            // Étape 1 : Géocoder la ville
-            $coords = $this->geocodeCity($city, $country);
+            // Étape 1 : Récupérer les coordonnées (BDD cities en priorité, Nominatim en fallback)
+            $coords = $this->getCoordsForCity($city, $country);
 
             if (!$coords) {
                 $this->logger->warning("Géocodage échoué", ['city' => $city, 'country' => $country]);
@@ -102,7 +104,7 @@ class WeatherDataService
             }
 
             // Étape 4 : Sauvegarder en BDD pour les prochaines fois
-            $this->saveClimateData($city, $country, $month, $weatherData, $coords, $needsUpdate);
+            $this->saveClimateData($city, $country, $month, $weatherData, $needsUpdate);
 
             $this->logger->info("💾 Données Open-Meteo sauvegardées en BDD", [
                 'city' => $city,
@@ -122,11 +124,11 @@ class WeatherDataService
     }
 
     /**
-     * Retourne les coordonnées d'une ville : BDD en priorité, Nominatim en fallback
+     * Retourne les coordonnées d'une ville : table cities en priorité, Nominatim en fallback
      */
-    public function getCoordsForCity(string $city, string $country): ?array
+    public function getCoordsForCity(string $city, ?string $country): ?array
     {
-        $cached = $this->climateRepo->findCoordsByCity($city, $country);
+        $cached = $this->cityRepo->findByNameAndCountry($city, $country);
 
         if ($cached) {
             $this->logger->info("Coordonnées trouvées en BDD, géocodage Nominatim évité", ['city' => $city]);
@@ -137,7 +139,21 @@ class WeatherDataService
             ];
         }
 
-        return $this->geocodeCity($city, $country);
+        $coords = $this->geocodeCity($city, $country);
+
+        if ($coords) {
+            $cityEntity = (new City())
+                ->setName($city)
+                ->setCountry($country)
+                ->setLatitude($coords['lat'])
+                ->setLongitude($coords['lon']);
+
+            $em = $this->managerRegistry->getManager();
+            $em->persist($cityEntity);
+            $em->flush();
+        }
+
+        return $coords;
     }
 
     public function geocodeCity(string $city, ?string $country): ?array
@@ -246,15 +262,10 @@ class WeatherDataService
         ?string      $country,
         int          $month,
         array        $weatherData,
-        array        $coords,
         ?ClimateData $needsUpdate
     ): void
     {
-        if ($needsUpdate !== null) {
-            $climateData = $needsUpdate;
-        } else {
-            $climateData = new ClimateData();
-        }
+        $climateData = $needsUpdate ?? new ClimateData();
 
         $climateData->setCity($city);
         $climateData->setCountry($country);
@@ -265,8 +276,6 @@ class WeatherDataService
         $climateData->setRainyDays($weatherData['rainfall_days']);
         $climateData->setSunshineHours($weatherData['daylight_hours']);
         $climateData->setHumidityAvg($weatherData['humidity']);
-        $climateData->setLatitude($coords['lat']);
-        $climateData->setLongitude($coords['lon']);
         $climateData->setSource('OpenMeteo');
         $climateData->setLastUpdated(new \DateTime());
 

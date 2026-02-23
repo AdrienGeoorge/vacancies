@@ -21,12 +21,6 @@ class ClimateData
     #[ORM\Column(type: 'string', length: 100, nullable: true)]
     private ?string $country = null;
 
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 7, nullable: true)]
-    private ?string $latitude = null;
-
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 7, nullable: true)]
-    private ?string $longitude = null;
-
     #[ORM\Column(type: 'integer')]
     private ?int $month = null;
 
@@ -182,28 +176,6 @@ class ClimateData
     public function setCountry(?string $country): self
     {
         $this->country = $country;
-        return $this;
-    }
-
-    public function getLatitude(): ?float
-    {
-        return $this->latitude !== null ? (float) $this->latitude : null;
-    }
-
-    public function setLatitude(?float $latitude): self
-    {
-        $this->latitude = $latitude !== null ? (string) $latitude : null;
-        return $this;
-    }
-
-    public function getLongitude(): ?float
-    {
-        return $this->longitude !== null ? (float) $this->longitude : null;
-    }
-
-    public function setLongitude(?float $longitude): self
-    {
-        $this->longitude = $longitude !== null ? (string) $longitude : null;
         return $this;
     }
 

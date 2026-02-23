@@ -14,20 +14,6 @@ class ClimateDataRepository extends ServiceEntityRepository
         parent::__construct($registry, ClimateData::class);
     }
 
-    public function findCoordsByCity(string $city, string $country = null): ?ClimateData
-    {
-        $qb = $this->createQueryBuilder('c')
-            ->where('c.city = :city')
-            ->andWhere('c.country = :country')
-            ->andWhere('c.latitude IS NOT NULL')
-            ->andWhere('c.longitude IS NOT NULL')
-            ->setParameter('city', $city)
-            ->setParameter('country', $country)
-            ->setMaxResults(1);
-
-        return $qb->getQuery()->getOneOrNullResult();
-    }
-
     public function findByCityAndMonth(string $city, int $month, ?string $country = null): ?ClimateData
     {
         $qb = $this->createQueryBuilder('c')
@@ -49,19 +35,18 @@ class ClimateDataRepository extends ServiceEntityRepository
      */
     public function findNearbyCity(float $lat, float $lon, int $month, float $maxDistanceKm = 50): ?ClimateData
     {
-        // Formule Haversine pour calculer la distance
+        // Formule Haversine avec JOIN sur la table cities
         $conn = $this->getEntityManager()->getConnection();
         $stmt = $conn->prepare("
-            SELECT c.*, 
+            SELECT c.*,
                 (6371 * acos(
-                    cos(radians(:lat)) * cos(radians(c.latitude)) *
-                    cos(radians(c.longitude) - radians(:lon)) +
-                    sin(radians(:lat)) * sin(radians(c.latitude))
+                    cos(radians(:lat)) * cos(radians(ci.latitude)) *
+                    cos(radians(ci.longitude) - radians(:lon)) +
+                    sin(radians(:lat)) * sin(radians(ci.latitude))
                 )) AS distance
             FROM climate_data c
+            INNER JOIN cities ci ON ci.name = c.city AND ci.country = c.country
             WHERE c.month = :month
-            AND c.latitude IS NOT NULL
-            AND c.longitude IS NOT NULL
             HAVING distance < :maxDistance
             ORDER BY distance ASC
             LIMIT 1

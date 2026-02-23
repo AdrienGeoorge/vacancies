@@ -329,7 +329,6 @@ class Accommodation
     public function removeAdditionalExpensive(AccommodationAdditional $AdditionalExpensive): static
     {
         if ($this->additionalExpensive->removeElement($AdditionalExpensive)) {
-            // set the owning side to null (unless already changed)
             if ($AdditionalExpensive->getAccommodation() === $this) {
                 $AdditionalExpensive->setAccommodation(null);
             }

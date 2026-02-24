@@ -78,6 +78,12 @@ class Trip
     #[MaxDepth(1)]
     private Collection $destinations;
 
+    #[ORM\Column(length: 64, unique: true)]
+    private string $storyToken;
+
+    #[ORM\OneToMany(targetEntity: TripPhoto::class, mappedBy: 'trip', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $photos;
+
     public function __construct()
     {
         $this->accommodations = new ArrayCollection();
@@ -90,6 +96,8 @@ class Trip
         $this->onSiteExpenses = new ArrayCollection();
         $this->tripTravelers = new ArrayCollection();
         $this->destinations = new ArrayCollection();
+        $this->photos = new ArrayCollection();
+        $this->storyToken = bin2hex(random_bytes(32));
     }
 
     public function getId(): ?int
@@ -478,6 +486,40 @@ class Trip
                 $destination->setTrip(null);
             }
         }
+        return $this;
+    }
+
+    public function getStoryToken(): string
+    {
+        return $this->storyToken;
+    }
+
+    /**
+     * @return Collection<int, TripPhoto>
+     */
+    public function getPhotos(): Collection
+    {
+        return $this->photos;
+    }
+
+    public function addPhoto(TripPhoto $photo): static
+    {
+        if (!$this->photos->contains($photo)) {
+            $this->photos->add($photo);
+            $photo->setTrip($this);
+        }
+
+        return $this;
+    }
+
+    public function removePhoto(TripPhoto $photo): static
+    {
+        if ($this->photos->removeElement($photo)) {
+            if ($photo->getTrip() === $this) {
+                $photo->setTrip(null);
+            }
+        }
+
         return $this;
     }
 }

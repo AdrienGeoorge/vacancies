@@ -8,6 +8,7 @@ parameters:
     avatar_directory: '%env(AVATAR_DIRECTORY)%'
     banner_directory: '%env(BANNER_DIRECTORY)%'
     bag_directory: '%env(BAG_DIRECTORY)%'
+    photos_directory: '%env(PHOTOS_DIRECTORY)%'
     exchangerate_api_key: '%env(EXCHANGERATE_API_KEY)%'
     exchangerate_api_url: 'https://api.exchangeratesapi.io/v1'
 
@@ -21,6 +22,7 @@ services:
             $domain: '%env(DOMAIN)%'
             $fromMail: '%env(FROM_MAIL)%'
             $appName: '%env(APP_NAME)%'
+            $photosDirectory: '%photos_directory%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name

@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\TripPhotoRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Ignore;
 
@@ -28,6 +29,9 @@ class TripPhoto
     private ?string $file = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    private ?string $title = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $caption = null;
 
     #[ORM\Column(nullable: true)]
@@ -77,6 +81,18 @@ class TripPhoto
         return $this;
     }
 
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(?string $title): static
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
     public function getCaption(): ?string
     {
         return $this->caption;
@@ -108,7 +124,7 @@ class TripPhoto
 
     public function isActiveStory(): bool
     {
-        return $this->expiresAt !== null && $this->expiresAt > new \DateTimeImmutable();
+        return $this->expiresAt !== null && $this->expiresAt > new \DateTimeImmutable('now');
     }
 
     public function getUploadedAt(): ?\DateTimeImmutable

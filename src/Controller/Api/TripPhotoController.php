@@ -25,7 +25,8 @@ class TripPhotoController extends AbstractController
         private readonly ManagerRegistry     $managerRegistry,
         private readonly FileUploaderService $uploaderService,
         private readonly string              $photosDirectory,
-    ) {
+    )
+    {
     }
 
     #[Route('', name: 'list', methods: ['GET'])]
@@ -44,6 +45,8 @@ class TripPhotoController extends AbstractController
     #[IsGranted('view', subject: 'trip', message: 'Vous ne pouvez pas accéder aux stories de ce voyage.', statusCode: 403)]
     public function listStories(Trip $trip): JsonResponse
     {
+        date_default_timezone_set('Europe/Paris');
+
         $stories = $trip->getPhotos()
             ->filter(fn(TripPhoto $p) => $p->isActiveStory())
             ->map(fn(TripPhoto $p) => $this->serializePhoto($p))
@@ -58,7 +61,8 @@ class TripPhotoController extends AbstractController
         Request            $request,
         Trip               $trip,
         ValidatorInterface $validator,
-    ): JsonResponse {
+    ): JsonResponse
+    {
         return $this->handleUpload($request, $trip, $validator, expiresAt: null);
     }
 
@@ -68,7 +72,8 @@ class TripPhotoController extends AbstractController
         Request            $request,
         Trip               $trip,
         ValidatorInterface $validator,
-    ): JsonResponse {
+    ): JsonResponse
+    {
         return $this->handleUpload($request, $trip, $validator, expiresAt: new \DateTimeImmutable('+24 hours'));
     }
 
@@ -77,8 +82,10 @@ class TripPhotoController extends AbstractController
         Trip                $trip,
         ValidatorInterface  $validator,
         ?\DateTimeImmutable $expiresAt,
-    ): JsonResponse {
+    ): JsonResponse
+    {
         $dto = new TripPhotoRequestDTO();
+        $dto->title = $request->request->get('title');
         $dto->caption = $request->request->get('caption');
         $dto->file = $request->files->get('file');
 
@@ -96,6 +103,7 @@ class TripPhotoController extends AbstractController
 
             $photo = new TripPhoto();
             $photo->setFile($directory . '/' . $fileName);
+            $photo->setTitle($dto->title);
             $photo->setCaption($dto->caption);
             $photo->setUploadedBy($this->getUser());
             $photo->setUploadedAt(new \DateTimeImmutable());
@@ -155,14 +163,15 @@ class TripPhotoController extends AbstractController
     private function serializePhoto(TripPhoto $photo): array
     {
         return [
-            'id'         => $photo->getId(),
-            'file'       => $photo->getFile(),
-            'caption'    => $photo->getCaption(),
-            'isStory'    => $photo->isStory(),
-            'expiresAt'  => $photo->getExpiresAt()?->format('Y-m-d H:i:s'),
+            'id' => $photo->getId(),
+            'file' => $photo->getFile(),
+            'title' => $photo->getTitle(),
+            'caption' => $photo->getCaption(),
+            'isStory' => $photo->isStory(),
+            'expiresAt' => $photo->getExpiresAt()?->format('Y-m-d H:i:s'),
             'uploadedAt' => $photo->getUploadedAt()?->format('Y-m-d H:i:s'),
             'uploadedBy' => $photo->getUploadedBy() ? [
-                'id'        => $photo->getUploadedBy()->getId(),
+                'id' => $photo->getUploadedBy()->getId(),
                 'firstname' => $photo->getUploadedBy()->getCompleteName(),
             ] : null,
         ];

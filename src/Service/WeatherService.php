@@ -92,10 +92,14 @@ class WeatherService
             if (!$departureDate) return null;
 
             if (false === $forExport) {
-                $daysUntilDeparture = (new \DateTime())->diff($departureDate)->days;
+                $today = (new \DateTime())->setTime(0, 0, 0);
 
-                // On veut afficher minimum 2j de forecast, donc le départ doit être dans ≤ 3j (car OWM donne max 5j)
-                if ($daysUntilDeparture <= 3) {
+                // Utiliser le forecast réel si le voyage chevauche la fenêtre des 5 prochains jours
+                // (voyage en cours OU départ imminent)
+                $tripIsActive = $returnDate >= $today;
+                $departureSoonEnough = $departureDate <= (clone $today)->modify('+5 days');
+
+                if ($tripIsActive && $departureSoonEnough) {
                     // Prévisions réelles, avec fallback sur les moyennes historiques
                     try {
                         $forecast = $this->getRealForecast($cityName, $country, $departureDate, $returnDate);

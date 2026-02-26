@@ -42,6 +42,17 @@ class UserController extends AbstractController
         return $this->json($countries);
     }
 
+    #[Route('/next-countries', name: 'next_countries', options: ['expose' => true], methods: ['GET'])]
+    public function nextCountries(): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $countries = $this->managerRegistry->getRepository(Trip::class)->getNextCountries($user);
+
+        return $this->json($countries);
+    }
+
     #[Route('/me', name: 'me', options: ['expose' => true], methods: ['GET'])]
     public function me(): JsonResponse
     {

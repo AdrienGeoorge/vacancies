@@ -2,24 +2,27 @@
 
 declare(strict_types=1);
 
-namespace App\Controller;
+namespace App\Controller\Api;
 
 use App\Entity\TripPhoto;
 use App\Repository\TripRepository;
+use App\Service\TimeAgoService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+#[Route('/api/story', name: 'api_public_story_', requirements: ['trip' => '\\d+'])]
 class StoryController extends AbstractController
 {
     public function __construct(
         private readonly TripRepository $tripRepository,
+        private readonly TimeAgoService $timeAgoService
     )
     {
     }
 
-    #[Route('/story/{token}', name: 'public_story', methods: ['GET'])]
+    #[Route('/{token}', name: 'show', methods: ['GET'])]
     public function show(string $token): JsonResponse
     {
         $trip = $this->tripRepository->findOneBy(['storyToken' => $token]);
@@ -37,6 +40,7 @@ class StoryController extends AbstractController
                 'title' => $p->getTitle(),
                 'caption' => $p->getCaption(),
                 'uploadedAt' => $p->getUploadedAt()?->format('Y-m-d H:i:s'),
+                'timeAgo' => $this->timeAgoService->get($p->getUploadedAt()),
                 'uploadedBy' => $p->getUploadedBy() ? [
                     'firstname' => $p->getUploadedBy()->getCompleteName(),
                 ] : null,

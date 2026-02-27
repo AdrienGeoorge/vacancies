@@ -120,15 +120,16 @@ class TripPhotoController extends AbstractController
         }
     }
 
-    #[Route('/{photo}/caption', name: 'update_caption', requirements: ['photo' => '\\d+'], methods: ['PATCH'])]
+    #[Route('/{photo}/edit', name: 'edit', requirements: ['photo' => '\\d+'], methods: ['PATCH'])]
     #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
-    public function updateCaption(Trip $trip, TripPhoto $photo, Request $request): JsonResponse
+    public function edit(Trip $trip, TripPhoto $photo, Request $request): JsonResponse
     {
         if ($photo->getTrip() !== $trip) {
             return $this->json(['message' => 'Cette photo n\'est pas associée à ce voyage.'], Response::HTTP_FORBIDDEN);
         }
 
         $data = json_decode($request->getContent(), true);
+        $photo->setTitle($data['title'] ?? null);
         $photo->setCaption($data['caption'] ?? null);
 
         $this->managerRegistry->getManager()->flush();

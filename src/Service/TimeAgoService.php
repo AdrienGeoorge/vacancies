@@ -4,7 +4,7 @@ namespace App\Service;
 
 class TimeAgoService
 {
-    public function get(?\DateTime $date): ?string
+    public function get(\DateTime|\DateTimeImmutable|null $date): ?string
     {
         if ($date) {
             $tokens = [

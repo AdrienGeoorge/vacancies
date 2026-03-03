@@ -8,6 +8,7 @@ use App\DTO\TripRequestDTO;
 use App\Entity\Country;
 use App\Entity\Trip;
 use App\Entity\TripDestination;
+use App\Entity\TripReimbursement;
 use App\Entity\TripTraveler;
 use App\Entity\User;
 use App\Service\FileUploaderService;
@@ -125,7 +126,71 @@ class TripController extends AbstractController
     #[IsGranted('view', subject: 'trip', message: 'Vous ne pouvez pas consulter ce voyage.', statusCode: 403)]
     public function getBalance(?Trip $trip = null): JsonResponse
     {
-        return $this->json($this->tripService->getCreditorAndDebtorDetails($trip));
+        $data = $this->tripService->getCreditorAndDebtorDetails($trip);
+        $data['reimbursements'] = array_map(fn($r) => [
+            'id' => $r->getId(),
+            'from' => $r->getFromTraveler()->getName(),
+            'fromId' => $r->getFromTraveler()->getId(),
+            'to' => $r->getToTraveler()->getName(),
+            'toId' => $r->getToTraveler()->getId(),
+            'amount' => $r->getAmount(),
+            'description' => $r->getDescription(),
+        ], $trip->getReimbursements()->toArray());
+        return $this->json($data);
+    }
+
+    #[Route('/get/{trip}/reimbursements', name: 'createReimbursement', requirements: ['trip' => '\d+'], methods: ['POST'])]
+    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier ce voyage.', statusCode: 403)]
+    public function createReimbursement(Request $request, Trip $trip): JsonResponse
+    {
+        try {
+            $data = json_decode($request->getContent(), true);
+
+            $fromTraveler = $this->managerRegistry->getRepository(TripTraveler::class)->find($data['fromTraveler'] ?? null);
+            $toTraveler = $this->managerRegistry->getRepository(TripTraveler::class)->find($data['toTraveler'] ?? null);
+
+            if (!$fromTraveler || $fromTraveler->getTrip() !== $trip) {
+                return $this->json(['message' => 'Voyageur source invalide.'], Response::HTTP_BAD_REQUEST);
+            }
+            if (!$toTraveler || $toTraveler->getTrip() !== $trip) {
+                return $this->json(['message' => 'Voyageur destination invalide.'], Response::HTTP_BAD_REQUEST);
+            }
+            if (!isset($data['amount']) || (float) $data['amount'] <= 0) {
+                return $this->json(['message' => 'Le montant doit être supérieur à 0.'], Response::HTTP_BAD_REQUEST);
+            }
+
+            $reimbursement = (new TripReimbursement())
+                ->setTrip($trip)
+                ->setFromTraveler($fromTraveler)
+                ->setToTraveler($toTraveler)
+                ->setAmount((string) $data['amount'])
+                ->setDescription($data['description'] ?? null);
+
+            $this->managerRegistry->getManager()->persist($reimbursement);
+            $this->managerRegistry->getManager()->flush();
+
+            return $this->json(['message' => 'Remboursement enregistré.', 'id' => $reimbursement->getId()], Response::HTTP_CREATED);
+        } catch (\Exception) {
+            return $this->json(['message' => 'Une erreur est survenue.'], Response::HTTP_BAD_REQUEST);
+        }
+    }
+
+    #[Route('/get/{trip}/reimbursements/{reimbursement}', name: 'deleteReimbursement', requirements: ['trip' => '\d+', 'reimbursement' => '\d+'], methods: ['DELETE'])]
+    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier ce voyage.', statusCode: 403)]
+    public function deleteReimbursement(Trip $trip, TripReimbursement $reimbursement): JsonResponse
+    {
+        if ($reimbursement->getTrip() !== $trip) {
+            return $this->json(['message' => 'Ce remboursement n\'appartient pas à ce voyage.'], Response::HTTP_FORBIDDEN);
+        }
+
+        try {
+            $this->managerRegistry->getManager()->remove($reimbursement);
+            $this->managerRegistry->getManager()->flush();
+
+            return $this->json(['message' => 'Remboursement supprimé.']);
+        } catch (\Exception) {
+            return $this->json(['message' => 'Une erreur est survenue.'], Response::HTTP_BAD_REQUEST);
+        }
     }
 
     /**

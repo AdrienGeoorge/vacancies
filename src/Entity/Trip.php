@@ -84,6 +84,9 @@ class Trip
     #[ORM\OneToMany(targetEntity: TripPhoto::class, mappedBy: 'trip', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $photos;
 
+    #[ORM\OneToMany(targetEntity: TripReimbursement::class, mappedBy: 'trip', orphanRemoval: true)]
+    private Collection $reimbursements;
+
     public function __construct()
     {
         $this->accommodations = new ArrayCollection();
@@ -97,6 +100,7 @@ class Trip
         $this->tripTravelers = new ArrayCollection();
         $this->destinations = new ArrayCollection();
         $this->photos = new ArrayCollection();
+        $this->reimbursements = new ArrayCollection();
         $this->storyToken = bin2hex(random_bytes(32));
     }
 
@@ -517,6 +521,35 @@ class Trip
         if ($this->photos->removeElement($photo)) {
             if ($photo->getTrip() === $this) {
                 $photo->setTrip(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, TripReimbursement>
+     */
+    public function getReimbursements(): Collection
+    {
+        return $this->reimbursements;
+    }
+
+    public function addReimbursement(TripReimbursement $reimbursement): static
+    {
+        if (!$this->reimbursements->contains($reimbursement)) {
+            $this->reimbursements->add($reimbursement);
+            $reimbursement->setTrip($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReimbursement(TripReimbursement $reimbursement): static
+    {
+        if ($this->reimbursements->removeElement($reimbursement)) {
+            if ($reimbursement->getTrip() === $this) {
+                $reimbursement->setTrip(null);
             }
         }
 

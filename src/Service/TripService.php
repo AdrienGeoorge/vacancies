@@ -404,9 +404,12 @@ class TripService
 
                 $paid = round($accommodations + $transportPaid + $activities + $variousExpenses + $onSite, 2);
 
+                $amountDue = round($amountByPerson - $paid, 2);
+                if (abs($amountDue) <= 0.01) $amountDue = 0.0;
+
                 $balances[$traveler->getName()] = [
                     'paid' => $paid,
-                    'amountDue' => round($amountByPerson - $paid, 2),
+                    'amountDue' => $amountDue,
                     'Hébergements' => round($accommodations, 2),
                     'Transports' => round($transportPaid, 2),
                     'Activités' => round($activities, 2),
@@ -414,6 +417,28 @@ class TripService
                     'Dépenses sur place' => round($onSite, 2)
                 ];
             }
+
+            foreach ($trip->getReimbursements() as $reimbursement) {
+                $fromName = $reimbursement->getFromTraveler()->getName();
+                $toName = $reimbursement->getToTraveler()->getName();
+                $amount = (float) $reimbursement->getAmount();
+
+                if (isset($balances[$fromName])) {
+                    $balances[$fromName]['paid'] += $amount;
+                    $balances[$fromName]['amountDue'] -= $amount;
+                }
+                if (isset($balances[$toName])) {
+                    $balances[$toName]['paid'] -= $amount;
+                    $balances[$toName]['amountDue'] += $amount;
+                }
+            }
+
+            foreach ($balances as $name => &$balance) {
+                $balance['paid'] = round($balance['paid'], 2);
+                $rawAmountDue = round($balance['amountDue'], 2);
+                $balance['amountDue'] = abs($rawAmountDue) <= 0.01 ? 0.0 : $rawAmountDue;
+            }
+            unset($balance);
         }
 
         return $balances;

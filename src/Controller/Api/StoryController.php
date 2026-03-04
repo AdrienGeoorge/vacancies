@@ -66,12 +66,18 @@ class StoryController extends AbstractController
             ])
             ->getValues();
 
+        $travelers = $trip->getTripTravelers()
+            ->map(fn($t) => ['name' => $t->getName()])
+            ->getValues();
+
         return $this->json([
             'trip' => [
                 'name' => $trip->getName(),
                 'departureDate' => $trip->getDepartureDate()?->format('Y-m-d'),
                 'returnDate' => $trip->getReturnDate()?->format('Y-m-d'),
+                'image' => $trip->getImage(),
             ],
+            'travelers' => $travelers,
             'destinations' => $destinations,
             'accommodations' => $accommodations,
             'photos' => $storyPhotos,

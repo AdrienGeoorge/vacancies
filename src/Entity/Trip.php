@@ -87,6 +87,9 @@ class Trip
     #[ORM\OneToMany(targetEntity: TripReimbursement::class, mappedBy: 'trip', orphanRemoval: true)]
     private Collection $reimbursements;
 
+    #[ORM\OneToMany(targetEntity: ChecklistItem::class, mappedBy: 'trip', orphanRemoval: true)]
+    private Collection $checklistItems;
+
     public function __construct()
     {
         $this->accommodations = new ArrayCollection();
@@ -101,6 +104,7 @@ class Trip
         $this->destinations = new ArrayCollection();
         $this->photos = new ArrayCollection();
         $this->reimbursements = new ArrayCollection();
+        $this->checklistItems = new ArrayCollection();
         $this->storyToken = bin2hex(random_bytes(32));
     }
 
@@ -550,6 +554,35 @@ class Trip
         if ($this->reimbursements->removeElement($reimbursement)) {
             if ($reimbursement->getTrip() === $this) {
                 $reimbursement->setTrip(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ChecklistItem>
+     */
+    public function getChecklistItems(): Collection
+    {
+        return $this->checklistItems;
+    }
+
+    public function addChecklistItem(ChecklistItem $checklistItem): static
+    {
+        if (!$this->checklistItems->contains($checklistItem)) {
+            $this->checklistItems->add($checklistItem);
+            $checklistItem->setTrip($this);
+        }
+
+        return $this;
+    }
+
+    public function removeChecklistItem(ChecklistItem $checklistItem): static
+    {
+        if ($this->checklistItems->removeElement($checklistItem)) {
+            if ($checklistItem->getTrip() === $this) {
+                $checklistItem->setTrip(null);
             }
         }
 

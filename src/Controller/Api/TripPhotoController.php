@@ -120,7 +120,7 @@ class TripPhotoController extends AbstractController
         }
     }
 
-    #[Route('/{photo}/edit', name: 'edit', requirements: ['photo' => '\\d+'], methods: ['PATCH'])]
+    #[Route('/{photo}/edit', name: 'edit', requirements: ['photo' => '\\d+'], methods: ['POST'])]
     #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
     public function edit(Trip $trip, TripPhoto $photo, Request $request): JsonResponse
     {

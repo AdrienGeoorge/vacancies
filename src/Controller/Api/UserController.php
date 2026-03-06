@@ -2,10 +2,16 @@
 
 namespace App\Controller\Api;
 
+use App\Entity\Accommodation;
+use App\Entity\Activity;
 use App\Entity\Country;
+use App\Entity\OnSiteExpense;
+use App\Entity\Transport;
 use App\Entity\Trip;
+use App\Entity\TripTraveler;
 use App\Entity\User;
 use App\Entity\UserBadges;
+use App\Entity\VariousExpensive;
 use App\Service\FileUploaderService;
 use App\Service\TripService;
 use Doctrine\Persistence\ManagerRegistry;
@@ -90,6 +96,35 @@ class UserController extends AbstractController
             $lastTrip = $this->managerRegistry->getRepository(Trip::class)->getPassedTrips($this->getUser(), true);
             $nextTrip = $this->managerRegistry->getRepository(Trip::class)->getFutureTrips($this->getUser(), true);
 
+            $uniqueUserIds = [];
+            $uniqueNames = [];
+            $soloCount = 0;
+            $groupCount = 0;
+
+            foreach ($passedTrips as $trip) {
+                $companions = 0;
+                foreach ($trip->getTripTravelers() as $traveler) {
+                    if ($traveler->getInvited() && $traveler->getInvited()->getId() === $user->getId()) {
+                        continue;
+                    }
+
+                    $companions++;
+                    if ($traveler->getInvited()) {
+                        $uniqueUserIds[$traveler->getInvited()->getId()] = true;
+                    } else {
+                        $uniqueNames[$traveler->getName()] = true;
+                    }
+                }
+
+                if ($companions === 0) {
+                    $soloCount++;
+                } else {
+                    $groupCount++;
+                }
+            }
+
+            $countUniqueTravelers = count($uniqueUserIds) + count($uniqueNames);
+
             /** @var User $user */
             return $this->json([
                 'user' => $user,
@@ -105,7 +140,10 @@ class UserController extends AbstractController
                 'nextTrip' => $nextTrip ? [
                     'country' => $this->tripService->formateDestinationsForString($nextTrip['destinations']),
                     'countDays' => $this->tripService->countDaysBeforeOrAfter($nextTrip['trip'])
-                ] : null
+                ] : null,
+                'countUniqueTravelers' => $countUniqueTravelers,
+                'soloTrips' => $soloCount,
+                'groupTrips' => $groupCount,
             ]);
         } else {
             return $this->json([], Response::HTTP_NOT_FOUND);
@@ -364,5 +402,142 @@ class UserController extends AbstractController
         $this->managerRegistry->getManager()->flush();
 
         return new JsonResponse([]);
+    }
+
+    #[Route('/stats', name: 'stats', methods: ['GET'])]
+    public function stats(): JsonResponse
+    {
+        if (!$this->getUser()) return new JsonResponse([], Response::HTTP_UNAUTHORIZED);
+
+        /** @var User $user */
+        $user = $this->getUser();
+        $passedTrips = $this->managerRegistry->getRepository(Trip::class)->getPassedTrips($user);
+
+        $totalDays = 0;
+        $totalSpent = 0;
+        $totalOnSite = 0;
+        $byYear = [];
+        $monthCounts = array_fill(1, 12, 0);
+
+        $mostExpensiveTrip = null;
+        $cheapestTrip = null;
+        $longestTrip = null;
+        $shortestTrip = null;
+
+        $tripSummary = function (Trip $trip, float|int $value): array {
+            $names = array_values(array_filter(
+                $trip->getDestinations()->map(fn($d) => $d->getCountry()?->getName() ?? '')->toArray()
+            ));
+
+            if (count($names) === 0) $label = $trip->getName();
+            elseif (count($names) === 1) $label = $names[0];
+            elseif (count($names) === 2) $label = $names[0] . ' et ' . $names[1];
+            else $label = implode(', ', array_slice($names, 0, -1)) . ' et ' . end($names);
+
+            return [
+                'id' => $trip->getId(),
+                'name' => $trip->getName(),
+                'destinations' => $label,
+                'departureDate' => $trip->getDepartureDate()?->format('Y-m-d'),
+                'returnDate' => $trip->getReturnDate()?->format('Y-m-d'),
+                'total' => $value,
+            ];
+        };
+
+        foreach ($passedTrips as $trip) {
+            $nbTravelers = max(1, $trip->getTripTravelers()->count());
+
+            $days = 0;
+            if ($trip->getDepartureDate() && $trip->getReturnDate()) {
+                $days = $trip->getDepartureDate()->diff($trip->getReturnDate())->days + 1;
+                $totalDays += $days;
+            }
+
+            $budget = $this->tripService->getBudget($trip);
+            $tripTotal = $budget['total'];
+            $totalSpent += $tripTotal / $nbTravelers;
+
+            $costPerTraveler = round($tripTotal / $nbTravelers, 2);
+
+            $onSite = $this->tripService->getOnSiteExpensePrice($trip);
+            $totalOnSite += round($onSite / $nbTravelers, 2);
+
+            $year = $trip->getDepartureDate()?->format('Y');
+            if ($year) {
+                $byYear[$year] ??= ['year' => $year, 'trips' => 0, 'days' => 0, 'spent' => 0];
+                $byYear[$year]['trips']++;
+                $byYear[$year]['days'] += $days;
+                $byYear[$year]['spent'] += round($tripTotal / $nbTravelers, 2);
+            }
+
+            $month = (int)($trip->getDepartureDate()?->format('n') ?? 0);
+            if ($month) {
+                $monthCounts[$month]++;
+            }
+
+            // Voyage le plus / moins cher (coût par voyageur)
+            if ($costPerTraveler > 0) {
+                if ($mostExpensiveTrip === null || $costPerTraveler > $mostExpensiveTrip['total']) {
+                    $mostExpensiveTrip = $tripSummary($trip, $costPerTraveler);
+                }
+                if ($cheapestTrip === null || $costPerTraveler < $cheapestTrip['total']) {
+                    $cheapestTrip = $tripSummary($trip, $costPerTraveler);
+                }
+            }
+
+            // Voyage le plus long / plus court
+            if ($days > 0) {
+                if ($longestTrip === null || $days > $longestTrip['total']) {
+                    $longestTrip = $tripSummary($trip, $days);
+                }
+                if ($shortestTrip === null || $days < $shortestTrip['total']) {
+                    $shortestTrip = $tripSummary($trip, $days);
+                }
+            }
+        }
+
+        $nbTrips = count($passedTrips);
+        ksort($byYear);
+
+        // Mois préféré (le plus de départs)
+        arsort($monthCounts);
+        $preferredMonthNum = array_key_first($monthCounts);
+        $monthLabels = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+        $preferredMonth = $monthCounts[$preferredMonthNum] > 0
+            ? ['month' => $preferredMonthNum, 'label' => $monthLabels[$preferredMonthNum], 'count' => $monthCounts[$preferredMonthNum]]
+            : null;
+
+        // Saison préférée
+        $seasonMap = [
+            'Hiver' => [12, 1, 2],
+            'Printemps' => [3, 4, 5],
+            'Été' => [6, 7, 8],
+            'Automne' => [9, 10, 11],
+        ];
+        $seasonCounts = [];
+        foreach ($seasonMap as $season => $months) {
+            $seasonCounts[$season] = array_sum(array_map(fn($m) => $monthCounts[$m], $months));
+        }
+        arsort($seasonCounts);
+        $preferredSeasonName = array_key_first($seasonCounts);
+        $preferredSeason = $seasonCounts[$preferredSeasonName] > 0
+            ? ['season' => $preferredSeasonName, 'count' => $seasonCounts[$preferredSeasonName]]
+            : null;
+
+        return $this->json([
+            'totalDays' => $totalDays,
+            'totalSpent' => round($totalSpent, 2),
+            'avgTripDuration' => $nbTrips > 0 ? round($totalDays / $nbTrips, 1) : 0,
+            'avgPerTrip' => $nbTrips > 0 ? round($totalSpent / $nbTrips, 2) : 0,
+            'avgPerDay' => $totalDays > 0 ? round($totalOnSite / $totalDays, 2) : 0,
+            'avgOnSitePerTrip' => $nbTrips > 0 ? round($totalOnSite / $nbTrips, 2) : 0,
+            'byYear' => array_values($byYear),
+            'mostExpensiveTrip' => $mostExpensiveTrip,
+            'cheapestTrip' => $cheapestTrip,
+            'longestTrip' => $longestTrip,
+            'shortestTrip' => $shortestTrip,
+            'preferredMonth' => $preferredMonth,
+            'preferredSeason' => $preferredSeason,
+        ]);
     }
 }

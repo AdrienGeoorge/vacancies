@@ -59,6 +59,8 @@ class TransportRequestDTO
 
     public bool $perPerson = false;
 
+    public bool $isRental = false;
+
     #[Assert\When(
         expression: 'this.isCar()',
         constraints: [
@@ -88,7 +90,7 @@ class TransportRequestDTO
     public function isCar(): bool
     {
         if ($this->type === null) return false;
-        if ($this->type->getName() === 'Voiture') return true;
+        if ($this->type->getName() === 'Voiture' && !$this->isRental) return true;
 
         return false;
     }

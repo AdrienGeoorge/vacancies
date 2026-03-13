@@ -66,6 +66,7 @@ class TransportController extends AbstractController
             'perPerson' => $transport->isPerPerson(),
             'estimatedToll' => $transport->getEstimatedToll(),
             'estimatedGasoline' => $transport->getEstimatedGasoline(),
+            'isRental' => $transport->isRental(),
         ]);
     }
 
@@ -104,9 +105,10 @@ class TransportController extends AbstractController
                 $transport->setTrip($trip);
                 $transport->setPrice($dto->originalPrice);
                 $transport = $this->dtoService->mapToEntity($dto, $transport);
+                $transport->setIsRental((bool)($dto->isRental ?? false));
 
                 if (
-                    $transport->getType()->getName() !== 'Voiture' &&
+                    ($transport->getType()->getName() !== 'Voiture' || $transport->isRental()) &&
                     $eurCurrency !== $dto->originalCurrency &&
                     $transport->getOriginalPrice() !== $dto->originalPrice
                 ) {

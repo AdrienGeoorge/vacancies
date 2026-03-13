@@ -79,6 +79,9 @@ class Transport
     #[ORM\ManyToOne]
     private ?TripTraveler $payedBy = null;
 
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isRental = false;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -315,6 +318,18 @@ class Transport
     public function setPayedBy(?TripTraveler $payedBy): static
     {
         $this->payedBy = $payedBy;
+
+        return $this;
+    }
+
+    public function isRental(): bool
+    {
+        return $this->isRental;
+    }
+
+    public function setIsRental(bool $isRental): static
+    {
+        $this->isRental = $isRental;
 
         return $this;
     }

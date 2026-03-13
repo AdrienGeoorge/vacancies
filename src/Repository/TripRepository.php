@@ -267,7 +267,7 @@ class TripRepository extends ServiceEntityRepository
     public function getCountryMostVisited($user)
     {
         $qb = $this->createQueryBuilder('t')
-            ->select('c.name AS countryName, COUNT(c.id) AS visitCount, MIN(t.departureDate) AS firstVisitDate')
+            ->select('c.name AS countryName, c.code AS countryCode, COUNT(c.id) AS visitCount, MIN(t.departureDate) AS firstVisitDate')
             ->leftJoin('t.tripTravelers', 'tt')
             ->leftJoin('t.destinations', 'td')
             ->leftJoin('td.country', 'c');
@@ -284,7 +284,7 @@ class TripRepository extends ServiceEntityRepository
             ->andWhere('t.returnDate < :today')
             ->andWhere('c.id IS NOT NULL')
             ->setParameter('today', (new \DateTime())->format('Y-m-d'))
-            ->groupBy('c.name')
+            ->groupBy('c.name, c.code')
             ->orderBy('visitCount', 'DESC')
             ->addOrderBy('firstVisitDate', 'ASC')
             ->setMaxResults(1)

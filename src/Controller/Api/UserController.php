@@ -2,16 +2,10 @@
 
 namespace App\Controller\Api;
 
-use App\Entity\Accommodation;
-use App\Entity\Activity;
 use App\Entity\Country;
-use App\Entity\OnSiteExpense;
-use App\Entity\Transport;
 use App\Entity\Trip;
-use App\Entity\TripTraveler;
 use App\Entity\User;
 use App\Entity\UserBadges;
-use App\Entity\VariousExpensive;
 use App\Service\FileUploaderService;
 use App\Service\TripService;
 use Doctrine\Persistence\ManagerRegistry;
@@ -38,10 +32,20 @@ class UserController extends AbstractController
     }
 
     #[Route('/visited-countries', name: 'visited_countries', options: ['expose' => true], methods: ['GET'])]
-    public function visitedCountries(): JsonResponse
+    public function visitedCountries(Request $request): JsonResponse
     {
-        /** @var User $user */
-        $user = $this->getUser();
+        $username = $request->query->get('username');
+
+        if ($username) {
+            $user = $this->managerRegistry->getRepository(User::class)->findOneBy(['username' => $username]);
+
+            if (!$user) {
+                return new JsonResponse(['message' => 'Utilisateur introuvable.'], Response::HTTP_NOT_FOUND);
+            }
+        } else {
+            /** @var User $user */
+            $user = $this->getUser();
+        }
 
         $countries = $this->managerRegistry->getRepository(Trip::class)->getVisitedCountries($user);
 

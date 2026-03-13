@@ -96,6 +96,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 6, options: ['default' => 'system'])]
     private ?string $theme = 'system';
 
+    #[ORM\Column(options: ['default' => true])]
+    private bool $receiveReminderEmails = true;
+
+    #[ORM\Column(options: ['default' => true])]
+    private bool $receiveSummaryEmails = true;
+
     public function __construct()
     {
         $this->trips = new ArrayCollection();
@@ -498,6 +504,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setTheme(string $theme): static
     {
         $this->theme = $theme;
+
+        return $this;
+    }
+
+    public function isReceiveReminderEmails(): bool
+    {
+        return $this->receiveReminderEmails;
+    }
+
+    public function setReceiveReminderEmails(bool $receiveReminderEmails): static
+    {
+        $this->receiveReminderEmails = $receiveReminderEmails;
+
+        return $this;
+    }
+
+    public function isReceiveSummaryEmails(): bool
+    {
+        return $this->receiveSummaryEmails;
+    }
+
+    public function setReceiveSummaryEmails(bool $receiveSummaryEmails): static
+    {
+        $this->receiveSummaryEmails = $receiveSummaryEmails;
 
         return $this;
     }

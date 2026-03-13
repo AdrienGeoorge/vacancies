@@ -314,6 +314,43 @@ class TripRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findTripsForReminder(int $daysUntilDeparture): array
+    {
+        $targetDate = (new \DateTime())->modify("+{$daysUntilDeparture} days")->format('Y-m-d');
+
+        return $this->createQueryBuilder('t')
+            ->leftJoin('t.tripTravelers', 'tt')->addSelect('tt')
+            ->leftJoin('tt.invited', 'u')->addSelect('u')
+            ->leftJoin('t.destinations', 'td')->addSelect('td')
+            ->leftJoin('td.country', 'tdco')->addSelect('tdco')
+            ->leftJoin('t.transports', 'tr')->addSelect('tr')
+            ->leftJoin('tr.type', 'trt')->addSelect('trt')
+            ->leftJoin('t.accommodations', 'ac')->addSelect('ac')
+            ->leftJoin('t.activities', 'act')->addSelect('act')
+            ->leftJoin('t.checklistItems', 'ci')->addSelect('ci')
+            ->where('t.departureDate = :targetDate')
+            ->setParameter('targetDate', $targetDate)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findTripsEndedYesterday(): array
+    {
+        $yesterday = (new \DateTime())->modify('-1 day')->format('Y-m-d');
+
+        return $this->createQueryBuilder('t')
+            ->leftJoin('t.tripTravelers', 'tt')->addSelect('tt')
+            ->leftJoin('tt.invited', 'u')->addSelect('u')
+            ->leftJoin('t.destinations', 'td')->addSelect('td')
+            ->leftJoin('t.transports', 'tr')->addSelect('tr')
+            ->leftJoin('t.accommodations', 'ac')->addSelect('ac')
+            ->leftJoin('t.activities', 'act')->addSelect('act')
+            ->where('t.returnDate = :yesterday')
+            ->setParameter('yesterday', $yesterday)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function getOneTrip(?int $tripId): ?array
     {
         $trip = $this->find($tripId);

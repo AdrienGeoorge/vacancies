@@ -393,6 +393,41 @@ class UserController extends AbstractController
         ], Response::HTTP_CREATED);
     }
 
+    #[Route('/settings/notifications', name: 'update_notifications', options: ['expose' => true], methods: ['POST'])]
+    public function updateNotifications(Request $request, JWTTokenManagerInterface $jwtManager): JsonResponse
+    {
+        if (!$this->getUser()) return new JsonResponse([], Response::HTTP_UNAUTHORIZED);
+
+        $data = json_decode($request->getContent(), true);
+
+        /** @var User $user */
+        $user = $this->getUser();
+        $user->setReceiveReminderEmails($data['receiveReminderEmails'] ?? true);
+        $user->setReceiveSummaryEmails($data['receiveSummaryEmails'] ?? true);
+
+        $this->managerRegistry->getManager()->persist($user);
+        $this->managerRegistry->getManager()->flush();
+
+        $token = $jwtManager->create($user);
+
+        return new JsonResponse([
+            'token' => $token,
+            'user' => [
+                'id' => $user->getId(),
+                'email' => $user->getEmail(),
+                'firstname' => $user->getFirstname(),
+                'lastname' => $user->getLastname(),
+                'completeName' => $user->getCompleteName(),
+                'username' => $user->getUsername(),
+                'avatar' => $user->getAvatar(),
+                'biography' => $user->getBiography(),
+                'theme' => $user->getTheme(),
+                'receiveReminderEmails' => $user->isReceiveReminderEmails(),
+                'receiveSummaryEmails' => $user->isReceiveSummaryEmails(),
+            ]
+        ], Response::HTTP_CREATED);
+    }
+
     #[Route('/settings/disabled', name: 'disabled_account', options: ['expose' => true], methods: ['POST'])]
     public function disabledAccount(): JsonResponse
     {

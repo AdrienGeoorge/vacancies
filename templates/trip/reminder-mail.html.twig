@@ -1,0 +1,583 @@
+<style>
+    body {
+        background-color: #1a1a2e !important;
+        font-size: 16px;
+        font-family: "Raleway", Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+
+    .mail-wrapper {
+        width: 560px;
+        margin: 0 auto;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .mail-head {
+        background: linear-gradient(135deg, #0f9b8e 0%, #1ab394 30%, #f2c14b 100%);
+        padding: 2.5em 2em 2em;
+        text-align: center;
+    }
+
+    .mail-logo {
+        width: 4.5em;
+        border-radius: 12px;
+    }
+
+    .mail-head-tagline {
+        color: #ffffff;
+        font-size: 14px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        opacity: 0.9;
+        text-align: center;
+    }
+
+    .mail-head-title {
+        color: #ffffff;
+        font-size: 20px;
+        font-weight: bold;
+        margin-top: 0.5em;
+        text-align: center;
+    }
+
+    .mail-content {
+        background-color: #ffffff;
+    }
+
+    .mail-content-inner {
+        padding: 2.5em 2.5em 2em;
+    }
+
+    .mail-hello {
+        font-size: 22px;
+        font-weight: bold;
+        color: #2d2d44;
+    }
+
+    .mail-text {
+        font-size: 15px;
+        color: #4a4a5a;
+        line-height: 1.6;
+    }
+
+    .mail-signature {
+        font-size: 15px;
+        color: #4a4a5a;
+    }
+
+    .mail-divider {
+        border: none;
+        border-top: 1px solid #eee;
+        margin: 0;
+    }
+
+    .mail-footer {
+        background-color: #2d2d44;
+        padding: 1.5em 2em;
+        text-align: center;
+    }
+
+    .mail-footer-text {
+        font-size: 12px;
+        color: #9a9ab0;
+        line-height: 1.6;
+    }
+
+    .mail-link {
+        color: #1ab394;
+        text-decoration: none;
+        font-weight: bold;
+    }
+</style>
+
+<table style="margin: 0 auto; width: 560px;" cellpadding="0" cellspacing="0">
+    <tbody>
+    <tr>
+        <td height="40"></td>
+    </tr>
+    <tr>
+        <td>
+            <table class="mail-wrapper" cellpadding="0" cellspacing="0" style="width: 560px;">
+                <tbody>
+                <tr>
+                    <td class="mail-head">
+                        <table style="width: 100%;" cellpadding="0" cellspacing="0">
+                            <tbody>
+                            <tr>
+                                <td style="text-align: center;">
+                                    <a href="{{ domain }}/" target="_blank">
+                                        <img src="{{ domain ~ '/images/logo.png' }}" class="mail-logo"
+                                             alt="{{ app_name }}">
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td height="12"></td>
+                            </tr>
+                            <tr>
+                                <td class="mail-head-tagline">Prévois tes voyages</td>
+                            </tr>
+                            <tr>
+                                <td height="8"></td>
+                            </tr>
+                            <tr>
+                                <td class="mail-head-title">
+                                    {% if days == 7 %}
+                                        &#128745; Votre départ approche — J-7 !
+                                    {% else %}
+                                        &#128197; Dernière ligne droite — Départ demain !
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mail-content">
+                        <table style="width: 100%;" cellpadding="0" cellspacing="0">
+                            <tbody>
+                            <tr>
+                                <td class="mail-content-inner">
+                                    <table style="width: 100%;" cellpadding="0" cellspacing="0">
+                                        <tbody>
+                                        <tr>
+                                            <td class="mail-hello">Bonjour {{ user.firstname ?? user.username }} &#128075;</td>
+                                        </tr>
+                                        <tr>
+                                            <td height="16"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="mail-text">
+                                                {% if days == 7 %}
+                                                    Votre voyage <b>{{ trip.name }}</b> commence dans <b>7 jours</b>. Voici un récapitulatif pour vous aider à tout préparer.
+                                                {% else %}
+                                                    C'est demain que vous partez pour <b>{{ trip.name }}</b> ! Dernière vérification avant le grand départ.
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td height="20"></td>
+                                        </tr>
+
+                                        {# Trip card — destinations #}
+                                        <tr>
+                                            <td>
+                                                <table cellpadding="0" cellspacing="0" style="width:100%; overflow:hidden; border:1px solid #d1fae5;">
+                                                    <tbody>
+                                                    {# Header gradient #}
+                                                    <tr>
+                                                        <td style="background:linear-gradient(135deg,#0f9b8e,#1ab394); padding:12px 18px;">
+                                                            <table cellpadding="0" cellspacing="0" style="width:100%;">
+                                                                <tbody><tr>
+                                                                    <td style="color:#ffffff; font-size:12px; opacity:0.9; letter-spacing:1px; text-transform:uppercase;">
+                                                                        &#128197; Itinéraire
+                                                                    </td>
+                                                                    {% if trip.departureDate %}
+                                                                    <td style="color:#ffffff; font-size:12px; text-align:right; opacity:0.9;">
+                                                                        {{ trip.departureDate|fr_date(false) }}
+                                                                        {% if trip.returnDate %}&nbsp;&rarr;&nbsp;{{ trip.returnDate|fr_date(false) }}{% endif %}
+                                                                    </td>
+                                                                    {% endif %}
+                                                                </tr></tbody>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                    {# Destinations #}
+                                                    {% if trip.destinations is not empty %}
+                                                    {% for destination in trip.destinations %}
+                                                    <tr>
+                                                        <td style="background:#ffffff; padding:12px 18px;{% if not loop.last %} border-bottom:1px solid #f0faf9;{% endif %}">
+                                                            <table cellpadding="0" cellspacing="0" style="width:100%;">
+                                                                <tbody><tr>
+                                                                    <td style="vertical-align:middle;">
+                                                                        <table cellpadding="0" cellspacing="0">
+                                                                            <tbody><tr>
+                                                                                <td style="vertical-align:middle; padding-right:10px;">
+                                                                                    <div style="width:28px; height:28px; border-radius:50%; background:#eef6f5; text-align:center; line-height:28px; font-size:14px;">&#128205;</div>
+                                                                                </td>
+                                                                                <td style="vertical-align:middle;">
+                                                                                    <div style="font-size:15px; font-weight:bold; color:#2d2d44;">{{ destination.country.name }}</div>
+                                                                                    {% if destination.departureDate %}
+                                                                                    <div style="font-size:12px; color:#6b7280; margin-top:2px;">
+                                                                                        {{ destination.departureDate|fr_date(false) }}
+                                                                                        {% if destination.returnDate %}&nbsp;&rarr;&nbsp;{{ destination.returnDate|fr_date(false) }}{% endif %}
+                                                                                    </div>
+                                                                                    {% endif %}
+                                                                                </td>
+                                                                            </tr></tbody>
+                                                                        </table>
+                                                                    </td>
+                                                                    {% if not loop.last %}
+                                                                    <td style="text-align:right; vertical-align:middle; color:#0f9b8e; font-size:18px;">&#8595;</td>
+                                                                    {% endif %}
+                                                                </tr></tbody>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                    {% endif %}
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td height="16"></td>
+                                        </tr>
+
+                                        {# ── Budget sur place ── #}
+                                        {% if onSiteBudgetPerPerson is not null %}
+                                        <tr>
+                                            <td style="padding-bottom:16px;">
+                                                <table cellpadding="0" cellspacing="0" style="width:100%; background:#eef6f5; border-left:3px solid #0f9b8e;">
+                                                    <tbody>
+                                                    <tr>
+                                                        <td style="padding:12px 14px;">
+                                                            <table cellpadding="0" cellspacing="0" style="width:100%;">
+                                                                <tbody><tr>
+                                                                    <td style="font-size:13px; color:#2d2d44;">
+                                                                        &#128176; <b>Budget sur place prévu</b>
+                                                                        <span style="font-size:12px; color:#6b7280; display:block; margin-top:2px;">Prévoyez environ cette somme par personne pour vos dépenses sur place.</span>
+                                                                    </td>
+                                                                    <td style="text-align:right; white-space:nowrap;">
+                                                                        <span style="font-size:18px; font-weight:bold; color:#0f9b8e;">{{ onSiteBudgetPerPerson }} €</span>
+                                                                        <span style="display:block; font-size:11px; color:#6b7280;">/ personne</span>
+                                                                    </td>
+                                                                </tr></tbody>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+
+                                        {# ── Transports non payés ── #}
+                                        {% set unpaidTransports = trip.transports|filter(t => not t.paid) %}
+                                        {% if unpaidTransports is not empty %}
+                                        <tr>
+                                            <td style="font-size:13px; font-weight:bold; color:#2d2d44; text-transform:uppercase; letter-spacing:1px; padding-bottom:8px;">&#128646; Transports à régler</td>
+                                        </tr>
+                                        {% for transport in unpaidTransports %}
+                                        <tr>
+                                            <td style="padding-bottom:8px;">
+                                                <table cellpadding="0" cellspacing="0" style="width:100%; background:#f8f9ff; border-left:3px solid {% if transport.paid %}#10b981{% else %}#f59e0b{% endif %};">
+                                                    <tbody>
+                                                    <tr>
+                                                        <td style="padding:12px 14px;">
+                                                            {# Header : type + badge statut #}
+                                                            <table cellpadding="0" cellspacing="0" style="width:100%;">
+                                                                <tbody><tr>
+                                                                    <td style="font-size:14px; font-weight:bold; color:#2d2d44;">
+                                                                        {% if transport.type.name == 'Voiture' and transport.isRental %}
+                                                                            Location de voiture
+                                                                        {% elseif transport.type.name == 'Voiture' %}
+                                                                            Voiture
+                                                                        {% elseif transport.type.name == 'Avion' %}
+                                                                            Avion
+                                                                        {% elseif transport.type.name == 'Train' %}
+                                                                            Train
+                                                                        {% elseif transport.type.name == 'Transports en commun' %}
+                                                                            Transports en commun
+                                                                        {% elseif transport.type.name == 'Bus' %}
+                                                                            {{ transport.type.name }}
+                                                                        {% else %}
+                                                                            {{ transport.type.name }}
+                                                                        {% endif %}
+                                                                        {% if transport.company %}
+                                                                            <span style="font-weight:normal; color:#6b7280;">— {{ transport.company }}</span>
+                                                                        {% endif %}
+                                                                    </td>
+                                                                </tr></tbody>
+                                                            </table>
+
+                                                            {# Détails selon le type #}
+                                                            {% if transport.type.name == 'Voiture' and not transport.isRental %}
+                                                                {% if transport.departure or transport.destination %}
+                                                                <p style="margin:6px 0 0; font-size:13px; color:#6b7280;">
+                                                                    &#128205; {{ transport.departure ?? '?' }} &rarr; {{ transport.destination ?? '?' }}
+                                                                </p>
+                                                                {% endif %}
+                                                                {% if transport.estimatedToll or transport.estimatedGasoline %}
+                                                                <p style="margin:4px 0 0; font-size:12px; color:#9ca3af;">
+                                                                    Péage ~{{ transport.estimatedToll ?? 0 }} €&nbsp;&nbsp;·&nbsp;&nbsp;Carburant ~{{ transport.estimatedGasoline ?? 0 }} €
+                                                                </p>
+                                                                {% endif %}
+
+                                                            {% elseif transport.type.name == 'Voiture' and transport.isRental %}
+                                                                <p style="margin:6px 0 0; font-size:13px; color:#6b7280;">
+                                                                    &#128197; Prise en charge :
+                                                                    {% if transport.departureDate %}<b style="color:#2d2d44;">{{ transport.departureDate|fr_datetime }}</b>{% endif %}
+                                                                    {% if transport.departure %}&nbsp;— {{ transport.departure }}{% endif %}
+                                                                </p>
+                                                                <p style="margin:3px 0 0; font-size:13px; color:#6b7280;">
+                                                                    &#128197; Restitution :
+                                                                    {% if transport.arrivalDate %}<b style="color:#2d2d44;">{{ transport.arrivalDate|fr_datetime }}</b>{% endif %}
+                                                                    {% if transport.destination %}&nbsp;— {{ transport.destination }}{% endif %}
+                                                                </p>
+
+                                                            {% elseif transport.type.name == 'Transports en commun' %}
+                                                                {% if transport.subscriptionDuration %}
+                                                                <p style="margin:6px 0 0; font-size:13px; color:#6b7280;">
+                                                                    Abonnement {{ transport.subscriptionDuration }} jours
+                                                                </p>
+                                                                {% endif %}
+
+                                                            {% else %}
+                                                                {% if transport.departure or transport.destination %}
+                                                                <p style="margin:6px 0 0; font-size:13px; color:#6b7280;">
+                                                                    &#128205; {{ transport.departure ?? '?' }} &rarr; {{ transport.destination ?? '?' }}
+                                                                </p>
+                                                                {% endif %}
+                                                                {% if transport.departureDate %}
+                                                                <p style="margin:3px 0 0; font-size:13px; color:#6b7280;">
+                                                                    &#9200; <b style="color:#2d2d44;">{{ transport.departureDate|fr_datetime }}</b>
+                                                                    {% if transport.arrivalDate %}&nbsp;&rarr;&nbsp;<b style="color:#2d2d44;">{{ transport.arrivalDate|fr_datetime }}</b>{% endif %}
+                                                                </p>
+                                                                {% endif %}
+                                                            {% endif %}
+                                                        </td>
+                                                    </tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                        <tr><td height="16"></td></tr>
+                                        {% endif %}
+
+                                        {# ── Hébergements non réservés ── #}
+                                        {% set unbookedAccommodations = trip.accommodations|filter(a => not a.booked) %}
+                                        {% if unbookedAccommodations is not empty %}
+                                        <tr>
+                                            <td style="font-size:13px; font-weight:bold; color:#2d2d44; text-transform:uppercase; letter-spacing:1px; padding-bottom:8px;">&#127968; Hébergements à réserver</td>
+                                        </tr>
+                                        {% for accommodation in unbookedAccommodations %}
+                                        <tr>
+                                            <td style="padding-bottom:8px;">
+                                                <table cellpadding="0" cellspacing="0" style="width:100%; background:#f8f9ff; border-left:3px solid {% if accommodation.booked %}#10b981{% else %}#f59e0b{% endif %};">
+                                                    <tbody>
+                                                    <tr>
+                                                        <td style="padding:12px 14px;">
+                                                            <table cellpadding="0" cellspacing="0" style="width:100%;">
+                                                                <tbody><tr>
+                                                                    <td style="font-size:14px; font-weight:bold; color:#2d2d44;">
+                                                                        {{ accommodation.name }}
+                                                                        {% if accommodation.city or accommodation.country %}
+                                                                            <span style="font-weight:normal; font-size:13px; color:#6b7280;">
+                                                                                — {{ accommodation.city }}{% if accommodation.city and accommodation.country %}, {% endif %}{{ accommodation.country }}
+                                                                            </span>
+                                                                        {% endif %}
+                                                                    </td>
+                                                                </tr></tbody>
+                                                            </table>
+                                                            {% if accommodation.arrivalDate or accommodation.departureDate %}
+                                                            <p style="margin:6px 0 0; font-size:13px; color:#6b7280;">
+                                                                &#128197;
+                                                                {% if accommodation.arrivalDate %}Arrivée <b style="color:#2d2d44;">{{ accommodation.arrivalDate|fr_date }}</b>{% endif %}
+                                                                {% if accommodation.arrivalDate and accommodation.departureDate %}&nbsp;&rarr;&nbsp;{% endif %}
+                                                                {% if accommodation.departureDate %}Départ <b style="color:#2d2d44;">{{ accommodation.departureDate|fr_date }}</b>{% endif %}
+                                                            </p>
+                                                            {% endif %}
+                                                        </td>
+                                                    </tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                        <tr><td height="16"></td></tr>
+                                        {% endif %}
+
+                                        {# ── Activités à réserver ── #}
+                                        {% if unbookedActivities is not empty %}
+                                        <tr>
+                                            <td style="font-size:13px; font-weight:bold; color:#2d2d44; text-transform:uppercase; letter-spacing:1px; padding-bottom:8px;">&#127919; Activités à réserver</td>
+                                        </tr>
+                                        {% for activity in unbookedActivities %}
+                                        <tr>
+                                            <td style="padding-bottom:8px;">
+                                                <table cellpadding="0" cellspacing="0" style="width:100%; background:#f8f9ff; border-left:3px solid #f59e0b;">
+                                                    <tbody>
+                                                    <tr>
+                                                        <td style="padding:10px 14px;">
+                                                            <table cellpadding="0" cellspacing="0" style="width:100%;">
+                                                                <tbody><tr>
+                                                                    <td style="font-size:14px; font-weight:bold; color:#2d2d44;">
+                                                                        {{ activity.name }}
+                                                                    </td>
+                                                                </tr></tbody>
+                                                            </table>
+                                                            {% if activity.date %}
+                                                            <p style="margin:5px 0 0; font-size:13px; color:#6b7280;">
+                                                                &#128197; {{ activity.date|fr_date }}
+                                                            </p>
+                                                            {% endif %}
+                                                        </td>
+                                                    </tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                        <tr><td height="16"></td></tr>
+                                        {% endif %}
+
+                                        {# ── Checklists ── #}
+                                        {% if sharedItems is not empty or personalItems is not empty %}
+                                        <tr>
+                                            <td style="font-size:13px; font-weight:bold; color:#2d2d44; text-transform:uppercase; letter-spacing:1px; padding-bottom:8px;">&#9989; Checklist — à faire</td>
+                                        </tr>
+                                        {% endif %}
+
+                                        {# Partagée #}
+                                        {% if sharedItems is not empty %}
+                                        <tr>
+                                            <td style="padding-bottom:8px;">
+                                                <table cellpadding="0" cellspacing="0" style="width:100%; background:#f8f9ff; border:1px solid #e5e7eb;">
+                                                    <tbody>
+                                                    <tr>
+                                                        <td style="padding:10px 14px 6px; font-size:11px; font-weight:bold; color:#0f9b8e; text-transform:uppercase; letter-spacing:0.5px;">
+                                                            &#127760; Partagée
+                                                        </td>
+                                                    </tr>
+                                                    {% set currentCat = null %}
+                                                    {% for item in sharedItems %}
+                                                        {% if item.category != currentCat %}
+                                                            {% set currentCat = item.category %}
+                                                            {% if item.category %}
+                                                            <tr>
+                                                                <td style="padding:6px 14px 2px 24px; font-size:11px; color:#9ca3af; font-style:italic;">{{ item.category }}</td>
+                                                            </tr>
+                                                            {% endif %}
+                                                        {% endif %}
+                                                        <tr>
+                                                            <td style="padding:5px 14px 5px 24px; font-size:13px; color:#374151;{% if not loop.last %} border-bottom:1px solid #f0f0f0;{% endif %}">
+                                                                <span style="color:#d1d5db; margin-right:6px;">&#9633;</span>{{ item.name }}
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                    <tr><td height="6"></td></tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+
+                                        {# Personnelle #}
+                                        {% if personalItems is not empty %}
+                                        <tr>
+                                            <td style="padding-bottom:8px;">
+                                                <table cellpadding="0" cellspacing="0" style="width:100%; background:#f8f9ff; border:1px solid #e5e7eb;">
+                                                    <tbody>
+                                                    <tr>
+                                                        <td style="padding:10px 14px 6px; font-size:11px; font-weight:bold; color:#6366f1; text-transform:uppercase; letter-spacing:0.5px;">
+                                                            &#128100; Personnelle
+                                                        </td>
+                                                    </tr>
+                                                    {% set currentCat = null %}
+                                                    {% for item in personalItems %}
+                                                        {% if item.category != currentCat %}
+                                                            {% set currentCat = item.category %}
+                                                            {% if item.category %}
+                                                            <tr>
+                                                                <td style="padding:6px 14px 2px 24px; font-size:11px; color:#9ca3af; font-style:italic;">{{ item.category }}</td>
+                                                            </tr>
+                                                            {% endif %}
+                                                        {% endif %}
+                                                        <tr>
+                                                            <td style="padding:5px 14px 5px 24px; font-size:13px; color:#374151;{% if not loop.last %} border-bottom:1px solid #f0f0f0;{% endif %}">
+                                                                <span style="color:#d1d5db; margin-right:6px;">&#9633;</span>{{ item.name }}
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                    <tr><td height="6"></td></tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+
+                                        {% if sharedItems is not empty or personalItems is not empty %}
+                                        <tr><td height="12"></td></tr>
+                                        {% endif %}
+
+                                        {# Share CTA #}
+                                        {% if trip.storyToken %}
+                                            <tr>
+                                                <td class="mail-text" style="text-align: center;">
+                                                    Vous souhaitez partager votre voyage avec vos proches ? Votre voyage est accessible via un lien public.
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td height="16"></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="mail-button-container">
+                                                    <a href="{{ domain }}/share/{{ trip.storyToken }}" class="mail-button"
+                                                       target="_blank">&#127760; Voir mon voyage</a>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td height="20"></td>
+                                            </tr>
+                                        {% endif %}
+
+                                        <tr>
+                                            <td>
+                                                <hr class="mail-divider">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td height="20"></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="mail-signature">
+                                                Bon voyage ! &#127758;<br>
+                                                L'équipe <b>{{ app_name }}</b>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="mail-footer">
+                        <table style="width: 100%;" cellpadding="0" cellspacing="0">
+                            <tbody>
+                            <tr>
+                                <td class="mail-footer-text">
+                                    &copy; {{ 'now'|date('Y') }}
+                                    <a href="{{ domain }}" target="_blank" class="mail-link">{{ app_name }}</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td height="8"></td>
+                            </tr>
+                            <tr>
+                                <td class="mail-footer-text">
+                                    Pour gérer vos préférences de notifications, rendez-vous dans vos
+                                    <a href="{{ domain }}/settings" target="_blank" class="mail-link">paramètres</a>.
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <td height="40"></td>
+    </tr>
+    </tbody>
+</table>

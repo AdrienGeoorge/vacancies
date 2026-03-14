@@ -20,6 +20,7 @@ services:
         bind:
             $appSecret: '%env(APP_SECRET)%'
             $domain: '%env(DOMAIN)%'
+            $apiUrl: '%env(API_URL)%'
             $fromMail: '%env(FROM_MAIL)%'
             $appName: '%env(APP_NAME)%'
             $photosDirectory: '%photos_directory%'

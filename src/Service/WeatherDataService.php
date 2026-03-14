@@ -84,7 +84,7 @@ class WeatherDataService
                         'distance' => '< 50km'
                     ]);
 
-                    $lastUpdated = new \DateTime($nearbyCity->getLastUpdated());
+                    $lastUpdated = $nearbyCity->getLastUpdated();
                     $daysSinceUpdate = (new \DateTime())->diff($lastUpdated)->days;
 
                     // Si > 5 ans (1825 jours), mettre à jour

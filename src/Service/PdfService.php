@@ -16,7 +16,8 @@ class PdfService
     public function __construct(
         private readonly Environment $twig,
         private readonly TripService $tripService,
-        private readonly string      $domain
+        private readonly string      $domain,
+        private readonly string      $apiUrl
     )
     {
     }
@@ -69,6 +70,7 @@ class PdfService
     {
         $html = $this->twig->render('pdf/trip_report_full.html.twig', [
             'trip' => $trip,
+            'apiUrl' => $this->apiUrl,
             'logoPath' => $this->domain . '/images/logo.png',
             'generatedAt' => new \DateTime()
         ]);

@@ -102,6 +102,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(options: ['default' => true])]
     private bool $receiveSummaryEmails = true;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $paypalHandle = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $revolutHandle = null;
+
     public function __construct()
     {
         $this->trips = new ArrayCollection();
@@ -531,4 +537,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    public function getPaypalHandle(): ?string
+    {
+        return $this->paypalHandle;
+    }
+
+    public function setPaypalHandle(?string $paypalHandle): static
+    {
+        $this->paypalHandle = $paypalHandle;
+
+        return $this;
+    }
+
+    public function getRevolutHandle(): ?string
+    {
+        return $this->revolutHandle;
+    }
+
+    public function setRevolutHandle(?string $revolutHandle): static
+    {
+        $this->revolutHandle = $revolutHandle;
+
+        return $this;
+    }
+
 }

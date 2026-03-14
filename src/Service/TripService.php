@@ -411,6 +411,9 @@ class TripService
                 if (abs($amountDue) <= 0.01) $amountDue = 0.0;
 
                 $balances[$traveler->getName()] = [
+                    'id' => $traveler->getId(),
+                    'paypalHandle' => $traveler->getInvited()?->getPaypalHandle(),
+                    'revolutHandle' => $traveler->getInvited()?->getRevolutHandle(),
                     'paid' => $paid,
                     'amountDue' => $amountDue,
                     'Hébergements' => round($accommodations, 2),
@@ -485,7 +488,11 @@ class TripService
             // Ajouter la transaction
             $data['refund'][] = [
                 'from' => $debtor,
+                'fromId' => $balances[$debtor]['id'] ?? null,
                 'to' => $creditor,
+                'toId' => $balances[$creditor]['id'] ?? null,
+                'toPaypalHandle' => $balances[$creditor]['paypalHandle'] ?? null,
+                'toRevolutHandle' => $balances[$creditor]['revolutHandle'] ?? null,
                 'amount' => round($transferAmount, 2, PHP_ROUND_HALF_UP)
             ];
 

@@ -135,6 +135,7 @@ class TripController extends AbstractController
             'toId' => $r->getToTraveler()->getId(),
             'amount' => $r->getAmount(),
             'description' => $r->getDescription(),
+            'date' => $r->getDate()?->format('Y-m-d'),
         ], $trip->getReimbursements()->toArray());
         return $this->json($data);
     }
@@ -159,12 +160,21 @@ class TripController extends AbstractController
                 return $this->json(['message' => 'Le montant doit être supérieur à 0.'], Response::HTTP_BAD_REQUEST);
             }
 
+            $date = null;
+            if (!empty($data['date'])) {
+                try {
+                    $date = new \DateTimeImmutable($data['date']);
+                } catch (\Exception) {
+                }
+            }
+
             $reimbursement = (new TripReimbursement())
                 ->setTrip($trip)
                 ->setFromTraveler($fromTraveler)
                 ->setToTraveler($toTraveler)
                 ->setAmount((string) $data['amount'])
-                ->setDescription($data['description'] ?? null);
+                ->setDescription($data['description'] ?? null)
+                ->setDate($date);
 
             $this->managerRegistry->getManager()->persist($reimbursement);
             $this->managerRegistry->getManager()->flush();

@@ -428,6 +428,39 @@ class UserController extends AbstractController
         ], Response::HTTP_CREATED);
     }
 
+    #[Route('/settings/payment-handles', name: 'update_payment_handles', methods: ['POST'])]
+    public function updatePaymentHandles(Request $request, JWTTokenManagerInterface $jwtManager): JsonResponse
+    {
+        if (!$this->getUser()) return new JsonResponse([], Response::HTTP_UNAUTHORIZED);
+
+        $data = json_decode($request->getContent(), true);
+
+        /** @var User $user */
+        $user = $this->getUser();
+        $user->setPaypalHandle(!empty($data['paypalHandle']) ? $data['paypalHandle'] : null);
+        $user->setRevolutHandle(!empty($data['revolutHandle']) ? $data['revolutHandle'] : null);
+
+        $this->managerRegistry->getManager()->persist($user);
+        $this->managerRegistry->getManager()->flush();
+
+        $token = $jwtManager->create($user);
+
+        return new JsonResponse([
+            'token' => $token,
+            'user' => [
+                'id' => $user->getId(),
+                'email' => $user->getEmail(),
+                'firstname' => $user->getFirstname(),
+                'lastname' => $user->getLastname(),
+                'completeName' => $user->getCompleteName(),
+                'username' => $user->getUsername(),
+                'avatar' => $user->getAvatar(),
+                'biography' => $user->getBiography(),
+                'theme' => $user->getTheme()
+            ]
+        ]);
+    }
+
     #[Route('/settings/disabled', name: 'disabled_account', options: ['expose' => true], methods: ['POST'])]
     public function disabledAccount(): JsonResponse
     {

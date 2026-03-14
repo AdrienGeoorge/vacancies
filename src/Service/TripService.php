@@ -52,10 +52,11 @@ class TripService
     public function countDaysBeforeOrAfter(Trip $trip): bool|array|string
     {
         $departureDate = $trip->getDepartureDate();
+        $departureDate?->setTime(0, 0, 0);
 
         if (!$departureDate) return false;
 
-        if ($departureDate >= new DateTime('midnight')) {
+        if ($departureDate > new DateTime('midnight')) {
             $diff = (new \DateTime('midnight'))->diff($departureDate);
             return [
                 'before' => false,
@@ -64,6 +65,8 @@ class TripService
         }
 
         $returnDate = $trip->getReturnDate();
+        $returnDate?->setTime(0, 0, 0);
+
         if ($returnDate && $returnDate < new DateTime('midnight')) {
             $diff = (new \DateTime('midnight'))->diff($returnDate);
             return [

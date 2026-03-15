@@ -12,8 +12,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/api/story', name: 'api_public_story_', requirements: ['trip' => '\\d+'])]
-class StoryController extends AbstractController
+#[Route('/api/share', name: 'api_public_trip_', requirements: ['trip' => '\\d+'])]
+class TripShareController extends AbstractController
 {
     public function __construct(
         private readonly TripRepository $tripRepository,
@@ -28,7 +28,7 @@ class StoryController extends AbstractController
         $trip = $this->tripRepository->findOneBy(['storyToken' => $token]);
 
         if (!$trip) {
-            return $this->json(['message' => 'Story introuvable.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => 'Partage introuvable.'], Response::HTTP_NOT_FOUND);
         }
 
         date_default_timezone_set('Europe/Paris');

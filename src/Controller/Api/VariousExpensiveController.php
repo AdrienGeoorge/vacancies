@@ -7,6 +7,7 @@ use App\Entity\Currency;
 use App\Entity\Trip;
 use App\Entity\TripTraveler;
 use App\Entity\VariousExpensive;
+use App\Service\BudgetAlertService;
 use App\Service\CurrencyConverterService;
 use App\Service\DTOService;
 use App\Service\TripService;
@@ -26,6 +27,7 @@ class VariousExpensiveController extends AbstractController
         readonly TripService              $tripService,
         readonly DTOService               $dtoService,
         readonly CurrencyConverterService $converterService,
+        readonly BudgetAlertService       $budgetAlertService
     )
     {
     }
@@ -80,6 +82,8 @@ class VariousExpensiveController extends AbstractController
         try {
             $eurCurrency = $this->managerRegistry->getRepository(Currency::class)->findOneBy(['code' => 'EUR']);
 
+            $oldTotal = $this->budgetAlertService->getCategoryTotal($trip, 'various-expensive');
+
             $expensive->setTrip($trip);
             $expensive->setPrice($dto->originalPrice);
             $expensive = $this->dtoService->mapToEntity($dto, $expensive);
@@ -94,11 +98,19 @@ class VariousExpensiveController extends AbstractController
             $this->managerRegistry->getManager()->persist($expensive);
             $this->managerRegistry->getManager()->flush();
 
+            $toastMessage = $this->budgetAlertService->checkAndNotify($trip, 'various-expensive', $oldTotal);
+
             if ($request->get('_route') === 'api_various_expensive_edit') {
-                return $this->json(['message' => 'Les informations de ta dépense ont bien été modifiées.']);
+                return $this->json([
+                    'message' => 'Les informations de ta dépense ont bien été modifiées.',
+                    'warning' => $toastMessage
+                ]);
             }
 
-            return $this->json(['message' => 'Cette dépense a bien été ajoutée à votre voyage.']);
+            return $this->json([
+                'message' => 'Cette dépense a bien été ajoutée à votre voyage.',
+                'warning' => $toastMessage
+            ]);
         } catch (\Exception $e) {
             return $this->json(['message' => 'Une erreur est survenue lors de la création de cette dépense.'], Response::HTTP_BAD_REQUEST);
         }

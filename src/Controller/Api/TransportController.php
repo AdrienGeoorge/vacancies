@@ -9,6 +9,7 @@ use App\Entity\Transport;
 use App\Entity\TransportType;
 use App\Entity\Trip;
 use App\Entity\TripTraveler;
+use App\Service\BudgetAlertService;
 use App\Service\CurrencyConverterService;
 use App\Service\DTOService;
 use App\Service\TripService;
@@ -27,7 +28,8 @@ class TransportController extends AbstractController
         readonly ManagerRegistry          $managerRegistry,
         readonly TripService              $tripService,
         readonly DTOService               $dtoService,
-        readonly CurrencyConverterService $converterService
+        readonly CurrencyConverterService $converterService,
+        readonly BudgetAlertService       $budgetAlertService
     )
     {
     }
@@ -102,6 +104,8 @@ class TransportController extends AbstractController
             if ($errorOnCompare === null) {
                 $eurCurrency = $this->managerRegistry->getRepository(Currency::class)->findOneBy(['code' => 'EUR']);
 
+                $oldTotal = $this->budgetAlertService->getCategoryTotal($trip, 'transports');
+
                 $transport->setTrip($trip);
                 $transport->setPrice($dto->originalPrice);
                 $transport = $this->dtoService->mapToEntity($dto, $transport);
@@ -121,11 +125,19 @@ class TransportController extends AbstractController
                 $this->managerRegistry->getManager()->persist($transport);
                 $this->managerRegistry->getManager()->flush();
 
+                $toastMessage = $this->budgetAlertService->checkAndNotify($trip, 'transports', $oldTotal);
+
                 if ($request->get('_route') === 'api_transports_edit') {
-                    return $this->json(['message' => 'Les informations de ton moyen de transport ont bien été modifiées.']);
+                    return $this->json([
+                        'message' => 'Les informations de ton moyen de transport ont bien été modifiées.',
+                        'warning' => $toastMessage
+                    ]);
                 }
 
-                return $this->json(['message' => 'Ce moyen de transport a bien été ajouté à votre voyage.']);
+                return $this->json([
+                    'message' => 'Ce moyen de transport a bien été ajouté à votre voyage.',
+                    'warning' => $toastMessage
+                ]);
             } else {
                 return $this->json(['message' => $errorOnCompare], Response::HTTP_BAD_REQUEST);
             }

@@ -9,6 +9,7 @@ use App\Entity\EventType;
 use App\Entity\PlanningEvent;
 use App\Entity\Trip;
 use App\Entity\TripTraveler;
+use App\Service\BudgetAlertService;
 use App\Service\CurrencyConverterService;
 use App\Service\DTOService;
 use App\Service\TripService;
@@ -27,7 +28,8 @@ class ActivityController extends AbstractController
         readonly ManagerRegistry          $managerRegistry,
         readonly TripService              $tripService,
         readonly DTOService               $dtoService,
-        readonly CurrencyConverterService $converterService
+        readonly CurrencyConverterService $converterService,
+        readonly BudgetAlertService       $budgetAlertService
     )
     {
     }
@@ -91,6 +93,8 @@ class ActivityController extends AbstractController
             if ($errorOnCompare === null) {
                 $eurCurrency = $this->managerRegistry->getRepository(Currency::class)->findOneBy(['code' => 'EUR']);
 
+                $oldTotal = $this->budgetAlertService->getCategoryTotal($trip, 'activities');
+
                 $activity->setTrip($trip);
                 $activity->setPrice($dto->originalPrice);
                 $activity = $this->dtoService->mapToEntity($dto, $activity);
@@ -124,11 +128,19 @@ class ActivityController extends AbstractController
 
                 $this->managerRegistry->getManager()->flush();
 
+                $toastMessage = $this->budgetAlertService->checkAndNotify($trip, 'activities', $oldTotal);
+
                 if ($request->get('_route') === 'api_activities_edit') {
-                    return $this->json(['message' => 'Les informations de ton activité ont bien été modifiées.']);
+                    return $this->json([
+                        'message' => 'Les informations de ton activité ont bien été modifiées.',
+                        'warning' => $toastMessage
+                    ]);
                 }
 
-                return $this->json(['message' => 'Cette activité a bien été ajoutée à votre voyage.']);
+                return $this->json([
+                    'message' => 'Cette activité a bien été ajoutée à votre voyage.',
+                    'warning' => $toastMessage
+                ]);
             } else {
                 return $this->json(['message' => $errorOnCompare], Response::HTTP_BAD_REQUEST);
             }

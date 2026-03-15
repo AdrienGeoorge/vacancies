@@ -6,6 +6,7 @@ use App\Entity\Accommodation;
 use App\Entity\Trip;
 use App\Entity\TripTraveler;
 use App\Service\AccommodationService;
+use App\Service\BudgetAlertService;
 use App\Service\TripService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,7 +23,8 @@ class AccommodationController extends AbstractController
     public function __construct(
         readonly ManagerRegistry      $managerRegistry,
         readonly AccommodationService $accommodationService,
-        readonly TripService          $tripService
+        readonly TripService          $tripService,
+        readonly BudgetAlertService   $budgetAlertService
     )
     {
     }
@@ -82,13 +84,23 @@ class AccommodationController extends AbstractController
             $errorOnCompare = $this->tripService->compareElementDateBetweenTripDates($trip, $dto->arrivalDate, $dto->departureDate);
 
             if ($errorOnCompare === null) {
+                $oldTotal = $this->budgetAlertService->getCategoryTotal($trip, 'accommodations');
+
                 $this->accommodationService->handleAccommodationForm($trip, $accommodation, $dto, $sentIds);
 
+                $toastMessage = $this->budgetAlertService->checkAndNotify($trip, 'accommodations', $oldTotal);
+
                 if ($request->get('_route') === 'api_accommodations_edit') {
-                    return $this->json(['message' => 'Les informations de ton hébergement ont bien été modifiées.']);
+                    return $this->json([
+                        'message' => 'Les informations de ton hébergement ont bien été modifiées.',
+                        'warning' => $toastMessage
+                    ]);
                 }
 
-                return $this->json(['message' => 'Cet hébergement a bien été ajouté à votre voyage.']);
+                return $this->json([
+                    'message' => 'Cet hébergement a bien été ajouté à votre voyage.',
+                    'warning' => $toastMessage
+                ]);
             } else {
                 return $this->json(['message' => $errorOnCompare], Response::HTTP_FORBIDDEN);
             }

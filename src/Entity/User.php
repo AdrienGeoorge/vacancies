@@ -108,6 +108,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $revolutHandle = null;
 
+    #[ORM\OneToMany(targetEntity: WishlistItem::class, mappedBy: 'user', orphanRemoval: true)]
+    #[Ignore]
+    private Collection $wishlistItems;
+
     public function __construct()
     {
         $this->trips = new ArrayCollection();
@@ -118,6 +122,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->setRoles(['ROLE_USER']);
         $this->userBadges = new ArrayCollection();
         $this->userNotifications = new ArrayCollection();
+        $this->wishlistItems = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -558,6 +563,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setRevolutHandle(?string $revolutHandle): static
     {
         $this->revolutHandle = $revolutHandle;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, WishlistItem>
+     */
+    public function getWishlistItems(): Collection
+    {
+        return $this->wishlistItems;
+    }
+
+    public function addWishlistItem(WishlistItem $wishlistItem): static
+    {
+        if (!$this->wishlistItems->contains($wishlistItem)) {
+            $this->wishlistItems->add($wishlistItem);
+            $wishlistItem->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeWishlistItem(WishlistItem $wishlistItem): static
+    {
+        if ($this->wishlistItems->removeElement($wishlistItem)) {
+            if ($wishlistItem->getUser() === $this) {
+                $wishlistItem->setUser(null);
+            }
+        }
 
         return $this;
     }

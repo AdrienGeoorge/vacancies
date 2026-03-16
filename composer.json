@@ -8,6 +8,7 @@
         "ext-ctype": "*",
         "ext-gd": "*",
         "ext-iconv": "*",
+        "ext-intl": "*",
         "api-platform/doctrine-orm": "^3.4",
         "api-platform/symfony": "^3.4",
         "doctrine/dbal": "^3",

@@ -70,8 +70,11 @@ class Trip
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $blocNotes = null;
 
-    #[ORM\Column(length: 9, nullable: true)]
-    private ?string $visibility = null;
+    #[ORM\Column]
+    private bool $isPublic = false;
+
+    #[ORM\Column(length: 120, unique: true, nullable: true)]
+    private ?string $publicSlug = null;
 
     #[ORM\OneToMany(targetEntity: TripDestination::class, mappedBy: 'trip', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['displayOrder' => 'ASC'])]
@@ -79,7 +82,7 @@ class Trip
     private Collection $destinations;
 
     #[ORM\Column(length: 64, unique: true)]
-    private string $storyToken;
+    private string $shareToken;
 
     #[ORM\OneToMany(targetEntity: TripPhoto::class, mappedBy: 'trip', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private Collection $photos;
@@ -105,7 +108,7 @@ class Trip
         $this->photos = new ArrayCollection();
         $this->reimbursements = new ArrayCollection();
         $this->checklistItems = new ArrayCollection();
-        $this->storyToken = bin2hex(random_bytes(32));
+        $this->shareToken = bin2hex(random_bytes(32));
     }
 
     public function getId(): ?int
@@ -458,14 +461,26 @@ class Trip
         return $this;
     }
 
-    public function getVisibility(): ?string
+    public function isPublic(): bool
     {
-        return $this->visibility;
+        return $this->isPublic;
     }
 
-    public function setVisibility(?string $visibility): static
+    public function setIsPublic(bool $isPublic): static
     {
-        $this->visibility = $visibility;
+        $this->isPublic = $isPublic;
+
+        return $this;
+    }
+
+    public function getPublicSlug(): ?string
+    {
+        return $this->publicSlug;
+    }
+
+    public function setPublicSlug(?string $publicSlug): static
+    {
+        $this->publicSlug = $publicSlug;
 
         return $this;
     }
@@ -497,9 +512,9 @@ class Trip
         return $this;
     }
 
-    public function getStoryToken(): string
+    public function getShareToken(): string
     {
-        return $this->storyToken;
+        return $this->shareToken;
     }
 
     /**

@@ -6,10 +6,10 @@
 DirectoryIndex index.php
 
 # ─── Cache headers for uploaded files ────────────────────────────────────────
+# FilesMatch ne peut pas matcher le chemin, on utilise SetEnvIf sur REQUEST_URI
 <IfModule mod_headers.c>
-    <FilesMatch "^uploads/.*\.(jpg|jpeg|png|gif|webp|avif|svg)$">
-        Header set Cache-Control "public, max-age=2592000"
-    </FilesMatch>
+    SetEnvIf Request_URI "^/uploads/.*\.(jpg|jpeg|png|gif|webp|avif|svg)$" UPLOAD_IMAGE
+    Header set Cache-Control "public, max-age=2592000" env=UPLOAD_IMAGE
 </IfModule>
 
 # By default, Apache does not evaluate symbolic links if you did not enable this

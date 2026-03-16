@@ -25,7 +25,17 @@ class TripShareController extends AbstractController
     #[Route('/{token}', name: 'show', methods: ['GET'])]
     public function show(string $token): JsonResponse
     {
-        $trip = $this->tripRepository->findOneBy(['storyToken' => $token]);
+        $trip = $this->tripRepository->findOneBy(['shareToken' => $token]);
+        $isPublic = false;
+
+        if (!$trip) {
+            $trip = $this->tripRepository->findOneBy(['publicSlug' => $token]);
+            $isPublic = true;
+
+            if ($trip && !$trip->isPublic()) {
+                return $this->json(['message' => 'Partage introuvable.'], Response::HTTP_NOT_FOUND);
+            }
+        }
 
         if (!$trip) {
             return $this->json(['message' => 'Partage introuvable.'], Response::HTTP_NOT_FOUND);
@@ -73,14 +83,17 @@ class TripShareController extends AbstractController
         return $this->json([
             'trip' => [
                 'name' => $trip->getName(),
+                'description' => $trip->getDescription(),
                 'departureDate' => $trip->getDepartureDate()?->format('Y-m-d'),
                 'returnDate' => $trip->getReturnDate()?->format('Y-m-d'),
                 'image' => $trip->getImage(),
+                'isPublic' => $trip->isPublic(),
+                'publicSlug' => $trip->getPublicSlug(),
             ],
             'travelers' => $travelers,
             'destinations' => $destinations,
             'accommodations' => $accommodations,
-            'photos' => $storyPhotos,
+            'photos' => !$isPublic ? $storyPhotos : null,
         ]);
     }
 }

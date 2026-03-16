@@ -34,6 +34,10 @@ class FileUploaderService
         $mimeType = $file->getMimeType();
         $isImage = str_starts_with($mimeType ?? '', 'image/') && $mimeType !== 'image/gif';
 
+        if (!is_dir($targetDir)) {
+            mkdir($targetDir, 0755, true);
+        }
+
         if ($isImage && function_exists('imagecreatefromjpeg')) {
             $fileName = $baseName . '.webp';
             $targetPath = $targetDir . '/' . $fileName;

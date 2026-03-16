@@ -507,7 +507,7 @@
                                         {% endif %}
 
                                         {# Share CTA #}
-                                        {% if trip.storyToken %}
+                                        {% if trip.shareToken %}
                                             <tr>
                                                 <td class="mail-text" style="text-align: center;">
                                                     Vous souhaitez partager votre voyage avec vos proches ? Votre voyage est accessible via un lien public.
@@ -518,7 +518,7 @@
                                             </tr>
                                             <tr>
                                                 <td class="mail-button-container">
-                                                    <a href="{{ domain }}/share/{{ trip.storyToken }}" class="mail-button"
+                                                    <a href="{{ domain }}/share/{{ trip.shareToken }}" class="mail-button"
                                                        target="_blank">&#127760; Voir mon voyage</a>
                                                 </td>
                                             </tr>

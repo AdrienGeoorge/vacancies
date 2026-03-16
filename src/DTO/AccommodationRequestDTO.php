@@ -19,8 +19,7 @@ class AccommodationRequestDTO
     #[Assert\NotBlank(message: 'L\'adresse postale est obligatoire.')]
     public string $address;
 
-    #[Assert\NotBlank(message: 'Le code postal est obligatoire.')]
-    public string $zipCode;
+    public ?string $zipCode;
 
     #[Assert\NotBlank(message: 'La ville est obligatoire.')]
     public string $city;

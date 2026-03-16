@@ -2,8 +2,10 @@
 
 namespace App\Command;
 
+use App\Entity\TripBudget;
 use App\Repository\TripRepository;
 use App\Service\TripService;
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -22,6 +24,7 @@ class TripSummaryCommand extends Command
         private readonly TripRepository $tripRepository,
         private readonly TripService $tripService,
         private readonly MailerInterface $mailer,
+        private readonly ManagerRegistry $managerRegistry,
         private readonly string $domain,
         private readonly string $fromMail,
         private readonly string $appName,
@@ -42,6 +45,17 @@ class TripSummaryCommand extends Command
             $nbTravelers = max(1, $trip->getTripTravelers()->count());
             $totalPerPerson = round($budget['total'] / $nbTravelers, 2);
 
+            // Budgets prévisionnels par catégorie
+            $tripBudgets = $this->managerRegistry->getRepository(TripBudget::class)->findBy(['trip' => $trip]);
+            $plannedByCategory = [];
+            $plannedTotal = 0;
+            foreach ($tripBudgets as $tb) {
+                if ($tb->getAmount() !== null) {
+                    $plannedByCategory[$tb->getCategory()] = $tb->getAmount();
+                    $plannedTotal += $tb->getAmount();
+                }
+            }
+
             $budgetCategories = [];
             $categoryMap = [
                 ['key' => 'transports',        'label' => 'Transports'],
@@ -56,12 +70,20 @@ class TripSummaryCommand extends Command
                     2
                 );
                 if ($amount > 0) {
-                    $budgetCategories[] = ['label' => $cat['label'], 'amount' => $amount];
+                    $budgetCategories[] = [
+                        'label'   => $cat['label'],
+                        'amount'  => $amount,
+                        'planned' => $plannedByCategory[$cat['key']] ?? null,
+                    ];
                 }
             }
             $onSite = $budget['details']['on-site'] ?? 0;
             if ($onSite > 0) {
-                $budgetCategories[] = ['label' => 'Dépenses sur place', 'amount' => round($onSite, 2)];
+                $budgetCategories[] = [
+                    'label'   => 'Dépenses sur place',
+                    'amount'  => round($onSite, 2),
+                    'planned' => $plannedByCategory['on-site'] ?? null,
+                ];
             }
 
             foreach ($trip->getTripTravelers() as $traveler) {
@@ -83,6 +105,8 @@ class TripSummaryCommand extends Command
                         'budgetCategories' => $budgetCategories,
                         'totalPerPerson' => $totalPerPerson,
                         'nbTravelers' => $nbTravelers,
+                        'budgetTotal' => $budget['total'],
+                        'plannedTotal' => $plannedTotal > 0 ? $plannedTotal : null,
                         'domain' => $this->domain,
                         'app_name' => $this->appName,
                     ]);

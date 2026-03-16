@@ -6,6 +6,7 @@
     "require": {
         "php": ">=8.1",
         "ext-ctype": "*",
+        "ext-gd": "*",
         "ext-iconv": "*",
         "api-platform/doctrine-orm": "^3.4",
         "api-platform/symfony": "^3.4",

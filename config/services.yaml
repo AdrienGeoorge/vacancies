@@ -5,6 +5,7 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     upload_directory: '%env(UPLOAD_DIRECTORY)%'
+    domain: '%env(DOMAIN)%'
     avatar_directory: '%env(AVATAR_DIRECTORY)%'
     banner_directory: '%env(BANNER_DIRECTORY)%'
     bag_directory: '%env(BAG_DIRECTORY)%'

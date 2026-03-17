@@ -454,9 +454,8 @@ class TripController extends AbstractController
     private function generatePublicSlug(Trip $trip): string
     {
         $random = substr(bin2hex(random_bytes(3)), 0, 5);
-        $destination = $trip->getDestinations()->first()?->getCountry()?->getName() ?? 'voyage';
         $transliterator = \Transliterator::create('Any-Latin; Latin-ASCII; Lower()');
-        $transliterated = $transliterator ? $transliterator->transliterate($destination) : strtolower($destination);
+        $transliterated = $transliterator ? $transliterator->transliterate($trip->getName()) : strtolower($trip->getName());
         $slug = preg_replace('/[^a-z0-9]+/', '-', (string) $transliterated);
         $slug = trim($slug, '-');
         $year = $trip->getDepartureDate()?->format('Y') ?? date('Y');

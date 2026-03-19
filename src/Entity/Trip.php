@@ -70,12 +70,6 @@ class Trip
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $blocNotes = null;
 
-    #[ORM\Column]
-    private bool $isPublic = false;
-
-    #[ORM\Column(length: 120, unique: true, nullable: true)]
-    private ?string $publicSlug = null;
-
     #[ORM\OneToMany(targetEntity: TripDestination::class, mappedBy: 'trip', cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[ORM\OrderBy(['displayOrder' => 'ASC'])]
     #[MaxDepth(1)]
@@ -457,30 +451,6 @@ class Trip
     public function setBlocNotes(?string $blocNotes): static
     {
         $this->blocNotes = $blocNotes;
-
-        return $this;
-    }
-
-    public function isPublic(): bool
-    {
-        return $this->isPublic;
-    }
-
-    public function setIsPublic(bool $isPublic): static
-    {
-        $this->isPublic = $isPublic;
-
-        return $this;
-    }
-
-    public function getPublicSlug(): ?string
-    {
-        return $this->publicSlug;
-    }
-
-    public function setPublicSlug(?string $publicSlug): static
-    {
-        $this->publicSlug = $publicSlug;
 
         return $this;
     }

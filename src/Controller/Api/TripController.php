@@ -367,11 +367,6 @@ class TripController extends AbstractController
                 ]);
             }
 
-            if ($trip->getPublicSlug() === null) {
-                $trip->setPublicSlug($this->generatePublicSlug($trip));
-                $this->managerRegistry->getManager()->flush();
-            }
-
             return $this->json([
                 'message' => 'Ton voyage a bien été créé.',
                 'id' => $trip->getId()
@@ -411,29 +406,6 @@ class TripController extends AbstractController
         return $this->json(['message' => 'Vous n\'avez pas l\'autorisation de réaliser cette action.'], Response::HTTP_FORBIDDEN);
     }
 
-    #[Route('/{trip}/toggle-visibility', name: 'toggle_visibility', requirements: ['trip' => '\d+'], methods: ['PATCH'])]
-    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier ce voyage.', statusCode: 403)]
-    public function toggleVisibility(Trip $trip): JsonResponse
-    {
-        try {
-            $trip->setIsPublic(!$trip->isPublic());
-
-            if ($trip->isPublic() && $trip->getPublicSlug() === null) {
-                $trip->setPublicSlug($this->generatePublicSlug($trip));
-            }
-
-            $this->managerRegistry->getManager()->flush();
-
-            return $this->json([
-                'isPublic' => $trip->isPublic(),
-                'publicSlug' => $trip->getPublicSlug(),
-                'shareToken' => $trip->getShareToken(),
-            ]);
-        } catch (\Exception) {
-            return $this->json(['message' => 'Une erreur est survenue.'], Response::HTTP_BAD_REQUEST);
-        }
-    }
-
     #[Route('/update-notes/{trip}', name: 'update_notes', requirements: ['trip' => '\d+'], methods: ['POST'])]
     #[IsGranted('edit_elements', 'trip')]
     public function updateNotes(Request $request, Trip $trip): JsonResponse
@@ -451,15 +423,4 @@ class TripController extends AbstractController
         }
     }
 
-    private function generatePublicSlug(Trip $trip): string
-    {
-        $random = substr(bin2hex(random_bytes(3)), 0, 5);
-        $transliterator = \Transliterator::create('Any-Latin; Latin-ASCII; Lower()');
-        $transliterated = $transliterator ? $transliterator->transliterate($trip->getName()) : strtolower($trip->getName());
-        $slug = preg_replace('/[^a-z0-9]+/', '-', (string) $transliterated);
-        $slug = trim($slug, '-');
-        $year = $trip->getDepartureDate()?->format('Y') ?? date('Y');
-
-        return "{$random}-{$trip->getId()}-{$slug}-{$year}";
-    }
 }

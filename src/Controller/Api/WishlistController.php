@@ -114,6 +114,14 @@ class WishlistController extends AbstractController
                 );
 
                 $item->setImage('/' . $this->getParameter('upload_directory') . '/wishlist/' . $imageFileName);
+            } elseif ($request->request->get('removeImage')) {
+                if ($item->getImage()) {
+                    $oldPath = $this->getParameter('kernel.project_dir') . '/public' . $item->getImage();
+                    if (file_exists($oldPath)) {
+                        unlink($oldPath);
+                    }
+                }
+                $item->setImage(null);
             }
 
             $this->managerRegistry->getManager()->flush();

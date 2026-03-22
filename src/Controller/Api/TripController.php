@@ -247,8 +247,20 @@ class TripController extends AbstractController
             $isEdit = $request->get('_route') === 'api_trip_edit';
 
             if ($dto->image) {
+                if ($trip->getImage()) {
+                    $oldPath = $this->getParameter('kernel.project_dir') . '/public' . $trip->getImage();
+                    if (file_exists($oldPath)) {
+                        unlink($oldPath);
+                    }
+                }
                 $imageFileName = $this->uploaderService->upload($dto->image);
                 $trip->setImage('/' . $this->getParameter('upload_directory') . '/' . $imageFileName);
+            } elseif ($request->request->get('removeImage') && $trip->getImage()) {
+                $oldPath = $this->getParameter('kernel.project_dir') . '/public' . $trip->getImage();
+                if (file_exists($oldPath)) {
+                    unlink($oldPath);
+                }
+                $trip->setImage(null);
             }
 
             $trip->setName($dto->name)

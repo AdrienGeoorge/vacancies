@@ -3,6 +3,7 @@
 namespace App\DTO;
 
 use App\Entity\Currency;
+use App\Validator\NoHtml;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class AccommodationAdditionalRequestDTO
@@ -10,6 +11,7 @@ class AccommodationAdditionalRequestDTO
     public ?int $id = null;
 
     #[Assert\NotBlank(message: 'Le type de dépense additionnelle est obligatoire.')]
+    #[NoHtml]
     public string $name;
 
     #[Assert\NotBlank(message: 'Le prix de la dépense additionnelle est obligatoire.')]

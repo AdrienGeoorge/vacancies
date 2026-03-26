@@ -2,12 +2,14 @@
 
 namespace App\DTO;
 
+use App\Validator\NoHtml;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class TripDocumentRequestDTO
 {
     #[Assert\NotBlank(message: 'Le nom du document est obligatoire.')]
+    #[NoHtml]
     public ?string $name;
 
     #[Assert\File(mimeTypes: [

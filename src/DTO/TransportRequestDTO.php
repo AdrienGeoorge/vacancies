@@ -4,6 +4,7 @@ namespace App\DTO;
 
 use App\Entity\Currency;
 use App\Entity\TransportType;
+use App\Validator\NoHtml;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class TransportRequestDTO
@@ -17,18 +18,22 @@ class TransportRequestDTO
     #[Assert\NotBlank(message: 'Vous devez choisir un type de transport.')]
     public ?TransportType $type;
 
+    #[NoHtml]
     public ?string $company;
 
+    #[NoHtml]
     public ?string $description;
 
     #[Assert\Type(\DateTime::class)]
     public ?\DateTime $departureDate = null;
 
+    #[NoHtml]
     public ?string $departure = null;
 
     #[Assert\Type(\DateTime::class)]
     public ?\DateTime $arrivalDate = null;
 
+    #[NoHtml]
     public ?string $destination = null;
 
     #[Assert\When(

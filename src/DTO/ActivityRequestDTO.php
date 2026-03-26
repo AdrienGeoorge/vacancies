@@ -4,6 +4,7 @@ namespace App\DTO;
 
 use App\Entity\Currency;
 use App\Entity\EventType;
+use App\Validator\NoHtml;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class ActivityRequestDTO
@@ -24,8 +25,10 @@ class ActivityRequestDTO
         minMessage: 'Le nom del\'hébergement doit faire au minimum 5 caractères.',
         maxMessage: 'Le nom de l\'hébergement doit faire au maximum 255 caractères.'
     )]
+    #[NoHtml]
     public ?string $name;
 
+    #[NoHtml]
     public ?string $description;
 
     #[Assert\Type(\DateTime::class)]

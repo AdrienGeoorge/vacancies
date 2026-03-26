@@ -53,10 +53,17 @@ class AuthController extends AbstractController
             return new JsonResponse(['message' => 'Cette adresse mail est déjà utilisée.'], 409);
         }
 
+        $firstname = strip_tags($data['firstname']);
+        $lastname = strip_tags($data['lastname']);
+
+        if ($firstname !== $data['firstname'] || $lastname !== $data['lastname']) {
+            return new JsonResponse(['message' => 'Les balises HTML ne sont pas autorisées.'], 400);
+        }
+
         $user = (new User())
             ->setEmail($data['email'])
-            ->setFirstname($data['firstname'])
-            ->setLastname($data['lastname'])
+            ->setFirstname($firstname)
+            ->setLastname($lastname)
             ->setRoles(['ROLE_USER']);
 
         $user->setPassword($userPasswordHasher->hashPassword($user, $data['password']));

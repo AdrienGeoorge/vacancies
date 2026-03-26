@@ -3,6 +3,7 @@
 namespace App\DTO;
 
 use App\Entity\EventType;
+use App\Validator\NoHtml;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class EventRequestDTO
@@ -22,8 +23,10 @@ class EventRequestDTO
         minMessage: 'Le nom del\'évènement doit faire au minimum 5 caractères.',
         maxMessage: 'Le nom de l\'évènement doit faire au maximum 255 caractères.'
     )]
+    #[NoHtml]
     public ?string $title;
 
+    #[NoHtml]
     public ?string $description;
 
     #[Assert\NotNull(message: 'La date de début doit être renseignée.')]

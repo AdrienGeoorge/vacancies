@@ -3,6 +3,7 @@
 namespace App\DTO;
 
 use App\Entity\Currency;
+use App\Validator\NoHtml;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class AccommodationRequestDTO
@@ -14,17 +15,22 @@ class AccommodationRequestDTO
         minMessage: 'Le nom de l\'hébergement doit faire au minimum 5 caractères.',
         maxMessage: 'Le nom de l\'hébergement doit faire au maximum 255 caractères.'
     )]
+    #[NoHtml]
     public string $name;
 
     #[Assert\NotBlank(message: 'L\'adresse postale est obligatoire.')]
+    #[NoHtml]
     public string $address;
 
+    #[NoHtml]
     public ?string $zipCode;
 
     #[Assert\NotBlank(message: 'La ville est obligatoire.')]
+    #[NoHtml]
     public string $city;
 
     #[Assert\NotBlank(message: 'Le pays est obligatoire.')]
+    #[NoHtml]
     public string $country;
 
     #[Assert\Type(\DateTime::class)]
@@ -33,6 +39,7 @@ class AccommodationRequestDTO
     #[Assert\Type(\DateTime::class)]
     public ?\DateTime $departureDate;
 
+    #[NoHtml]
     public ?string $description;
 
     #[Assert\NotBlank(message: 'Le prix de l\'hébergement est obligatoire.')]

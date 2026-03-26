@@ -2,12 +2,16 @@
 
 namespace App\DTO;
 
+use App\Validator\NoHtml;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class TripPhotoRequestDTO
 {
+    #[NoHtml]
     public ?string $title = null;
+
+    #[NoHtml]
     public ?string $caption = null;
 
     #[Assert\NotNull(message: 'L\'image est obligatoire.')]

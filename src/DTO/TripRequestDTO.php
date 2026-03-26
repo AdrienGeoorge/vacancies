@@ -2,6 +2,7 @@
 
 namespace App\DTO;
 
+use App\Validator\NoHtml;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -14,6 +15,7 @@ class TripRequestDTO
         minMessage: 'Le nom du voyage doit faire au minimum 5 caractères.',
         maxMessage: 'Le nom du voyage doit faire au maximum 255 caractères.'
     )]
+    #[NoHtml]
     public string $name;
 
     #[Assert\NotBlank(message: 'Vous devez sélectionner au moins une destination.')]
@@ -30,6 +32,7 @@ class TripRequestDTO
     #[Assert\Type(\DateTime::class)]
     public ?\DateTime $returnDate;
 
+    #[NoHtml]
     public ?string $description;
 
     #[Assert\File(mimeTypes: ['image/jpeg', 'image/png'])]

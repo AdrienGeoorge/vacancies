@@ -409,8 +409,14 @@ class TripController extends AbstractController
         if ($trip->getTraveler() !== $this->getUser()) {
             $traveler = $this->managerRegistry->getRepository(TripTraveler::class)->findOneBy(['trip' => $trip, 'invited' => $this->getUser()]);
 
-            $this->managerRegistry->getManager()->remove($traveler);
-            $this->managerRegistry->getManager()->flush();
+            try {
+                $this->managerRegistry->getManager()->remove($traveler);
+                $this->managerRegistry->getManager()->flush();
+            } catch (\Exception) {
+                return $this->json([
+                    'message' => 'Vous ne pouvez pas quitter ce voyage car vous êtes rattaché à des éléments (logement, transport, activité ou dépense). Veuillez les supprimer ou les mettre à jour avant de quitter le voyage.'
+                ], Response::HTTP_BAD_REQUEST);
+            }
 
             return $this->json(['message' => sprintf('Vous avez quitté le voyage : %s', $trip->getName())]);
         }

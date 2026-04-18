@@ -17,7 +17,8 @@ class PdfService
         private readonly Environment $twig,
         private readonly TripService $tripService,
         private readonly string      $domain,
-        private readonly string      $apiUrl
+        private readonly string      $apiUrl,
+        private readonly string      $projectDir
     )
     {
     }
@@ -61,6 +62,16 @@ class PdfService
         ];
     }
 
+    private function imageToBase64(string $filePath): ?string
+    {
+        if (!file_exists($filePath) || !is_readable($filePath)) {
+            return null;
+        }
+        $data = file_get_contents($filePath);
+        $mime = mime_content_type($filePath) ?: 'image/png';
+        return 'data:' . $mime . ';base64,' . base64_encode($data);
+    }
+
     /**
      * @throws SyntaxError
      * @throws RuntimeError
@@ -68,10 +79,20 @@ class PdfService
      */
     public function generatePDF(array $trip): string
     {
+        $logoSrc = $this->imageToBase64($this->projectDir . '/public/images/logo.png')
+            ?? ($this->domain . '/images/logo.png');
+
+        $coverImageSrc = null;
+        if (!empty($trip['coverImage'])) {
+            $localPath = $this->projectDir . '/public/' . ltrim($trip['coverImage'], '/');
+            $coverImageSrc = $this->imageToBase64($localPath)
+                ?? ($this->apiUrl . $trip['coverImage']);
+        }
+
         $html = $this->twig->render('pdf/trip_report_full.html.twig', [
             'trip' => $trip,
-            'apiUrl' => $this->apiUrl,
-            'logoPath' => $this->domain . '/images/logo.png',
+            'logoPath' => $logoSrc,
+            'coverImageSrc' => $coverImageSrc,
             'generatedAt' => new \DateTime()
         ]);
 

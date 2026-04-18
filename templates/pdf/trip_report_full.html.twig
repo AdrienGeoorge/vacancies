@@ -400,8 +400,8 @@
 
 <div class="content">
     <div class="cover-page">
-        {% if trip.coverImage %}
-            <img src="{{ apiUrl ~ trip.coverImage }}" alt="{{ trip.name }}" class="cover-image">
+        {% if coverImageSrc %}
+            <img src="{{ coverImageSrc }}" alt="{{ trip.name }}" class="cover-image">
         {% endif %}
 
         <h1 class="trip-title">{{ trip.name }}</h1>
@@ -428,14 +428,13 @@
     {% if trip.budget %}
         <h2 class="section-title">Budget du voyage</h2>
 
-        <div class="budget-line">
-            <p class="budget-detail budget-to-pay">
-                <strong>Reste à payer :</strong> {{ trip.budget.toPay|number_format(2, ',', ' ') }} €
-            </p>
-            <p class="budget-detail budget-paid">
-                <strong>Payé :</strong> {{ trip.budget.paid|number_format(2, ',', ' ') }} €
-            </p>
-        </div>
+        {% if trip.budget.toPay > 0 %}
+            <div class="budget-line">
+                <p class="budget-detail budget-to-pay">
+                    <strong>Reste à payer :</strong> {{ trip.budget.toPay|number_format(2, ',', ' ') }} €
+                </p>
+            </div>
+        {% endif %}
 
         <table class="budget-table">
             <thead>
@@ -460,7 +459,7 @@
             <tfoot>
             <tr>
                 <td><strong>TOTAL</strong></td>
-                <td>{{ trip.budget.total|number_format(2, ',', ' ') }} €</td>
+                <td>{{ trip.budget.paid|number_format(2, ',', ' ') }} €</td>
             </tr>
             </tfoot>
         </table>

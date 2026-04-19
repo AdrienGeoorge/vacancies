@@ -1,0 +1,86 @@
+# ===== TRIP =====
+trip.name.not_blank: "Le nom du voyage est obligatoire."
+trip.name.min_length: "Le nom du voyage doit faire au minimum 5 caractères."
+trip.name.max_length: "Le nom du voyage doit faire au maximum 255 caractères."
+trip.destinations.not_blank: "Vous devez sélectionner au moins une destination."
+trip.destinations.type: "Les destinations doivent être un tableau."
+trip.destinations.min_count: "Vous devez sélectionner au moins une destination."
+
+# ===== ACCOMMODATION =====
+accommodation.name.not_blank: "Le nom de l'hébergement est obligatoire."
+accommodation.name.min_length: "Le nom de l'hébergement doit faire au minimum 5 caractères."
+accommodation.name.max_length: "Le nom de l'hébergement doit faire au maximum 255 caractères."
+accommodation.address.not_blank: "L'adresse postale est obligatoire."
+accommodation.city.not_blank: "La ville est obligatoire."
+accommodation.country.not_blank: "Le pays est obligatoire."
+accommodation.price.not_blank: "Le prix de l'hébergement est obligatoire."
+accommodation.price.min: "Le prix doit être de minimum 1€."
+accommodation.currency.not_blank: "Vous devez choisir une devise."
+accommodation.additional.name.not_blank: "Le type de dépense additionnelle est obligatoire."
+accommodation.additional.price.not_blank: "Le prix de la dépense additionnelle est obligatoire."
+accommodation.additional.currency.not_blank: "Vous devez choisir une devise pour votre dépense additionnelle."
+
+# ===== ACTIVITY =====
+activity.type.not_blank: "Vous devez choisir un type d'activité."
+activity.name.not_blank: "Le nom de l'activité est obligatoire."
+activity.name.min_length: "Le nom de l'activité doit faire au minimum 5 caractères."
+activity.name.max_length: "Le nom de l'activité doit faire au maximum 255 caractères."
+activity.price.not_blank: "Le prix de l'activité est obligatoire."
+activity.price.min: "Le prix doit être de minimum 1€."
+activity.currency.not_blank: "Vous devez choisir une devise."
+
+# ===== TRANSPORT =====
+transport.type.not_blank: "Vous devez choisir un type de transport."
+transport.subscription.not_blank: "Vous devez indiquer la durée de votre abonnement."
+transport.subscription.min: "Votre abonnement doit avoir une durée minimale de 1 jour."
+transport.price.not_blank: "Vous devez indiquer le prix de votre moyen de transport."
+transport.price.min: "Le prix doit être de minimum 1€."
+transport.currency.not_blank: "Vous devez choisir une devise."
+transport.toll.not_blank: "Vous devez indiquer l'estimation du prix du péage aller/retour"
+transport.toll.min: "L'estimation du péage doit être de minimum 0€."
+transport.gasoline.not_blank: "Vous devez indiquer l'estimation du prix du carburant aller/retour"
+transport.gasoline.min: "L'estimation du prix du carburant doit être de minimum 0€."
+
+# ===== EVENT =====
+event.type.not_blank: "Vous devez choisir un type d'activité."
+event.title.not_blank: "Le nom de l'évènement est obligatoire."
+event.title.min_length: "Le nom de l'évènement doit faire au minimum 5 caractères."
+event.title.max_length: "Le nom de l'évènement doit faire au maximum 255 caractères."
+event.start.not_null: "La date de début doit être renseignée."
+event.start.not_blank: "La date de début doit être renseignée."
+
+# ===== EXPENSE =====
+expense.name.not_blank: "Le nom de la dépense est obligatoire."
+expense.name.min_length: "Le nom de la dépense doit faire au minimum 5 caractères."
+expense.name.max_length: "Le nom de la dépense doit faire au maximum 255 caractères."
+expense.date.not_null: "La date doit être renseignée."
+expense.date.not_blank: "La date doit être renseignée."
+expense.price.not_blank: "Le prix de la dépense est obligatoire."
+expense.price.min: "Le prix doit être de minimum 1€."
+expense.currency.not_blank: "Vous devez choisir une devise."
+expense.payed_by.not_null: "Vous devez choisir le voyageur à l'origine de l'achat."
+expense.payed_by.not_blank: "Vous devez choisir le voyageur à l'origine de l'achat."
+
+# ===== CONTACT =====
+contact.name.not_blank: "Le nom est obligatoire."
+contact.name.max_length: "Le nom ne doit pas dépasser 100 caractères."
+contact.email.not_blank: "L'adresse email est obligatoire."
+contact.email.invalid: "L'adresse email est invalide."
+contact.category.not_blank: "La catégorie est obligatoire."
+contact.category.invalid: "La catégorie est invalide."
+contact.subject.not_blank: "Le sujet est obligatoire."
+contact.subject.max_length: "Le sujet ne doit pas dépasser 255 caractères."
+contact.message.not_blank: "Le message est obligatoire."
+contact.message.max_length: "Le message ne doit pas dépasser 5000 caractères."
+
+# ===== DOCUMENT =====
+document.name.not_blank: "Le nom du document est obligatoire."
+document.file.mime_type: "Ce type de fichier n'est pas accepté."
+
+# ===== PHOTO =====
+photo.file.not_null: "L'image est obligatoire."
+photo.file.max_size: "L'image doit faire maximum 10 Mo."
+photo.file.mime_type: "Ce type de fichier n'est pas accepté. Seules les images au format JPEG, PNG ou GIF sont autorisées."
+
+# ===== VALIDATOR =====
+no_html.message: "Les balises HTML ne sont pas autorisées."

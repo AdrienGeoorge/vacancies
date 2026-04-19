@@ -5,13 +5,16 @@ namespace App\EventListener;
 use App\Entity\User;
 use Doctrine\Persistence\ManagerRegistry;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\AuthenticationSuccessEvent;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class JWTLoginListener
 {
-    public function __construct(private ManagerRegistry $managerRegistry)
-    {
-
+    public function __construct(
+        private ManagerRegistry $managerRegistry,
+        private TranslatorInterface $translator,
+    ) {
     }
+
     public function onLexikJwtAuthenticationOnAuthenticationSuccess(AuthenticationSuccessEvent $event): void
     {
         $user = $event->getUser();
@@ -26,17 +29,16 @@ class JWTLoginListener
             $deletionDate = $user->getDisabled()->modify('+30 days');
             $now = new \DateTime();
 
-            // Si dans les 30 jours : réactiver
             if ($deletionDate > $now) {
                 $user->setDisabled(null);
 
                 $this->managerRegistry->getManager()->persist($user);
                 $this->managerRegistry->getManager()->flush();
 
-                $data['message'] = 'Votre compte a été réactivé avec succès. Bon retour parmi nous!';
+                $locale = $user->getLanguage() ?? 'fr';
+                $data['message'] = $this->translator->trans('auth.account.reactivated', [], 'messages', $locale);
             }
         }
-
 
         $data['user'] = [
             'id' => $user->getId(),
@@ -46,7 +48,8 @@ class JWTLoginListener
             'completeName' => $user->getCompleteName(),
             'username' => $user->getUsername(),
             'avatar' => $user->getAvatar(),
-            'biography' => $user->getBiography()
+            'biography' => $user->getBiography(),
+            'language' => $user->getLanguage(),
         ];
 
         $event->setData($data);

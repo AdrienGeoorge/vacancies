@@ -42,6 +42,10 @@ services:
       tags:
         - { name: kernel.event_listener, event: lexik_jwt_authentication.on_authentication_success }
 
+    App\EventListener\LocaleListener:
+      tags:
+        - { name: kernel.event_listener, event: kernel.request, priority: 20 }
+
     App\Service\WeatherService:
       arguments:
         $weatherApiKey: '%env(WEATHER_API_KEY)%'

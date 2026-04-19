@@ -14,11 +14,15 @@ use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/api/contact', name: 'api_contact_')]
 class ContactController extends AbstractController
 {
-    public function __construct(private readonly string $fromMail)
+    public function __construct(
+        private readonly string $fromMail,
+        private readonly TranslatorInterface $translator
+    )
     {
     }
 
@@ -39,7 +43,9 @@ class ContactController extends AbstractController
             return $this->json(['message' => $errors[0]->getMessage()], Response::HTTP_BAD_REQUEST);
         }
 
-        $categoryLabel = $dto->category === 'bug' ? 'Report de bug' : 'Demande diverse';
+        $categoryLabel = $dto->category === 'bug'
+            ? $this->translator->trans('contact.category.bug')
+            : $this->translator->trans('contact.category.other');
 
         $emailMessage = (new Email())
             ->from(new Address($this->fromMail, 'Triplaning'))
@@ -50,6 +56,6 @@ class ContactController extends AbstractController
 
         $mailer->send($emailMessage);
 
-        return $this->json(['message' => 'Votre message a été envoyé avec succès.']);
+        return $this->json(['message' => $this->translator->trans('contact.sent')]);
     }
 }

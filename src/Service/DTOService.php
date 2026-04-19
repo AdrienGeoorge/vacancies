@@ -15,10 +15,14 @@ use App\Entity\VariousExpensive;
 use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class DTOService
 {
-    public function __construct(readonly ValidatorInterface $validator)
+    public function __construct(
+        readonly ValidatorInterface  $validator,
+        readonly TranslatorInterface $translator,
+    )
     {
     }
 
@@ -36,7 +40,7 @@ class DTOService
                 try {
                     $dto->{$key} = $value ? new \DateTime($value) : null;
                 } catch (\Exception) {
-                    $errors->add(new ConstraintViolation('La date est invalide.', '', [], null, $key, null));
+                    $errors->add(new ConstraintViolation($this->translator->trans('dto.date.invalid'), '', [], null, $key, null));
                 }
             } else {
                 $dto->{$key} = $value;

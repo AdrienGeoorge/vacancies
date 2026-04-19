@@ -6,19 +6,22 @@ use Exception;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class FileUploaderService
 {
     private string $targetDirectory;
     private SluggerInterface $slugger;
+    private TranslatorInterface $translator;
 
     private const MAX_WIDTH = 1200;
     private const WEBP_QUALITY = 75;
 
-    public function __construct($targetDirectory, SluggerInterface $slugger)
+    public function __construct($targetDirectory, SluggerInterface $slugger, TranslatorInterface $translator)
     {
         $this->targetDirectory = $targetDirectory;
         $this->slugger = $slugger;
+        $this->translator = $translator;
     }
 
     /**
@@ -47,7 +50,7 @@ class FileUploaderService
             try {
                 $file->move($targetDir, $fileName);
             } catch (FileException $e) {
-                throw new Exception('Erreur lors du téléchargement du fichier!');
+                throw new Exception($this->translator->trans('file.upload_error'));
             }
         }
 
@@ -68,7 +71,7 @@ class FileUploaderService
         };
 
         if (!$image) {
-            throw new Exception('Impossible de lire l\'image source.');
+            throw new Exception($this->translator->trans('file.image_read_error'));
         }
 
         $origWidth  = imagesx($image);
@@ -86,7 +89,7 @@ class FileUploaderService
 
         if (!imagewebp($image, $targetPath, self::WEBP_QUALITY)) {
             imagedestroy($image);
-            throw new Exception('Erreur lors de la conversion WebP.');
+            throw new Exception($this->translator->trans('file.webp_error'));
         }
 
         imagedestroy($image);

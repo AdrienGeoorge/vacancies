@@ -16,20 +16,23 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/api/trip-travelers/{trip}', name: 'api_trip_traveler_', requirements: ['trip' => '\d+'])]
 class TripTravelerController extends AbstractController
 {
     private ManagerRegistry $managerRegistry;
     private TripService $tripService;
+    private TranslatorInterface $translator;
 
     protected string $domain;
 
-    public function __construct(ManagerRegistry $managerRegistry, TripService $tripService, string $domain)
+    public function __construct(ManagerRegistry $managerRegistry, TripService $tripService, string $domain, TranslatorInterface $translator)
     {
         $this->managerRegistry = $managerRegistry;
         $this->tripService = $tripService;
         $this->domain = $domain;
+        $this->translator = $translator;
     }
 
     #[Route('/delete/{traveler}', name: 'delete', requirements: ['traveler' => '\d+'], methods: ['DELETE'])]
@@ -37,11 +40,11 @@ class TripTravelerController extends AbstractController
     public function delete(Trip $trip, TripTraveler $traveler): JsonResponse
     {
         if ($traveler->getInvited() && $traveler->getInvited()->getCompleteName() === $trip->getTraveler()->getCompleteName()) {
-            return $this->json(['message' => 'Vous ne pouvez pas supprimer le créateur du voyage.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => $this->translator->trans('traveler.delete.cannot_delete_creator')], Response::HTTP_FORBIDDEN);
         }
 
         if ($traveler->getInvited() && $trip->getTraveler() !== $this->getUser()) {
-            return $this->json(['message' => 'Vous ne pouvez pas supprimer un utilisateur invité à rejoindre ce séjour.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => $this->translator->trans('traveler.delete.cannot_delete_invited')], Response::HTTP_FORBIDDEN);
         }
 
         try {
@@ -49,13 +52,12 @@ class TripTravelerController extends AbstractController
             $this->managerRegistry->getManager()->flush();
 
             return $this->json([
-                'message' => 'Ce voyageur a bien été retiré du voyage.',
+                'message' => $this->translator->trans('traveler.deleted'),
                 'tripTravelers' => $trip->getTripTravelers()->toArray()
             ]);
         } catch (\Exception) {
             return $this->json(
-                ['message' => 'Ce voyageur est rattaché à des éléments du voyage (logement, transport, activité ou dépense diverse...).
-                Veuillez les supprimer ou les mettre à jour afin de pouvoir supprimer ce voyageur.'], Response::HTTP_BAD_REQUEST
+                ['message' => $this->translator->trans('traveler.delete.error')], Response::HTTP_BAD_REQUEST
             );
         }
     }
@@ -64,7 +66,7 @@ class TripTravelerController extends AbstractController
      * @throws TransportExceptionInterface
      */
     #[Route('/invite', name: 'invite', requirements: ['trip' => '\d+'], methods: ['POST'])]
-    #[IsGranted('invite', subject: 'trip', message: 'Vous n\'êtes pas autorisé à inviter quelqu\'un pour ce voyage.', statusCode: 403)]
+    #[IsGranted('invite', subject: 'trip', message: 'trip.access.invite_denied', statusCode: 403)]
     public function invite(Request $request, Trip $trip): Response
     {
         $data = json_decode($request->getContent(), true);
@@ -77,7 +79,7 @@ class TripTravelerController extends AbstractController
             ->getInvitationByUserOrMail($userToShareWith, $mail, $trip);
 
         if ($alreadyInvited) {
-            return $this->json(['message' => 'Vous avez déjà invité cet utilisateur à rejoindre ce voyage.']);
+            return $this->json(['message' => $this->translator->trans('traveler.invite.already_invited')]);
         }
 
         if ($userToShareWith) {
@@ -85,14 +87,14 @@ class TripTravelerController extends AbstractController
                 ->findOneBy(['invited' => $userToShareWith, 'trip' => $trip]);
 
             if ($alreadyInTrip || $userToShareWith === $trip->getTraveler()) {
-                return $this->json(['message' => 'Cet utilisateur a déjà rejoint ce voyage.']);
+                return $this->json(['message' => $this->translator->trans('traveler.invite.already_in_trip')]);
             }
         }
 
         $token = $this->tripService->sendSharingMail($trip, $userToShareWith, $mail, $this->getUser()->getCompleteName());
 
         if ($token === false) {
-            return $this->json(['message' => 'L\'email n\'a pas pu être envoyé en raison d\'une anomalie.'], Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->json(['message' => $this->translator->trans('traveler.invite.email_error')], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
         if ($userToShareWith) {
@@ -104,7 +106,7 @@ class TripTravelerController extends AbstractController
             );
         }
 
-        return $this->json(['message' => 'L\'invitation à prendre part à ce voyage a bien été transmise.'], Response::HTTP_CREATED);
+        return $this->json(['message' => $this->translator->trans('traveler.invite.sent')], Response::HTTP_CREATED);
     }
 
     #[Route('/get-infos/{token}', name: 'get_infos', requirements: ['token' => '\w+'], methods: ['GET'])]
@@ -114,7 +116,7 @@ class TripTravelerController extends AbstractController
             ->findOneBy(['token' => $token]);
 
         if (!$invitation) {
-            return $this->json(['message' => 'Cette invitation n\'existe pas.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => $this->translator->trans('traveler.invitation.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         return $this->json([
@@ -131,23 +133,23 @@ class TripTravelerController extends AbstractController
             ->findOneBy(['token' => $token]);
 
         if (!$invitation) {
-            return $this->json(['message' => 'Cette invitation n\'existe pas.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => $this->translator->trans('traveler.invitation.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         if (!$this->getUser()) {
             if ($invitation->getUserToShareWith() !== null) {
-                return $this->json(['message' => 'Vous devez être connecté pour accepter cette invitation.'], Response::HTTP_UNAUTHORIZED);
+                return $this->json(['message' => $this->translator->trans('traveler.invitation.login_required')], Response::HTTP_UNAUTHORIZED);
             } else {
-                return $this->json(['message' => 'Vous devez créer un compte pour accepter cette invitation.'], Response::HTTP_UNAUTHORIZED);
+                return $this->json(['message' => $this->translator->trans('traveler.invitation.register_required')], Response::HTTP_UNAUTHORIZED);
             }
         }
 
         if ($invitation->getExpireAt() < new \DateTimeImmutable('now')) {
-            return $this->json(['message' => 'Cette invitation a expiré. La personne à l\'origine de cette requête doit renouveler l\'invitation.'], Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->json(['message' => $this->translator->trans('traveler.invitation.expired')], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
 
         if (($invitation->getUserToShareWith() && $invitation->getUserToShareWith() !== $this->getUser()) || $this->getUser()->getEmail() !== $invitation->getEmail()) {
-            return $this->json(['message' => 'Vous ne pouvez pas accepter une invitation qui ne vous est pas destinée.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => $this->translator->trans('traveler.invitation.wrong_user')], Response::HTTP_FORBIDDEN);
         }
 
         $traveler = new TripTraveler();
@@ -171,7 +173,7 @@ class TripTravelerController extends AbstractController
         }
 
         return $this->json([
-            'message' => sprintf('Vous avez rejoint le voyage : %s.', $invitation->getTrip()->getName()),
+            'message' => $this->translator->trans('traveler.invitation.accepted', ['%name%' => $invitation->getTrip()->getName()]),
             'id' => $trip->getId()
         ]);
     }

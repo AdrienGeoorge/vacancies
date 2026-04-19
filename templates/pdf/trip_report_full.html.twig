@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="{{ locale ?? 'fr' }}">
 <head>
     <meta charset="UTF-8">
     <title>{{ trip.name }} - {{ app_name }}</title>
@@ -390,12 +390,13 @@
     </style>
 </head>
 <body>
+{% set intlLocale = locale == 'en' ? 'en_GB' : 'fr_FR' %}
 <div class="page-footer">
     <div class="logo-container">
         <img src="{{ logoPath }}" alt="{{ app_name }}" class="logo">
         <span class="app-name">{{ app_name }}</span>
     </div>
-    <span class="generate-date">Généré le {{ generatedAt|date('d/m/Y à H:i') }}</span>
+    <span class="generate-date">{{ 'pdf.generated_at'|trans({'%date%': generatedAt|date('d/m/Y H:i')}, 'messages', locale) }}</span>
 </div>
 
 <div class="content">
@@ -408,12 +409,13 @@
         <p class="trip-destination">{{ trip.destinationTitle }}</p>
 
         <p class="trip-dates">
-            Du {{ trip.departureDate|format_datetime(locale='fr',pattern="EEEE dd MMMM YYYY") }}
-            au {{ trip.returnDate|format_datetime(locale='fr',pattern="EEEE dd MMMM YYYY") }}
+            {{ trip.departureDate|format_datetime(locale=intlLocale, pattern="EEEE dd MMMM YYYY") }}
+            –
+            {{ trip.returnDate|format_datetime(locale=intlLocale, pattern="EEEE dd MMMM YYYY") }}
         </p>
 
         {% if trip.duration %}
-            <p class="trip-duration">{{ trip.duration }} jours</p>
+            <p class="trip-duration">{{ 'pdf.trip_duration'|trans({'%days%': trip.duration}, 'messages', locale) }}</p>
         {% endif %}
 
         {% if trip.description %}
@@ -426,12 +428,12 @@
     <div class="page-break"></div>
 
     {% if trip.budget %}
-        <h2 class="section-title">Budget du voyage</h2>
+        <h2 class="section-title">{{ 'pdf.budget.title'|trans({}, 'messages', locale) }}</h2>
 
         {% if trip.budget.toPay > 0 %}
             <div class="budget-line">
                 <p class="budget-detail budget-to-pay">
-                    <strong>Reste à payer :</strong> {{ trip.budget.toPay|number_format(2, ',', ' ') }} €
+                    <strong>{{ 'pdf.budget.remaining'|trans({}, 'messages', locale) }}</strong> {{ trip.budget.toPay|number_format(2, ',', ' ') }} €
                 </p>
             </div>
         {% endif %}
@@ -439,8 +441,8 @@
         <table class="budget-table">
             <thead>
             <tr>
-                <th>Catégorie</th>
-                <th>Montant</th>
+                <th>{{ 'pdf.budget.category'|trans({}, 'messages', locale) }}</th>
+                <th>{{ 'pdf.budget.amount'|trans({}, 'messages', locale) }}</th>
             </tr>
             </thead>
             <tbody>
@@ -458,7 +460,7 @@
             </tbody>
             <tfoot>
             <tr>
-                <td><strong>TOTAL</strong></td>
+                <td><strong>{{ 'pdf.budget.total'|trans({}, 'messages', locale) }}</strong></td>
                 <td>{{ trip.budget.paid|number_format(2, ',', ' ') }} €</td>
             </tr>
             </tfoot>
@@ -469,40 +471,40 @@
         <div class="page-break"></div>
 
         <div class="section-after-break">
-            <h2 class="section-title">Destinations lors du voyage</h2>
+            <h2 class="section-title">{{ 'pdf.destinations.title'|trans({}, 'messages', locale) }}</h2>
 
             {% for destination in trip.destinations %}
                 <div class="one-destination">
                     <h3 class="destination-header">{{ destination.country.name }}</h3>
 
                     <div class="destination-card">
-                        <div class="destination-card-title">Dates</div>
-                        {{ destination.departureDate|format_datetime(locale='fr',pattern="EEEE dd MMMM YYYY")|capitalize }}
+                        <div class="destination-card-title">{{ 'pdf.destinations.dates'|trans({}, 'messages', locale) }}</div>
+                        {{ destination.departureDate|format_datetime(locale=intlLocale, pattern="EEEE dd MMMM YYYY")|capitalize }}
                         {% if destination.returnDate %}
-                            au {{ destination.returnDate|format_datetime(locale='fr',pattern="EEEE dd MMMM YYYY") }}
+                            – {{ destination.returnDate|format_datetime(locale=intlLocale, pattern="EEEE dd MMMM YYYY") }}
                         {% endif %}
 
                         {% if destination.weather %}
-                            <div class="destination-card-title margin-top-2">Tendances météo</div>
+                            <div class="destination-card-title margin-top-2">{{ 'pdf.destinations.weather'|trans({}, 'messages', locale) }}</div>
                             {% for weather in destination.weather %}
                                 <div class="weather-card">
                                     <div class="weather-card-city">{{ weather.destination.city }}</div>
                                     <table class="weather-stats-table">
                                         <tr>
                                             <td>
-                                                <span class="weather-stat-label">Température</span>
+                                                <span class="weather-stat-label">{{ 'pdf.weather.temperature'|trans({}, 'messages', locale) }}</span>
                                                 <span class="weather-stat-value">{{ weather.weather.temp_min }}° – {{ weather.weather.temp_max }}°C</span>
                                             </td>
                                             <td>
-                                                <span class="weather-stat-label">Précipitations</span>
+                                                <span class="weather-stat-label">{{ 'pdf.weather.precipitation'|trans({}, 'messages', locale) }}</span>
                                                 <span class="weather-stat-value">{{ weather.weather.rainfall_days }}j · {{ weather.weather.rainfall_mm }}mm</span>
                                             </td>
                                             <td>
-                                                <span class="weather-stat-label">Ensoleillement</span>
+                                                <span class="weather-stat-label">{{ 'pdf.weather.sunshine'|trans({}, 'messages', locale) }}</span>
                                                 <span class="weather-stat-value">{{ weather.weather.daylight_hours }}h/jour</span>
                                             </td>
                                             <td>
-                                                <span class="weather-stat-label">Humidité</span>
+                                                <span class="weather-stat-label">{{ 'pdf.weather.humidity'|trans({}, 'messages', locale) }}</span>
                                                 <span class="weather-stat-value">{{ weather.weather.humidity }}%</span>
                                             </td>
                                         </tr>
@@ -523,12 +525,12 @@
         <div class="page-break"></div>
 
         <div class="section-after-break">
-            <h2 class="section-title">Planning du voyage</h2>
+            <h2 class="section-title">{{ 'pdf.planning.title'|trans({}, 'messages', locale) }}</h2>
 
             {% for day, events in trip.planning %}
                 <div class="planning-day">
                     <h3 class="day-header">
-                        {{ day|format_datetime(locale='fr',pattern="EEEE dd MMMM YYYY")|capitalize }}
+                        {{ day|format_datetime(locale=intlLocale, pattern="EEEE dd MMMM YYYY")|capitalize }}
                     </h3>
 
                     {% for event in events %}
@@ -536,7 +538,7 @@
                             <div class="event-time-title">
                                 <span class="event-time">{{ event.start|date('H:i') }}
                                     {% if event.end %}
-                                        à {{ event.end|date('H:i') }}
+                                        – {{ event.end|date('H:i') }}
                                     {% endif %}
                                 </span>
                                 • {{ event.title }}
@@ -547,7 +549,7 @@
                                 </div>
                                 {% if event.timeToGo %}
                                     <div class="event-time-to-go">
-                                        • {{ event.timeToGo }} min. de trajet
+                                        • {{ event.timeToGo }} {{ 'pdf.planning.minutes_travel'|trans({}, 'messages', locale) }}
                                     </div>
                                 {% endif %}
                             </div>
@@ -566,37 +568,34 @@
     {% if trip.stats %}
         <div class="page-break"></div>
 
-        <h2 class="section-title">Statistiques du voyage</h2>
+        <h2 class="section-title">{{ 'pdf.stats.title'|trans({}, 'messages', locale) }}</h2>
 
         <div class="stats-grid">
             {% if trip.stats.days %}
                 <div class="stat-item">
-                    <div class="stat-label">Durée du voyage</div>
-                    <div class="stat-value">{{ trip.stats.days }} jours</div>
+                    <div class="stat-label">{{ 'pdf.stats.duration'|trans({}, 'messages', locale) }}</div>
+                    <div class="stat-value">{{ 'pdf.trip_duration'|trans({'%days%': trip.stats.days}, 'messages', locale) }}</div>
                 </div>
             {% endif %}
 
             {% if trip.stats.activities %}
                 <div class="stat-item">
-                    <div class="stat-label">Activités planifiées</div>
+                    <div class="stat-label">{{ 'pdf.stats.activities'|trans({}, 'messages', locale) }}</div>
                     <div class="stat-value">{{ trip.stats.activities }}</div>
                 </div>
             {% endif %}
 
             {% if trip.budget and trip.stats.days %}
                 <div class="stat-item">
-                    <div class="stat-label">Budget par jour</div>
-                    <div class="stat-value">{{ (trip.budget.total / trip.stats.days)|number_format(2, ',', ' ') }}€
-                    </div>
+                    <div class="stat-label">{{ 'pdf.stats.budget_per_day'|trans({}, 'messages', locale) }}</div>
+                    <div class="stat-value">{{ (trip.budget.total / trip.stats.days)|number_format(2, ',', ' ') }}€</div>
                 </div>
             {% endif %}
 
             {% if trip.budget and trip.travelers %}
                 <div class="stat-item">
-                    <div class="stat-label">Budget par personne</div>
-                    <div class="stat-value">{{ (trip.budget.total / trip.travelers|length)|number_format(2, ',', ' ') }}
-                        €
-                    </div>
+                    <div class="stat-label">{{ 'pdf.stats.budget_per_person'|trans({}, 'messages', locale) }}</div>
+                    <div class="stat-value">{{ (trip.budget.total / trip.travelers|length)|number_format(2, ',', ' ') }} €</div>
                 </div>
             {% endif %}
         </div>
@@ -605,7 +604,7 @@
     {% if trip.notes %}
         <div class="page-break"></div>
 
-        <h2 class="section-title">Notes</h2>
+        <h2 class="section-title">{{ 'pdf.notes.title'|trans({}, 'messages', locale) }}</h2>
 
         <div class="notes-content">
             {{ trip.notes|raw }}

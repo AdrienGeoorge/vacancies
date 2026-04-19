@@ -10,13 +10,13 @@ class AccommodationAdditionalRequestDTO
 {
     public ?int $id = null;
 
-    #[Assert\NotBlank(message: 'Le type de dépense additionnelle est obligatoire.')]
+    #[Assert\NotBlank(message: 'accommodation.additional.name.not_blank')]
     #[NoHtml]
     public string $name;
 
-    #[Assert\NotBlank(message: 'Le prix de la dépense additionnelle est obligatoire.')]
+    #[Assert\NotBlank(message: 'accommodation.additional.price.not_blank')]
     public float $originalPrice;
 
-    #[Assert\NotBlank(message: 'Vous devez choisir une devise pour votre dépense additionnelle.')]
+    #[Assert\NotBlank(message: 'accommodation.additional.currency.not_blank')]
     public ?Currency $originalCurrency = null;
 }

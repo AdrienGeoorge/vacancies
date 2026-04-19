@@ -20,6 +20,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/api/transports/{trip}', name: 'api_transports_', requirements: ['trip' => '\d+'])]
 class TransportController extends AbstractController
@@ -29,7 +30,8 @@ class TransportController extends AbstractController
         readonly TripService              $tripService,
         readonly DTOService               $dtoService,
         readonly CurrencyConverterService $converterService,
-        readonly BudgetAlertService       $budgetAlertService
+        readonly BudgetAlertService       $budgetAlertService,
+        readonly TranslatorInterface      $translator
     )
     {
     }
@@ -47,11 +49,11 @@ class TransportController extends AbstractController
     }
 
     #[Route('/get/{transport}/form-data', name: 'getFormData', requirements: ['transport' => '\d+'], methods: ['GET'])]
-    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
+    #[IsGranted('edit_elements', subject: 'trip', message: 'trip.access.edit_elements_denied', statusCode: 403)]
     public function get(?Trip $trip = null, ?Transport $transport = null): JsonResponse
     {
         if (!$transport) {
-            return $this->json(['message' => 'Edition impossible : transport non trouvé.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => $this->translator->trans('transport.edit.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         return $this->json([
@@ -77,7 +79,7 @@ class TransportController extends AbstractController
      */
     #[Route('/create', name: 'create', methods: ['POST'])]
     #[Route('/edit/{transport}', name: 'edit', requirements: ['transport' => '\d+'], methods: ['POST'])]
-    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
+    #[IsGranted('edit_elements', subject: 'trip', message: 'trip.access.edit_elements_denied', statusCode: 403)]
     public function create(
         Request    $request,
         ?Trip      $trip = null,
@@ -129,20 +131,20 @@ class TransportController extends AbstractController
 
                 if ($request->get('_route') === 'api_transports_edit') {
                     return $this->json([
-                        'message' => 'Les informations de ton moyen de transport ont bien été modifiées.',
+                        'message' => $this->translator->trans('transport.updated'),
                         'warning' => $toastMessage
                     ]);
                 }
 
                 return $this->json([
-                    'message' => 'Ce moyen de transport a bien été ajouté à votre voyage.',
+                    'message' => $this->translator->trans('transport.created'),
                     'warning' => $toastMessage
                 ]);
             } else {
                 return $this->json(['message' => $errorOnCompare], Response::HTTP_BAD_REQUEST);
             }
         } catch (\Exception) {
-            return $this->json(['message' => 'Une erreur est survenue lors de la création de ce moyen de transport.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('transport.error.create')], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -151,7 +153,7 @@ class TransportController extends AbstractController
     public function delete(?Trip $trip = null, ?Transport $transport = null): JsonResponse
     {
         if (!$transport) {
-            return $this->json(['message' => 'Suppression impossible : transport non trouvé.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => $this->translator->trans('transport.delete.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         $event = $this->managerRegistry->getRepository(PlanningEvent::class)->findOneBy(['transport' => $transport]);
@@ -160,7 +162,7 @@ class TransportController extends AbstractController
         $this->managerRegistry->getManager()->remove($transport);
         $this->managerRegistry->getManager()->flush();
 
-        return $this->json(['message' => 'Votre moyen de transport a bien été dissocié de ce voyage et supprimé.']);
+        return $this->json(['message' => $this->translator->trans('transport.deleted')]);
     }
 
     #[Route('/update-reserved/{transport}', name: 'update_reserved', requirements: ['transport' => '\d+'], methods: ['PUT'])]
@@ -168,7 +170,7 @@ class TransportController extends AbstractController
     public function updateReserved(Request $request, ?Trip $trip = null, ?Transport $transport = null): JsonResponse
     {
         if (!$transport) {
-            return $this->json(['message' => 'Modification impossible : transport non trouvé.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => $this->translator->trans('transport.update.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         $data = json_decode($request->getContent(), true);
@@ -184,6 +186,6 @@ class TransportController extends AbstractController
         $this->managerRegistry->getManager()->persist($transport);
         $this->managerRegistry->getManager()->flush();
 
-        return $this->json(['message' => 'Moyen de transport modifié avec succès.']);
+        return $this->json(['message' => $this->translator->trans('transport.toggle_reserved')]);
     }
 }

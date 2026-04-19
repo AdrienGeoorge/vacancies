@@ -14,12 +14,12 @@ class TripPhotoRequestDTO
     #[NoHtml]
     public ?string $caption = null;
 
-    #[Assert\NotNull(message: 'L\'image est obligatoire.')]
+    #[Assert\NotNull(message: 'photo.file.not_null')]
     #[Assert\File(
         maxSize: '10M',
         mimeTypes: ['image/jpeg', 'image/png', 'image/gif'],
-        maxSizeMessage: 'L\'image doit faire maximum 10 Mo.',
-        mimeTypesMessage: 'Ce type de fichier n\'est pas accepté. Seules les images au format JPEG, PNG ou GIF sont autorisées.'
+        maxSizeMessage: 'photo.file.max_size',
+        mimeTypesMessage: 'photo.file.mime_type'
     )]
     public ?UploadedFile $file = null;
 }

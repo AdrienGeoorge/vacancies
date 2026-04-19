@@ -14,11 +14,15 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/api/checklist', name: 'api_checklist_')]
 class ChecklistController extends AbstractController
 {
-    public function __construct(readonly ManagerRegistry $managerRegistry)
+    public function __construct(
+        readonly ManagerRegistry    $managerRegistry,
+        readonly TranslatorInterface $translator
+    )
     {
     }
 
@@ -35,7 +39,7 @@ class ChecklistController extends AbstractController
         $private = [];
 
         foreach ($items as $item) {
-            $category = $item->getCategory() ?: 'Divers';
+            $category = $item->getCategory() ?: $this->translator->trans('checklist.category.default');
             $data = [
                 'id' => $item->getId(),
                 'name' => $item->getName(),
@@ -63,7 +67,7 @@ class ChecklistController extends AbstractController
         $name = trim($data['name'] ?? '');
 
         if (empty($name)) {
-            return $this->json(['message' => 'Le nom de l\'item est requis.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('checklist.item.name_required')], Response::HTTP_BAD_REQUEST);
         }
 
         $item = (new ChecklistItem())
@@ -78,7 +82,7 @@ class ChecklistController extends AbstractController
         $this->managerRegistry->getManager()->flush();
 
         return $this->json([
-            'message' => 'Item ajouté avec succès.',
+            'message' => $this->translator->trans('checklist.item.added'),
             'item' => [
                 'id' => $item->getId(),
                 'name' => $item->getName(),
@@ -109,17 +113,17 @@ class ChecklistController extends AbstractController
     #[IsGranted('edit_elements', subject: 'trip')]
     public function editItem(Request $request, ?Trip $trip = null, ?ChecklistItem $item = null): JsonResponse
     {
-        if (!$item) return $this->json(['message' => 'Item introuvable.'], Response::HTTP_NOT_FOUND);
+        if (!$item) return $this->json(['message' => $this->translator->trans('checklist.item.not_found')], Response::HTTP_NOT_FOUND);
 
         if ($item->getOwner()->getId() !== $this->getUser()->getId()) {
-            return $this->json(['message' => 'Vous ne pouvez modifier que vos propres items.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => $this->translator->trans('checklist.item.forbidden')], Response::HTTP_FORBIDDEN);
         }
 
         $data = json_decode($request->getContent(), true);
         $name = trim($data['name'] ?? '');
 
         if (empty($name)) {
-            return $this->json(['message' => 'Le nom de l\'item est requis.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('checklist.item.name_required')], Response::HTTP_BAD_REQUEST);
         }
 
         $item->setName($name);
@@ -129,23 +133,23 @@ class ChecklistController extends AbstractController
 
         $this->managerRegistry->getManager()->flush();
 
-        return $this->json(['message' => 'Item modifié avec succès.']);
+        return $this->json(['message' => $this->translator->trans('checklist.item.updated')]);
     }
 
     #[Route('/{trip}/item/{item}/delete', name: 'delete', requirements: ['trip' => '\d+', 'item' => '\d+'], methods: ['DELETE'])]
     #[IsGranted('edit_elements', subject: 'trip')]
     public function deleteItem(?Trip $trip = null, ?ChecklistItem $item = null): JsonResponse
     {
-        if (!$item) return $this->json(['message' => 'Item introuvable.'], Response::HTTP_NOT_FOUND);
+        if (!$item) return $this->json(['message' => $this->translator->trans('checklist.item.not_found')], Response::HTTP_NOT_FOUND);
 
         if ($item->getOwner()->getId() !== $this->getUser()->getId()) {
-            return $this->json(['message' => 'Vous ne pouvez supprimer que vos propres items.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => $this->translator->trans('checklist.item.delete_forbidden')], Response::HTTP_FORBIDDEN);
         }
 
         $this->managerRegistry->getManager()->remove($item);
         $this->managerRegistry->getManager()->flush();
 
-        return $this->json(['message' => 'Item supprimé avec succès.']);
+        return $this->json(['message' => $this->translator->trans('checklist.item.deleted')]);
     }
 
     #[Route('/templates', name: 'templates', methods: ['GET'])]
@@ -172,7 +176,7 @@ class ChecklistController extends AbstractController
     #[IsGranted('view', subject: 'trip')]
     public function saveTemplate(Request $request, ?Trip $trip = null): JsonResponse
     {
-        if (!$trip) return $this->json(['message' => 'Voyage introuvable.'], Response::HTTP_NOT_FOUND);
+        if (!$trip) return $this->json(['message' => $this->translator->trans('checklist.trip.not_found')], Response::HTTP_NOT_FOUND);
 
         /** @var User $user */
         $user = $this->getUser();
@@ -181,7 +185,7 @@ class ChecklistController extends AbstractController
         $name = trim($data['name'] ?? '');
 
         if (empty($name)) {
-            return $this->json(['message' => 'Le nom du template est requis.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('checklist.template.name_required')], Response::HTTP_BAD_REQUEST);
         }
 
         $items = $this->managerRegistry->getRepository(ChecklistItem::class)->findForTrip($trip, $user);
@@ -206,7 +210,7 @@ class ChecklistController extends AbstractController
         $this->managerRegistry->getManager()->flush();
 
         return $this->json([
-            'message' => 'Template sauvegardé avec succès.',
+            'message' => $this->translator->trans('checklist.template.saved'),
             'template' => [
                 'id' => $template->getId(),
                 'name' => $template->getName(),
@@ -220,10 +224,10 @@ class ChecklistController extends AbstractController
     #[IsGranted('edit_elements', subject: 'trip')]
     public function applyTemplate(?Trip $trip = null, ?ChecklistTemplate $template = null): JsonResponse
     {
-        if (!$template) return $this->json(['message' => 'Template ou voyage introuvable.'], Response::HTTP_NOT_FOUND);
+        if (!$template) return $this->json(['message' => $this->translator->trans('checklist.template.trip_not_found')], Response::HTTP_NOT_FOUND);
 
         if ($template->getOwner()->getId() !== $this->getUser()->getId()) {
-            return $this->json(['message' => 'Accès refusé.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => $this->translator->trans('checklist.template.forbidden')], Response::HTTP_FORBIDDEN);
         }
 
         foreach ($template->getItems() as $templateItem) {
@@ -241,7 +245,7 @@ class ChecklistController extends AbstractController
 
         $this->managerRegistry->getManager()->flush();
 
-        return $this->json(['message' => 'Template appliqué avec succès.']);
+        return $this->json(['message' => $this->translator->trans('checklist.template.applied')]);
     }
 
     #[Route('/template/{template}/delete', name: 'delete_template', requirements: ['template' => '\d+'], methods: ['DELETE'])]
@@ -250,16 +254,16 @@ class ChecklistController extends AbstractController
         if (!$this->getUser()) return new JsonResponse([], Response::HTTP_UNAUTHORIZED);
 
         if (!$template) {
-            return $this->json(['message' => 'Template introuvable.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => $this->translator->trans('checklist.template.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         if ($template->getOwner()->getId() !== $this->getUser()->getId()) {
-            return $this->json(['message' => 'Accès refusé.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => $this->translator->trans('checklist.template.forbidden')], Response::HTTP_FORBIDDEN);
         }
 
         $this->managerRegistry->getManager()->remove($template);
         $this->managerRegistry->getManager()->flush();
 
-        return $this->json(['message' => 'Template supprimé avec succès.']);
+        return $this->json(['message' => $this->translator->trans('checklist.template.deleted')]);
     }
 }

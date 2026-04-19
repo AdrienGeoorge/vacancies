@@ -8,7 +8,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class TripDocumentRequestDTO
 {
-    #[Assert\NotBlank(message: 'Le nom du document est obligatoire.')]
+    #[Assert\NotBlank(message: 'document.name.not_blank')]
     #[NoHtml]
     public ?string $name;
 
@@ -24,6 +24,6 @@ class TripDocumentRequestDTO
         'text/csv',
         'application/vnd.ms-excel',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    ], mimeTypesMessage: 'Ce type de fichier n\'est pas accepté.')]
+    ], mimeTypesMessage: 'document.file.mime_type')]
     public ?UploadedFile $file;
 }

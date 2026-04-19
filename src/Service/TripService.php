@@ -17,6 +17,7 @@ use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\String\ByteString;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class TripService
 {
@@ -26,11 +27,13 @@ class TripService
     protected string $fromMail;
     protected string $appName;
     private $weatherService;
+    private TranslatorInterface $translator;
 
     public function __construct(
         MailerInterface $mailer,
         ManagerRegistry $managerRegistry,
         WeatherService $weatherService,
+        TranslatorInterface $translator,
         string          $domain,
         string          $fromMail,
         string          $appName
@@ -39,6 +42,7 @@ class TripService
         $this->mailer = $mailer;
         $this->managerRegistry = $managerRegistry;
         $this->weatherService = $weatherService;
+        $this->translator = $translator;
         $this->domain = $domain;
         $this->fromMail = $fromMail;
         $this->appName = $appName;
@@ -295,28 +299,28 @@ class TripService
 
         $reservedPrices = [
             'accommodations' => [
-                'title' => 'Hébergements',
-                'description' => 'Hôtel, auberge, location Airbnb, etc.',
+                'title' => $this->translator->trans('trip.budget.accommodation'),
+                'description' => $this->translator->trans('trip.budget.accommodation.desc'),
                 'amount' => $this->getReservedAccommodationsPrice($trip)
             ],
             'transports' => [
-                'title' => 'Transports',
-                'description' => 'Avion, train, taxi, bus, etc.',
+                'title' => $this->translator->trans('trip.budget.transport'),
+                'description' => $this->translator->trans('trip.budget.transport.desc'),
                 'amount' => $this->getReservedTransportsPrice($trip)
             ],
             'activities' => [
-                'title' => 'Activités',
-                'description' => "Musée, zoo, parc d'attractions, etc.",
+                'title' => $this->translator->trans('trip.budget.activity'),
+                'description' => $this->translator->trans('trip.budget.activity.desc'),
                 'amount' => $this->getReservedActivitiesPrice($trip)
             ],
             'various-expensive' => [
-                'title' => 'Dépenses diverses',
-                'description' => 'Assurance, VISA, forfait mobile, etc.',
+                'title' => $this->translator->trans('trip.budget.various'),
+                'description' => $this->translator->trans('trip.budget.various.desc'),
                 'amount' => $this->getReservedVariousExpensivePrice($trip)
             ],
             'on-site' => [
-                'title' => 'Dépenses sur place',
-                'description' => 'Courses, restaurant, etc.',
+                'title' => $this->translator->trans('trip.budget.on_site'),
+                'description' => $this->translator->trans('trip.budget.on_site.desc'),
                 'amount' => $onSite
             ]
         ];
@@ -416,11 +420,11 @@ class TripService
                     'revolutHandle' => $traveler->getInvited()?->getRevolutHandle(),
                     'paid' => $paid,
                     'amountDue' => $amountDue,
-                    'Hébergements' => round($accommodations, 2),
-                    'Transports' => round($transportPaid, 2),
-                    'Activités' => round($activities, 2),
-                    'Dépenses diverses' => round($variousExpenses, 2),
-                    'Dépenses sur place' => round($onSite, 2)
+                    $this->translator->trans('trip.budget.accommodation') => round($accommodations, 2),
+                    $this->translator->trans('trip.budget.transport') => round($transportPaid, 2),
+                    $this->translator->trans('trip.budget.activity') => round($activities, 2),
+                    $this->translator->trans('trip.budget.various') => round($variousExpenses, 2),
+                    $this->translator->trans('trip.budget.on_site') => round($onSite, 2),
                 ];
             }
 
@@ -579,32 +583,32 @@ class TripService
             $returnDate = $trip->getReturnDate()?->setTime(23, 59, 59);
 
             if ($departureDate && $start && $start < $departureDate) {
-                return 'La date de début ne peut pas être inférieure à la date de commencement du séjour.';
+                return $this->translator->trans('trip.date.element_before_trip_start');
             }
 
             if ($departureDate && $end && $end < $departureDate) {
-                return 'La date de fin ne peut pas être inférieure à la date de commencement du séjour.';
+                return $this->translator->trans('trip.date.element_end_before_trip_start');
             }
 
             if (!$departureDate) {
                 if ($start && $start < $today) {
-                    return 'Comme vous n\'avez pas renseigné vos dates de séjour, votre événement ne peut pas commencer avant la date du jour.';
+                    return $this->translator->trans('trip.date.element_before_today_no_dates');
                 }
                 if ($end && $end < $today) {
-                    return 'Comme vous n\'avez pas renseigné vos dates de séjour, votre événement ne peut pas se terminer avant la date du jour.';
+                    return $this->translator->trans('trip.date.element_end_before_today_no_dates');
                 }
             }
 
             if ($returnDate && $start && $start > $returnDate) {
-                return 'La date de début ne peut pas être supérieure à la date de fin du séjour.';
+                return $this->translator->trans('trip.date.element_after_trip_end');
             }
 
             if ($returnDate && $end && $end > $returnDate) {
-                return 'La date de fin ne peut pas être supérieure à la date de fin du séjour.';
+                return $this->translator->trans('trip.date.element_end_after_trip_end');
             }
 
             if ($start && $end && $end < $start) {
-                return 'L\'événement ne peut pas se terminer avant d\'avoir commencé.';
+                return $this->translator->trans('trip.date.element_end_before_start');
             }
         }
 
@@ -630,9 +634,15 @@ class TripService
             $email = (new TemplatedEmail())
                 ->from($this->fromMail)
                 ->to($userToShareWith ? $userToShareWith->getEmail() : $mail)
-                ->subject($this->appName . ' : invitation à rejoindre un voyage')
+                ->subject($this->translator->trans('mail.share.subject', ['%app_name%' => $this->appName]))
                 ->htmlTemplate('trip/share-mail.html.twig')
-                ->context(['url' => $url, 'invitedBy' => $invitedBy, 'trip' => $trip]);
+                ->context([
+                    'url' => $url,
+                    'invitedBy' => $invitedBy,
+                    'trip' => $trip,
+                    'domain' => $this->domain,
+                    'app_name' => $this->appName,
+                ]);
 
             $this->mailer->send($email);
         } catch (Exception) {
@@ -691,12 +701,14 @@ class TripService
 
     public function formateDestinationsForString(array $destinations)
     {
+        $and = $this->translator->trans('stats.destinations.and');
+
         if (count($destinations) === 1) {
             return $destinations[0]['country']['name'];
         } elseif (count($destinations) === 2) {
-            return $destinations[0]['country']['name'] . ' et ' . $destinations[1]['country']['name'];
+            return $destinations[0]['country']['name'] . $and . $destinations[1]['country']['name'];
         } else {
-            return implode(', ', array_slice($destinations, 0, -1)) . ' et ' . $destinations[count($destinations) - 1]['country']['name'];
+            return implode(', ', array_slice($destinations, 0, -1)) . $and . $destinations[count($destinations) - 1]['country']['name'];
         }
     }
 }

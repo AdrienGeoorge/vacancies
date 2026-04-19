@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/api/accommodations/{trip}', name: 'api_accommodations_', requirements: ['trip' => '\d+'])]
 class AccommodationController extends AbstractController
@@ -24,7 +25,8 @@ class AccommodationController extends AbstractController
         readonly ManagerRegistry      $managerRegistry,
         readonly AccommodationService $accommodationService,
         readonly TripService          $tripService,
-        readonly BudgetAlertService   $budgetAlertService
+        readonly BudgetAlertService   $budgetAlertService,
+        readonly TranslatorInterface  $translator
     )
     {
     }
@@ -39,11 +41,11 @@ class AccommodationController extends AbstractController
     }
 
     #[Route('/get/{accommodation}/form-data', name: 'getFormData', requirements: ['accommodation' => '\d+'], methods: ['GET'])]
-    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
+    #[IsGranted('edit_elements', subject: 'trip', message: 'trip.access.edit_elements_denied', statusCode: 403)]
     public function get(?Trip $trip = null, ?Accommodation $accommodation = null): JsonResponse
     {
         if (!$accommodation) {
-            return $this->json(['message' => 'Edition impossible : hébergement non trouvé.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => $this->translator->trans('accommodation.edit.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         return $this->json([
@@ -68,7 +70,7 @@ class AccommodationController extends AbstractController
      */
     #[Route('/create', name: 'create', methods: ['POST'])]
     #[Route('/edit/{accommodation}', name: 'edit', requirements: ['accommodation' => '\d+'], methods: ['POST'])]
-    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
+    #[IsGranted('edit_elements', subject: 'trip', message: 'trip.access.edit_elements_denied', statusCode: 403)]
     public function create(Request $request, ?Trip $trip = null, ?Accommodation $accommodation = new Accommodation()): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -92,20 +94,20 @@ class AccommodationController extends AbstractController
 
                 if ($request->get('_route') === 'api_accommodations_edit') {
                     return $this->json([
-                        'message' => 'Les informations de ton hébergement ont bien été modifiées.',
+                        'message' => $this->translator->trans('accommodation.updated'),
                         'warning' => $toastMessage
                     ]);
                 }
 
                 return $this->json([
-                    'message' => 'Cet hébergement a bien été ajouté à votre voyage.',
+                    'message' => $this->translator->trans('accommodation.created'),
                     'warning' => $toastMessage
                 ]);
             } else {
                 return $this->json(['message' => $errorOnCompare], Response::HTTP_FORBIDDEN);
             }
         } catch (\Exception) {
-            return $this->json(['message' => 'Une erreur est survenue lors de la création de l\'hébergement.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('accommodation.error.create')], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -114,13 +116,13 @@ class AccommodationController extends AbstractController
     public function delete(?Trip $trip = null, ?Accommodation $accommodation = null): JsonResponse
     {
         if (!$accommodation) {
-            return $this->json(['message' => 'Suppression impossible : hébergement non trouvé.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => $this->translator->trans('accommodation.delete.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         $this->managerRegistry->getManager()->remove($accommodation);
         $this->managerRegistry->getManager()->flush();
 
-        return $this->json(['message' => 'Votre hébergement a bien été dissocié de ce voyage et supprimé.']);
+        return $this->json(['message' => $this->translator->trans('accommodation.deleted')]);
     }
 
     #[Route('/update-reserved/{accommodation}', name: 'update_reserved', requirements: ['accommodation' => '\d+'], methods: ['PUT'])]
@@ -128,7 +130,7 @@ class AccommodationController extends AbstractController
     public function updateReserved(Request $request, ?Trip $trip = null, ?Accommodation $accommodation = null): JsonResponse
     {
         if (!$accommodation) {
-            return $this->json(['message' => 'Modification impossible : hébergement non trouvé.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => $this->translator->trans('accommodation.update.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         $data = json_decode($request->getContent(), true);
@@ -144,6 +146,6 @@ class AccommodationController extends AbstractController
         $this->managerRegistry->getManager()->persist($accommodation);
         $this->managerRegistry->getManager()->flush();
 
-        return $this->json(['message' => 'Hébergement modifié avec succès.']);
+        return $this->json(['message' => $this->translator->trans('accommodation.toggle_reserved')]);
     }
 }

@@ -22,6 +22,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/api/trips', name: 'api_trip_')]
 class TripController extends AbstractController
@@ -30,7 +31,8 @@ class TripController extends AbstractController
         private readonly ManagerRegistry     $managerRegistry,
         private readonly FileUploaderService $uploaderService,
         private readonly TripService         $tripService,
-        private readonly WeatherService      $weatherService
+        private readonly WeatherService      $weatherService,
+        private readonly TranslatorInterface $translator
     )
     {
     }
@@ -45,7 +47,7 @@ class TripController extends AbstractController
     public function future(User $user): JsonResponse
     {
         if ($this->getUser() !== $user) {
-            return $this->json(['message' => 'Vous ne pouvez pas voir les voyages d\'un autre utilisateur.', Response::HTTP_FORBIDDEN]);
+            return $this->json(['message' => $this->translator->trans('trip.forbidden.view_other')], Response::HTTP_FORBIDDEN);
         }
 
         $trips = $this->managerRegistry->getRepository(Trip::class)->getFutureTrips($this->getUser());
@@ -57,7 +59,7 @@ class TripController extends AbstractController
     public function passed(User $user): JsonResponse
     {
         if ($this->getUser() !== $user) {
-            return $this->json(['message' => 'Vous ne pouvez pas voir les voyages d\'un autre utilisateur.', Response::HTTP_FORBIDDEN]);
+            return $this->json(['message' => $this->translator->trans('trip.forbidden.view_other')], Response::HTTP_FORBIDDEN);
         }
 
         $trips = $this->managerRegistry->getRepository(Trip::class)->getPassedTrips($this->getUser());
@@ -69,7 +71,7 @@ class TripController extends AbstractController
     public function all(User $user): JsonResponse
     {
         if ($this->getUser() !== $user) {
-            return $this->json(['message' => 'Vous ne pouvez pas voir les voyages d\'un autre utilisateur.', Response::HTTP_FORBIDDEN]);
+            return $this->json(['message' => $this->translator->trans('trip.forbidden.view_other')], Response::HTTP_FORBIDDEN);
         }
 
         $trips = $this->managerRegistry->getRepository(Trip::class)->getAllTrips($this->getUser());
@@ -78,14 +80,14 @@ class TripController extends AbstractController
     }
 
     #[Route('/get/{trip}/travelers', name: 'getTravelers', requirements: ['trip' => '\d+'], methods: ['GET'])]
-    #[IsGranted('view', subject: 'trip', message: 'Vous ne pouvez pas consulter ce voyage.', statusCode: 403)]
+    #[IsGranted('view', subject: 'trip', message: 'trip.access.view_denied', statusCode: 403)]
     public function getTravelers(?Trip $trip = null): JsonResponse
     {
         return $this->json($trip->getTripTravelers()->toArray());
     }
 
     #[Route('/get/{trip}/form-data', name: 'getFormData', requirements: ['trip' => '\d+'], methods: ['GET'])]
-    #[IsGranted('edit_trip', subject: 'trip', message: 'Vous ne pouvez pas modifier ce voyage.', statusCode: 403)]
+    #[IsGranted('edit_trip', subject: 'trip', message: 'trip.access.edit_denied', statusCode: 403)]
     public function get(?Trip $trip = null): JsonResponse
     {
         $trip = $this->managerRegistry->getRepository(Trip::class)->getOneTrip($trip->getId());
@@ -101,7 +103,7 @@ class TripController extends AbstractController
     }
 
     #[Route('/get/{trip}/general-data', name: 'getGeneralData', requirements: ['trip' => '\d+'], methods: ['GET'])]
-    #[IsGranted('view', subject: 'trip', message: 'Vous ne pouvez pas consulter ce voyage.', statusCode: 403)]
+    #[IsGranted('view', subject: 'trip', message: 'trip.access.view_denied', statusCode: 403)]
     public function getGeneralData(?Trip $trip = null): JsonResponse
     {
         return $this->json([
@@ -112,7 +114,7 @@ class TripController extends AbstractController
     }
 
     #[Route('/get/{trip}/dashboard', name: 'getDashboard', requirements: ['trip' => '\d+'], methods: ['GET'])]
-    #[IsGranted('view', subject: 'trip', message: 'Vous ne pouvez pas consulter ce voyage.', statusCode: 403)]
+    #[IsGranted('view', subject: 'trip', message: 'trip.access.view_denied', statusCode: 403)]
     public function getDashboard(?Trip $trip = null): JsonResponse
     {
         return $this->json([
@@ -123,7 +125,7 @@ class TripController extends AbstractController
     }
 
     #[Route('/get/{trip}/balance', name: 'getBalance', requirements: ['trip' => '\d+'], methods: ['GET'])]
-    #[IsGranted('view', subject: 'trip', message: 'Vous ne pouvez pas consulter ce voyage.', statusCode: 403)]
+    #[IsGranted('view', subject: 'trip', message: 'trip.access.view_denied', statusCode: 403)]
     public function getBalance(?Trip $trip = null): JsonResponse
     {
         $data = $this->tripService->getCreditorAndDebtorDetails($trip);
@@ -141,7 +143,7 @@ class TripController extends AbstractController
     }
 
     #[Route('/get/{trip}/reimbursements', name: 'createReimbursement', requirements: ['trip' => '\d+'], methods: ['POST'])]
-    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier ce voyage.', statusCode: 403)]
+    #[IsGranted('edit_elements', subject: 'trip', message: 'trip.access.edit_denied', statusCode: 403)]
     public function createReimbursement(Request $request, Trip $trip): JsonResponse
     {
         try {
@@ -151,13 +153,13 @@ class TripController extends AbstractController
             $toTraveler = $this->managerRegistry->getRepository(TripTraveler::class)->find($data['toTraveler'] ?? null);
 
             if (!$fromTraveler || $fromTraveler->getTrip() !== $trip) {
-                return $this->json(['message' => 'Voyageur source invalide.'], Response::HTTP_BAD_REQUEST);
+                return $this->json(['message' => $this->translator->trans('trip.reimbursement.traveler_source_invalid')], Response::HTTP_BAD_REQUEST);
             }
             if (!$toTraveler || $toTraveler->getTrip() !== $trip) {
-                return $this->json(['message' => 'Voyageur destination invalide.'], Response::HTTP_BAD_REQUEST);
+                return $this->json(['message' => $this->translator->trans('trip.reimbursement.traveler_dest_invalid')], Response::HTTP_BAD_REQUEST);
             }
             if (!isset($data['amount']) || (float) $data['amount'] <= 0) {
-                return $this->json(['message' => 'Le montant doit être supérieur à 0.'], Response::HTTP_BAD_REQUEST);
+                return $this->json(['message' => $this->translator->trans('trip.reimbursement.amount_invalid')], Response::HTTP_BAD_REQUEST);
             }
 
             $date = null;
@@ -179,27 +181,27 @@ class TripController extends AbstractController
             $this->managerRegistry->getManager()->persist($reimbursement);
             $this->managerRegistry->getManager()->flush();
 
-            return $this->json(['message' => 'Remboursement enregistré.', 'id' => $reimbursement->getId()], Response::HTTP_CREATED);
+            return $this->json(['message' => $this->translator->trans('trip.reimbursement.saved'), 'id' => $reimbursement->getId()], Response::HTTP_CREATED);
         } catch (\Exception) {
-            return $this->json(['message' => 'Une erreur est survenue.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('trip.error.generic')], Response::HTTP_BAD_REQUEST);
         }
     }
 
     #[Route('/get/{trip}/reimbursements/{reimbursement}', name: 'deleteReimbursement', requirements: ['trip' => '\d+', 'reimbursement' => '\d+'], methods: ['DELETE'])]
-    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier ce voyage.', statusCode: 403)]
+    #[IsGranted('edit_elements', subject: 'trip', message: 'trip.access.edit_denied', statusCode: 403)]
     public function deleteReimbursement(Trip $trip, TripReimbursement $reimbursement): JsonResponse
     {
         if ($reimbursement->getTrip() !== $trip) {
-            return $this->json(['message' => 'Ce remboursement n\'appartient pas à ce voyage.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => $this->translator->trans('trip.reimbursement.not_in_trip')], Response::HTTP_FORBIDDEN);
         }
 
         try {
             $this->managerRegistry->getManager()->remove($reimbursement);
             $this->managerRegistry->getManager()->flush();
 
-            return $this->json(['message' => 'Remboursement supprimé.']);
+            return $this->json(['message' => $this->translator->trans('trip.reimbursement.deleted')]);
         } catch (\Exception) {
-            return $this->json(['message' => 'Une erreur est survenue.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('trip.error.generic')], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -208,7 +210,7 @@ class TripController extends AbstractController
      */
     #[Route('/create', name: 'create', methods: ['POST'])]
     #[Route('/edit/{trip}', name: 'edit', requirements: ['trip' => '\d+'], methods: ['POST'])]
-    #[IsGranted('edit_trip', subject: 'trip', message: 'Vous ne pouvez pas modifier ce voyage.', statusCode: 403)]
+    #[IsGranted('edit_trip', subject: 'trip', message: 'trip.access.edit_denied', statusCode: 403)]
     public function create(Request $request, ValidatorInterface $validator, ?Trip $trip = new Trip()): JsonResponse
     {
         $dto = new TripRequestDTO();
@@ -221,18 +223,18 @@ class TripController extends AbstractController
             $departureDateStr = $request->request->get('departureDate');
             $dto->departureDate = $departureDateStr ? new \DateTime($departureDateStr) : null;
         } catch (\Exception) {
-            return $this->json(['message' => 'La date de départ est invalide.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('trip.date.invalid_departure')], Response::HTTP_BAD_REQUEST);
         }
 
         try {
             $returnDateStr = $request->request->get('returnDate');
             $dto->returnDate = $returnDateStr ? new \DateTime($returnDateStr) : null;
         } catch (\Exception) {
-            return $this->json(['message' => 'La date de retour est invalide.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('trip.date.invalid_return')], Response::HTTP_BAD_REQUEST);
         }
 
         if ($dto->departureDate && $dto->returnDate && $dto->departureDate > $dto->returnDate) {
-            return $this->json(['message' => 'La date de retour ne peut pas être supérieure à la date de départ.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('trip.date.return_before_departure')], Response::HTTP_BAD_REQUEST);
         }
 
         $errors = $validator->validate($dto);
@@ -309,7 +311,7 @@ class TripController extends AbstractController
                     $country = $this->managerRegistry->getRepository(Country::class)->find($countryId);
                     if (!$country) {
                         return $this->json([
-                            'message' => 'Un des pays sélectionnés est invalide.'
+                            'message' => $this->translator->trans('trip.country.invalid')
                         ], Response::HTTP_BAD_REQUEST);
                     }
 
@@ -340,7 +342,7 @@ class TripController extends AbstractController
 
                     if (!$country) {
                         return $this->json([
-                            'message' => 'Un des pays sélectionnés est invalide.'
+                            'message' => $this->translator->trans('trip.country.invalid')
                         ], Response::HTTP_BAD_REQUEST);
                     }
 
@@ -374,17 +376,17 @@ class TripController extends AbstractController
 
             if ($isEdit) {
                 return $this->json([
-                    'message' => 'Les informations de ton voyage ont bien été modifiées.',
+                    'message' => $this->translator->trans('trip.updated'),
                     'id' => $trip->getId()
                 ]);
             }
 
             return $this->json([
-                'message' => 'Ton voyage a bien été créé.',
+                'message' => $this->translator->trans('trip.created'),
                 'id' => $trip->getId()
             ]);
         } catch (\Exception) {
-            return $this->json(['message' => 'Une erreur est survenue lors de la création du voyage.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('trip.error.create')], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -396,9 +398,9 @@ class TripController extends AbstractController
             $this->managerRegistry->getManager()->remove($trip);
             $this->managerRegistry->getManager()->flush();
 
-            return $this->json(['message' => 'Votre voyage ainsi que toutes les informations associées ont bien été supprimés.']);
+            return $this->json(['message' => $this->translator->trans('trip.deleted')]);
         } catch (\Exception) {
-            return $this->json(['message' => 'Une erreur est survenue lors de la suppression du voyage.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('trip.error.delete')], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -414,14 +416,14 @@ class TripController extends AbstractController
                 $this->managerRegistry->getManager()->flush();
             } catch (\Exception) {
                 return $this->json([
-                    'message' => 'Vous ne pouvez pas quitter ce voyage car vous êtes rattaché à des éléments (logement, transport, activité ou dépense). Veuillez les supprimer ou les mettre à jour avant de quitter le voyage.'
+                    'message' => $this->translator->trans('trip.leave.error')
                 ], Response::HTTP_BAD_REQUEST);
             }
 
-            return $this->json(['message' => sprintf('Vous avez quitté le voyage : %s', $trip->getName())]);
+            return $this->json(['message' => $this->translator->trans('trip.left', ['%name%' => $trip->getName()])]);
         }
 
-        return $this->json(['message' => 'Vous n\'avez pas l\'autorisation de réaliser cette action.'], Response::HTTP_FORBIDDEN);
+        return $this->json(['message' => $this->translator->trans('trip.unauthorized_action')], Response::HTTP_FORBIDDEN);
     }
 
     #[Route('/update-notes/{trip}', name: 'update_notes', requirements: ['trip' => '\d+'], methods: ['POST'])]
@@ -437,7 +439,7 @@ class TripController extends AbstractController
 
             return $this->json($trip->getBlocNotes());
         } catch (\Exception) {
-            return $this->json(['message' => 'Une erreur est survenue lors de la sauvegarde des notes.x'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('trip.notes.error')], Response::HTTP_BAD_REQUEST);
         }
     }
 

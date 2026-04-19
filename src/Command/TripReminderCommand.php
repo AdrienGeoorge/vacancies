@@ -12,6 +12,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[AsCommand(
     name: 'app:trip-reminder',
@@ -23,6 +24,7 @@ class TripReminderCommand extends Command
         private readonly TripRepository $tripRepository,
         private readonly TripBudgetRepository $tripBudgetRepository,
         private readonly MailerInterface $mailer,
+        private readonly TranslatorInterface $translator,
         private readonly string $domain,
         private readonly string $fromMail,
         private readonly string $appName,
@@ -67,10 +69,18 @@ class TripReminderCommand extends Command
                         fn($item) => !$item->isShared() && !$item->isChecked() && $item->getOwner()?->getId() === $user->getId()
                     );
 
+                    $locale = $user->getLanguage() ?? 'fr';
+                    $subject = $this->appName . $this->translator->trans(
+                        'email.reminder.subject',
+                        ['%days%' => $days, '%plural%' => $days > 1 ? 's' : ''],
+                        'messages',
+                        $locale
+                    );
+
                     $email = (new TemplatedEmail())
                         ->from($this->fromMail)
                         ->to($user->getEmail())
-                        ->subject($this->appName . ' : votre départ approche dans ' . $days . ' jour' . ($days > 1 ? 's' : '') . ' !')
+                        ->subject($subject)
                         ->htmlTemplate('trip/reminder-mail.html.twig')
                         ->context([
                             'trip' => $trip,
@@ -82,6 +92,7 @@ class TripReminderCommand extends Command
                             'onSiteBudgetPerPerson' => $onSiteBudgetPerPerson,
                             'domain' => $this->domain,
                             'app_name' => $this->appName,
+                            'locale' => $locale,
                         ]);
 
                     $this->mailer->send($email);

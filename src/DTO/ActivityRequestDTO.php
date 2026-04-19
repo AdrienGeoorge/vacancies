@@ -15,15 +15,15 @@ class ActivityRequestDTO
         $this->originalCurrency = $currency;
     }
 
-    #[Assert\NotBlank(message: 'Vous devez choisir un type d\'activité.')]
+    #[Assert\NotBlank(message: 'activity.type.not_blank')]
     public ?EventType $type;
 
-    #[Assert\NotBlank(message: 'Le nom de l\'hébergement est obligatoire.')]
+    #[Assert\NotBlank(message: 'activity.name.not_blank')]
     #[Assert\Length(
         min: 5,
         max: 255,
-        minMessage: 'Le nom del\'hébergement doit faire au minimum 5 caractères.',
-        maxMessage: 'Le nom de l\'hébergement doit faire au maximum 255 caractères.'
+        minMessage: 'activity.name.min_length',
+        maxMessage: 'activity.name.max_length'
     )]
     #[NoHtml]
     public ?string $name;
@@ -34,11 +34,11 @@ class ActivityRequestDTO
     #[Assert\Type(\DateTime::class)]
     public ?\DateTime $date;
 
-    #[Assert\NotBlank(message: 'Le prix de l\'hébergement est obligatoire.')]
-    #[Assert\GreaterThan(0, message: 'Le prix doit être de minimum 1€.')]
+    #[Assert\NotBlank(message: 'activity.price.not_blank')]
+    #[Assert\GreaterThan(0, message: 'activity.price.min')]
     public ?float $originalPrice;
 
-    #[Assert\NotBlank(message: 'Vous devez choisir une devise.')]
+    #[Assert\NotBlank(message: 'activity.currency.not_blank')]
     public ?Currency $originalCurrency = null;
 
     public bool $perPerson = false;

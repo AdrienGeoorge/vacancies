@@ -13,15 +13,15 @@ class EventRequestDTO
         $this->type = $activityType;
     }
 
-    #[Assert\NotBlank(message: 'Vous devez choisir un type d\'activité.')]
+    #[Assert\NotBlank(message: 'event.type.not_blank')]
     public ?EventType $type;
 
-    #[Assert\NotBlank(message: 'Le nom de l\'évènement est obligatoire.')]
+    #[Assert\NotBlank(message: 'event.title.not_blank')]
     #[Assert\Length(
         min: 5,
         max: 255,
-        minMessage: 'Le nom del\'évènement doit faire au minimum 5 caractères.',
-        maxMessage: 'Le nom de l\'évènement doit faire au maximum 255 caractères.'
+        minMessage: 'event.title.min_length',
+        maxMessage: 'event.title.max_length'
     )]
     #[NoHtml]
     public ?string $title;
@@ -29,8 +29,8 @@ class EventRequestDTO
     #[NoHtml]
     public ?string $description;
 
-    #[Assert\NotNull(message: 'La date de début doit être renseignée.')]
-    #[Assert\NotBlank(message: 'La date de début doit être renseignée.')]
+    #[Assert\NotNull(message: 'event.start.not_null')]
+    #[Assert\NotBlank(message: 'event.start.not_blank')]
     #[Assert\Type(\DateTime::class)]
     public \DateTime $start;
 

@@ -13,12 +13,12 @@ class VariousExpensiveRequestDTO
         $this->originalCurrency = $originalCurrency;
     }
 
-    #[Assert\NotBlank(message: 'Le nom de la dépense est obligatoire.')]
+    #[Assert\NotBlank(message: 'expense.name.not_blank')]
     #[Assert\Length(
         min: 5,
         max: 255,
-        minMessage: 'Le nom de la dépense doit faire au minimum 5 caractères.',
-        maxMessage: 'Le nom de la dépense doit faire au maximum 255 caractères.'
+        minMessage: 'expense.name.min_length',
+        maxMessage: 'expense.name.max_length'
     )]
     #[NoHtml]
     public ?string $name;
@@ -26,11 +26,11 @@ class VariousExpensiveRequestDTO
     #[NoHtml]
     public ?string $description;
 
-    #[Assert\NotBlank(message: 'Le prix de la dépense est obligatoire.')]
-    #[Assert\GreaterThan(0, message: 'Le prix doit être de minimum 1€.')]
+    #[Assert\NotBlank(message: 'expense.price.not_blank')]
+    #[Assert\GreaterThan(0, message: 'expense.price.min')]
     public ?float $originalPrice;
 
-    #[Assert\NotBlank(message: 'Vous devez choisir une devise.')]
+    #[Assert\NotBlank(message: 'expense.currency.not_blank')]
     public ?Currency $originalCurrency = null;
 
     public bool $perPerson = false;

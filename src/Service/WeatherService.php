@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Trip;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class WeatherService
 {
@@ -14,7 +15,8 @@ class WeatherService
         private readonly HttpClientInterface $httpClient,
         private readonly LoggerInterface     $logger,
         private readonly string              $weatherApiKey,
-        private readonly WeatherDataService  $weatherDataService
+        private readonly WeatherDataService  $weatherDataService,
+        private readonly TranslatorInterface $translator,
     )
     {
     }
@@ -143,7 +145,7 @@ class WeatherService
 
         if (!$coords) {
             $this->logger->warning("Géocodage échoué", ['city' => $cityName, 'country' => $country]);
-            return ['error' => true, 'message' => 'Ville introuvable'];
+            return ['error' => true, 'message' => $this->translator->trans('weather.city_not_found')];
         }
 
         $response = $this->httpClient->request('GET', self::API_BASE_URL . '/forecast', [

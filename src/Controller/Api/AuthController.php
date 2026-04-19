@@ -16,10 +16,15 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/api', name: 'api_')]
 class AuthController extends AbstractController
 {
+    public function __construct(private TranslatorInterface $translator)
+    {
+    }
+
     #[Route('/login', name: 'login', methods: ['POST'])]
     public function login(
         #[CurrentUser] $user
@@ -27,7 +32,7 @@ class AuthController extends AbstractController
     {
         if (!$user) {
             return new JsonResponse([
-                'message' => 'Vos identifiants sont incorrects.'
+                'message' => $this->translator->trans('auth.login.invalid')
             ], 401);
         }
 
@@ -38,26 +43,26 @@ class AuthController extends AbstractController
     }
 
     #[Route('/register', name: '_register', methods: ['POST'])]
-    public function register(Request                $request, UserPasswordHasherInterface $userPasswordHasher,
+    public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher,
                              ManagerRegistry $managerRegistry, JWTTokenManagerInterface $jwtManager): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
         if (!isset($data['email'], $data['password'], $data['firstname'], $data['lastname'])) {
-            return new JsonResponse(['message' => 'Tous les champs sont requis pour compléter l\'inscription.'], 400);
+            return new JsonResponse(['message' => $this->translator->trans('auth.register.missing_fields')], 400);
         }
 
         $user = $managerRegistry->getRepository(User::class)->findOneBy(['email' => $data['email']]);
 
         if ($user) {
-            return new JsonResponse(['message' => 'Cette adresse mail est déjà utilisée.'], 409);
+            return new JsonResponse(['message' => $this->translator->trans('auth.register.email_taken')], 409);
         }
 
         $firstname = strip_tags($data['firstname']);
         $lastname = strip_tags($data['lastname']);
 
         if ($firstname !== $data['firstname'] || $lastname !== $data['lastname']) {
-            return new JsonResponse(['message' => 'Les balises HTML ne sont pas autorisées.'], 400);
+            return new JsonResponse(['message' => $this->translator->trans('auth.register.html_forbidden')], 400);
         }
 
         $user = (new User())
@@ -65,6 +70,13 @@ class AuthController extends AbstractController
             ->setFirstname($firstname)
             ->setLastname($lastname)
             ->setRoles(['ROLE_USER']);
+
+        // Detect language from X-Locale header or Accept-Language
+        $locale = $request->headers->get('X-Locale');
+        if (!$locale || !in_array($locale, ['fr', 'en'], true)) {
+            $locale = $request->getPreferredLanguage(['fr', 'en']) ?? 'fr';
+        }
+        $user->setLanguage($locale);
 
         $user->setPassword($userPasswordHasher->hashPassword($user, $data['password']));
 
@@ -86,6 +98,7 @@ class AuthController extends AbstractController
                 'username' => $user->getUsername(),
                 'avatar' => $user->getAvatar(),
                 'biography' => $user->getBiography(),
+                'language' => $user->getLanguage(),
                 'theme' => $user->getTheme()
             ]
         ], Response::HTTP_CREATED);
@@ -115,7 +128,6 @@ class AuthController extends AbstractController
         $client = $clientRegistry->getClient('google');
 
         try {
-            // IMPORTANT : Désactiver la vérification du state pour l'architecture SPA
             $accessToken = $client->getAccessToken([
                 'code' => $request->query->get('code')
             ]);
@@ -136,7 +148,12 @@ class AuthController extends AbstractController
                 $user->setGoogleId($googleId);
                 $user->setRoles(['ROLE_USER']);
 
-                // Générer un mot de passe aléatoire (l'utilisateur n'en aura pas besoin)
+                $locale = $request->headers->get('X-Locale');
+                if (!$locale || !in_array($locale, ['fr', 'en'], true)) {
+                    $locale = $request->getPreferredLanguage(['fr', 'en']) ?? 'fr';
+                }
+                $user->setLanguage($locale);
+
                 $randomPassword = bin2hex(random_bytes(32));
                 $user->setPassword($passwordHasher->hashPassword($user, $randomPassword));
 
@@ -162,12 +179,13 @@ class AuthController extends AbstractController
                     'completeName' => $user->getCompleteName(),
                     'username' => $user->getUsername(),
                     'avatar' => $user->getAvatar(),
-                    'biography' => $user->getBiography()
+                    'biography' => $user->getBiography(),
+                    'language' => $user->getLanguage(),
                 ]
             ], Response::HTTP_CREATED);
         } catch (\Exception) {
             return new JsonResponse([
-                'message' => 'Erreur lors de la connexion avec Google',
+                'message' => $this->translator->trans('auth.google.error'),
             ], Response::HTTP_BAD_REQUEST);
         }
     }

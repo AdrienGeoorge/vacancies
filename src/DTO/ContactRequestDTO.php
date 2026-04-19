@@ -7,26 +7,26 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class ContactRequestDTO
 {
-    #[Assert\NotBlank(message: 'Le nom est obligatoire.')]
-    #[Assert\Length(max: 100, maxMessage: 'Le nom ne doit pas dépasser 100 caractères.')]
+    #[Assert\NotBlank(message: 'contact.name.not_blank')]
+    #[Assert\Length(max: 100, maxMessage: 'contact.name.max_length')]
     #[NoHtml]
     public string $name;
 
-    #[Assert\NotBlank(message: "L'adresse email est obligatoire.")]
-    #[Assert\Email(message: "L'adresse email est invalide.")]
+    #[Assert\NotBlank(message: 'contact.email.not_blank')]
+    #[Assert\Email(message: 'contact.email.invalid')]
     public string $email;
 
-    #[Assert\NotBlank(message: 'La catégorie est obligatoire.')]
-    #[Assert\Choice(choices: ['bug', 'other'], message: 'La catégorie est invalide.')]
+    #[Assert\NotBlank(message: 'contact.category.not_blank')]
+    #[Assert\Choice(choices: ['bug', 'other'], message: 'contact.category.invalid')]
     public string $category;
 
-    #[Assert\NotBlank(message: 'Le sujet est obligatoire.')]
-    #[Assert\Length(max: 255, maxMessage: 'Le sujet ne doit pas dépasser 255 caractères.')]
+    #[Assert\NotBlank(message: 'contact.subject.not_blank')]
+    #[Assert\Length(max: 255, maxMessage: 'contact.subject.max_length')]
     #[NoHtml]
     public string $subject;
 
-    #[Assert\NotBlank(message: 'Le message est obligatoire.')]
-    #[Assert\Length(max: 5000, maxMessage: 'Le message ne doit pas dépasser 5000 caractères.')]
+    #[Assert\NotBlank(message: 'contact.message.not_blank')]
+    #[Assert\Length(max: 5000, maxMessage: 'contact.message.max_length')]
     #[NoHtml]
     public string $message;
 }

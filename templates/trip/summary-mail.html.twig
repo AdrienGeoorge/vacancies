@@ -184,13 +184,13 @@
                                 <td height="12"></td>
                             </tr>
                             <tr>
-                                <td class="mail-head-tagline">Prévois tes voyages</td>
+                                <td class="mail-head-tagline">{{ 'mail.tagline'|trans({}, 'messages', locale) }}</td>
                             </tr>
                             <tr>
                                 <td height="8"></td>
                             </tr>
                             <tr>
-                                <td class="mail-head-title">&#127881; Votre voyage est terminé !</td>
+                                <td class="mail-head-title">{{ 'mail.summary.title'|trans({}, 'messages', locale) }}</td>
                             </tr>
                             </tbody>
                         </table>
@@ -205,14 +205,14 @@
                                     <table style="width: 100%;" cellpadding="0" cellspacing="0">
                                         <tbody>
                                         <tr>
-                                            <td class="mail-hello">Bonjour {{ user.firstname ?? user.username }} &#128075;</td>
+                                            <td class="mail-hello">{{ 'mail.greeting'|trans({'%name%': user.firstname ?? user.username}, 'messages', locale) }}</td>
                                         </tr>
                                         <tr>
                                             <td height="16"></td>
                                         </tr>
                                         <tr>
                                             <td class="mail-text">
-                                                Votre voyage <b>{{ trip.name }}</b> est maintenant terminé. Merci de nous avoir fait confiance pour l'organiser ! Voici un résumé de votre aventure.
+                                                {{ 'mail.summary.intro'|trans({'%trip%': trip.name}, 'messages', locale)|raw }}
                                             </td>
                                         </tr>
                                         <tr>
@@ -230,12 +230,12 @@
                                                             <table cellpadding="0" cellspacing="0" style="width:100%;">
                                                                 <tbody><tr>
                                                                     <td style="color:#ffffff; font-size:12px; opacity:0.9; letter-spacing:1px; text-transform:uppercase;">
-                                                                        Itinéraire
+                                                                        {{ 'mail.summary.itinerary'|trans({}, 'messages', locale) }}
                                                                     </td>
                                                                     {% if trip.departureDate %}
                                                                         <td style="color:#ffffff; font-size:12px; text-align:right; opacity:0.9;">
-                                                                            {{ trip.departureDate|fr_date(false) }}
-                                                                            {% if trip.returnDate %}&nbsp;&rarr;&nbsp;{{ trip.returnDate|fr_date(false) }}{% endif %}
+                                                                            {{ trip.departureDate|locale_date(false, locale) }}
+                                                                            {% if trip.returnDate %}&nbsp;&rarr;&nbsp;{{ trip.returnDate|locale_date(false, locale) }}{% endif %}
                                                                         </td>
                                                                     {% endif %}
                                                                 </tr></tbody>
@@ -259,8 +259,8 @@
                                                                                             <div style="font-size:15px; font-weight:bold; color:#2d2d44;">{{ destination.country.name }}</div>
                                                                                             {% if destination.departureDate %}
                                                                                                 <div style="font-size:12px; color:#6b7280; margin-top:2px;">
-                                                                                                    {{ destination.departureDate|fr_date(false) }}
-                                                                                                    {% if destination.returnDate %}&nbsp;&rarr;&nbsp;{{ destination.returnDate|fr_date(false) }}{% endif %}
+                                                                                                    {{ destination.departureDate|locale_date(false, locale) }}
+                                                                                                    {% if destination.returnDate %}&nbsp;&rarr;&nbsp;{{ destination.returnDate|locale_date(false, locale) }}{% endif %}
                                                                                                 </div>
                                                                                             {% endif %}
                                                                                         </td>
@@ -295,8 +295,8 @@
                                                             <table cellpadding="0" cellspacing="0" style="width:100%;">
                                                                 <tbody><tr>
                                                                     <td style="font-size:13px; color:#2d2d44;">
-                                                                        <b>&#127905; Activités réalisées</b>
-                                                                        <span style="font-size:12px; color:#6b7280;">durant ce voyage</span>
+                                                                        <b>{{ 'mail.summary.activities'|trans({}, 'messages', locale) }}</b>
+                                                                        <span style="font-size:12px; color:#6b7280;">{{ 'mail.summary.activities_during'|trans({}, 'messages', locale) }}</span>
                                                                     </td>
                                                                     <td style="text-align:right; white-space:nowrap;">
                                                                         <span style="font-size:20px; font-weight:bold; color:#0f9b8e;">{{ nbActivities }}</span>
@@ -326,7 +326,7 @@
                                                                 <tbody>
                                                                 <tr>
                                                                     <td style="font-size:13px; font-weight:bold; color:#2d2d44; padding-bottom:8px;">
-                                                                        Budget total
+                                                                        {{ 'mail.summary.budget_total'|trans({}, 'messages', locale) }}
                                                                     </td>
                                                                     <td style="text-align:right; font-size:13px; font-weight:bold; color:{{ labelColor }}; padding-bottom:8px;">
                                                                         {{ budgetTotal }} / {{ plannedTotal }} € ({{ pct }}%)
@@ -355,7 +355,7 @@
                                         {# Budget par catégorie #}
                                         {% if budgetCategories is not empty %}
                                         <tr>
-                                            <td style="font-size:13px; font-weight:bold; color:#2d2d44; text-transform:uppercase; letter-spacing:1px; padding-bottom:8px;">&#128176; Récap des dépenses</td>
+                                            <td style="font-size:13px; font-weight:bold; color:#2d2d44; text-transform:uppercase; letter-spacing:1px; padding-bottom:8px;">{{ 'mail.summary.expenses'|trans({}, 'messages', locale) }}</td>
                                         </tr>
                                         <tr>
                                             <td>
@@ -396,14 +396,14 @@
                                                             <table cellpadding="0" cellspacing="0" style="width:100%;">
                                                                 <tbody><tr>
                                                                     <td style="font-size:13px; color:#2d2d44;">
-                                                                        <b>Total par voyageur</b>
+                                                                        <b>{{ 'mail.summary.total_per_traveler'|trans({}, 'messages', locale) }}</b>
                                                                         {% if nbTravelers > 1 %}
-                                                                        <span style="font-size:12px; color:#6b7280; display:block; margin-top:2px;">Réparti entre {{ nbTravelers }} voyageurs</span>
+                                                                        <span style="font-size:12px; color:#6b7280; display:block; margin-top:2px;">{{ 'mail.summary.split_between'|trans({'%count%': nbTravelers}, 'messages', locale) }}</span>
                                                                         {% endif %}
                                                                     </td>
                                                                     <td style="text-align:right; white-space:nowrap;">
                                                                         <span style="font-size:20px; font-weight:bold; color:#0f9b8e;">{{ totalPerPerson }} €</span>
-                                                                        <span style="display:block; font-size:11px; color:#6b7280;">/ personne</span>
+                                                                        <span style="display:block; font-size:11px; color:#6b7280;">{{ 'mail.summary.per_person'|trans({}, 'messages', locale) }}</span>
                                                                     </td>
                                                                 </tr></tbody>
                                                             </table>
@@ -422,7 +422,7 @@
                                         {% if trip.shareToken %}
                                         <tr>
                                             <td class="mail-text" style="text-align: center;">
-                                                Vous souhaitez partager vos souvenirs ? Votre voyage est accessible via un lien public.
+                                                {{ 'mail.summary.share_cta'|trans({}, 'messages', locale) }}
                                             </td>
                                         </tr>
                                         <tr>
@@ -431,7 +431,7 @@
                                         <tr>
                                             <td class="mail-button-container">
                                                 <a href="{{ domain }}/share/{{ trip.shareToken }}" class="mail-button"
-                                                   target="_blank">&#127760; Voir mon voyage</a>
+                                                   target="_blank">{{ 'mail.summary.see_trip'|trans({}, 'messages', locale) }}</a>
                                             </td>
                                         </tr>
                                         <tr>
@@ -449,8 +449,8 @@
                                         </tr>
                                         <tr>
                                             <td class="mail-signature">
-                                                À bientôt pour de nouvelles aventures ! &#127758;<br>
-                                                L'équipe <b>{{ app_name }}</b>
+                                                {{ 'mail.summary.farewell'|trans({}, 'messages', locale) }}<br>
+                                                {{ 'mail.team'|trans({}, 'messages', locale) }} <b>{{ app_name }}</b>
                                             </td>
                                         </tr>
                                         </tbody>
@@ -476,8 +476,8 @@
                             </tr>
                             <tr>
                                 <td class="mail-footer-text">
-                                    Pour gérer vos préférences de notifications, rendez-vous dans vos
-                                    <a href="{{ domain }}/settings" target="_blank" class="mail-link">paramètres</a>.
+                                    {{ 'mail.footer.manage_prefs'|trans({}, 'messages', locale) }}
+                                    <a href="{{ domain }}/settings" target="_blank" class="mail-link">{{ 'mail.footer.settings'|trans({}, 'messages', locale) }}</a>.
                                 </td>
                             </tr>
                             </tbody>

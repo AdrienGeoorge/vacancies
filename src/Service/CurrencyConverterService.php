@@ -4,11 +4,13 @@ namespace App\Service;
 
 use App\Entity\Currency;
 use App\Repository\ExchangeRateRepository;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class CurrencyConverterService
 {
     public function __construct(
-        private readonly ExchangeRateRepository $exchangeRateRepository
+        private readonly ExchangeRateRepository $exchangeRateRepository,
+        private readonly TranslatorInterface    $translator,
     ) {}
 
     /**
@@ -32,7 +34,7 @@ class CurrencyConverterService
             : $this->exchangeRateRepository->getLatestRates();
 
         if (!$exchangeRate) {
-            throw new \Exception('Aucun taux de change disponible');
+            throw new \Exception($this->translator->trans('currency.exchange_rate_unavailable'));
         }
 
         $rates = $exchangeRate->getRates();
@@ -40,7 +42,7 @@ class CurrencyConverterService
         // EUR vers autre devise
         if ($fromCurrency->getCode() === 'EUR') {
             if (!isset($rates[$toCurrency->getCode()])) {
-                throw new \Exception("Devise {$toCurrency->getCode()} non disponible");
+                throw new \Exception($this->translator->trans('currency.code_unavailable', ['%code%' => $toCurrency->getCode()]));
             }
 
             $rate = $rates[$toCurrency->getCode()];
@@ -49,7 +51,7 @@ class CurrencyConverterService
         // Autre devise vers EUR
         elseif ($toCurrency->getCode() === 'EUR') {
             if (!isset($rates[$fromCurrency->getCode()])) {
-                throw new \Exception("Devise {$fromCurrency->getCode()} non disponible");
+                throw new \Exception($this->translator->trans('currency.code_unavailable', ['%code%' => $fromCurrency->getCode()]));
             }
 
             $rate = 1 / $rates[$fromCurrency->getCode()];
@@ -58,7 +60,7 @@ class CurrencyConverterService
         // Entre deux devises (passage par EUR)
         else {
             if (!isset($rates[$fromCurrency->getCode()]) || !isset($rates[$toCurrency->getCode()])) {
-                throw new \Exception('Une ou plusieurs devises non disponibles');
+                throw new \Exception($this->translator->trans('currency.multiple_unavailable'));
             }
 
             $amountInEUR = $amount / $rates[$fromCurrency->getCode()];

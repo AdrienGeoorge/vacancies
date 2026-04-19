@@ -163,7 +163,7 @@
                                 <td height="15"></td>
                             </tr>
                             <tr>
-                                <td class="mail-head-tagline">Prévois tes voyages</td>
+                                <td class="mail-head-tagline">{{ 'mail.tagline'|trans }}</td>
                             </tr>
                             </tbody>
                         </table>
@@ -178,16 +178,14 @@
                                     <table style="width: 100%;" cellpadding="0" cellspacing="0">
                                         <tbody>
                                         <tr>
-                                            <td class="mail-hello">Bonjour &#128075;</td>
+                                            <td class="mail-hello">{{ 'mail.greeting'|trans({'%name%': ''}) }}</td>
                                         </tr>
                                         <tr>
                                             <td height="20"></td>
                                         </tr>
                                         <tr>
                                             <td class="mail-text">
-                                                <b>{{ invitedBy }}</b> vous invite à rejoindre les
-                                                préparatifs d'un voyage. Préparez vos valises, l'aventure
-                                                vous attend.
+                                                {{ 'mail.share.invite_text'|trans({'%invitedBy%': invitedBy})|raw }}
                                             </td>
                                         </tr>
                                         <tr>
@@ -218,8 +216,7 @@
                                         </tr>
                                         <tr>
                                             <td class="mail-text">
-                                                Cliquez sur le bouton ci-dessous pour accepter l'invitation et
-                                                participer à l'organisation de votre prochain séjour.
+                                                {{ 'mail.share.cta_text'|trans }}
                                             </td>
                                         </tr>
                                         <tr>
@@ -228,7 +225,7 @@
                                         <tr>
                                             <td class="mail-button-container">
                                                 <a href="{{ url }}" class="mail-button"
-                                                   target="_blank">&#127881; Accepter l'invitation</a>
+                                                   target="_blank">{{ 'mail.share.accept'|trans }}</a>
                                             </td>
                                         </tr>
                                         <tr>
@@ -236,7 +233,7 @@
                                         </tr>
                                         <tr>
                                             <td class="mail-note">
-                                                Vous devez être connecté à {{ app_name }} pour rejoindre ce voyage.
+                                                {{ 'mail.share.login_required'|trans({'%app_name%': app_name}) }}
                                             </td>
                                         </tr>
                                         <tr>
@@ -244,7 +241,7 @@
                                         </tr>
                                         <tr>
                                             <td class="mail-warning">
-                                                &#9203; Cette invitation expire 2 heures après réception de ce mail.
+                                                {{ 'mail.share.expires'|trans }}
                                             </td>
                                         </tr>
                                         <tr>
@@ -260,8 +257,8 @@
                                         </tr>
                                         <tr>
                                             <td class="mail-signature">
-                                                Bon voyage ! &#127758;<br>
-                                                L'équipe <b>{{ app_name }}</b>
+                                                {{ 'mail.signature'|trans }}<br>
+                                                {{ 'mail.team'|trans }} <b>{{ app_name }}</b>
                                             </td>
                                         </tr>
                                         </tbody>
@@ -287,8 +284,7 @@
                             </tr>
                             <tr>
                                 <td class="mail-footer-text">
-                                    Si vous n'êtes pas familier avec {{ app_name }} ou la personne
-                                    qui vous a invité, veuillez ignorer ce message.
+                                    {{ 'mail.footer.unfamiliar'|trans({'%app_name%': app_name}) }}
                                 </td>
                             </tr>
                             </tbody>

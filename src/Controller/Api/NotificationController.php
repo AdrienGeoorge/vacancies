@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/api/notifications', name: 'api_notifications_')]
 class NotificationController extends AbstractController
@@ -18,6 +19,7 @@ class NotificationController extends AbstractController
     public function __construct(
         private readonly ManagerRegistry $managerRegistry,
         private readonly TimeAgoService  $timeAgoService,
+        private readonly TranslatorInterface $translator,
     )
     {
     }
@@ -26,13 +28,13 @@ class NotificationController extends AbstractController
     public function get(): JsonResponse
     {
         if (!$this->getUser()) {
-            return $this->json(['message' => 'Utilisateur hors ligne.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => $this->translator->trans('notification.user.offline')], Response::HTTP_FORBIDDEN);
         }
 
         $user = $this->managerRegistry->getRepository(User::class)->find($this->getUser()->getId());
 
         if (!$user) {
-            return $this->json(['message' => 'Utilisateur non trouvé.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => $this->translator->trans('notification.user.not_found')], Response::HTTP_FORBIDDEN);
         }
 
         return $this->json($user->getUserNotifications()
@@ -51,13 +53,13 @@ class NotificationController extends AbstractController
     public function readAll(Request $request): JsonResponse
     {
         if (!$this->getUser()) {
-            return $this->json(['message' => 'Utilisateur hors ligne.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => $this->translator->trans('notification.user.offline')], Response::HTTP_FORBIDDEN);
         }
 
         $user = $this->managerRegistry->getRepository(User::class)->find($this->getUser()->getId());
 
         if (!$user) {
-            return $this->json(['message' => 'Utilisateur non trouvé.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => $this->translator->trans('notification.user.not_found')], Response::HTTP_FORBIDDEN);
         }
 
         $data = json_decode($request->getContent(), true);

@@ -13,6 +13,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[AsCommand(
     name: 'app:trip-summary',
@@ -25,6 +26,7 @@ class TripSummaryCommand extends Command
         private readonly TripService $tripService,
         private readonly MailerInterface $mailer,
         private readonly ManagerRegistry $managerRegistry,
+        private readonly TranslatorInterface $translator,
         private readonly string $domain,
         private readonly string $fromMail,
         private readonly string $appName,
@@ -56,36 +58,6 @@ class TripSummaryCommand extends Command
                 }
             }
 
-            $budgetCategories = [];
-            $categoryMap = [
-                ['key' => 'transports',        'label' => 'Transports'],
-                ['key' => 'accommodations',     'label' => 'Hébergements'],
-                ['key' => 'activities',         'label' => 'Activités'],
-                ['key' => 'various-expensive',  'label' => 'Dépenses diverses'],
-            ];
-            foreach ($categoryMap as $cat) {
-                $amount = round(
-                    ($budget['details']['reserved'][$cat['key']]['amount'] ?? 0)
-                    + ($budget['details']['nonReserved'][$cat['key']] ?? 0),
-                    2
-                );
-                if ($amount > 0) {
-                    $budgetCategories[] = [
-                        'label'   => $cat['label'],
-                        'amount'  => $amount,
-                        'planned' => $plannedByCategory[$cat['key']] ?? null,
-                    ];
-                }
-            }
-            $onSite = $budget['details']['on-site'] ?? 0;
-            if ($onSite > 0) {
-                $budgetCategories[] = [
-                    'label'   => 'Dépenses sur place',
-                    'amount'  => round($onSite, 2),
-                    'planned' => $plannedByCategory['on-site'] ?? null,
-                ];
-            }
-
             foreach ($trip->getTripTravelers() as $traveler) {
                 $user = $traveler->getInvited();
 
@@ -93,10 +65,46 @@ class TripSummaryCommand extends Command
                     continue;
                 }
 
+                $locale = $user->getLanguage() ?? 'fr';
+                $t = fn(string $key, array $params = []) => $this->translator->trans($key, $params, 'messages', $locale);
+
+                $categoryMap = [
+                    ['key' => 'transports',        'label' => $t('trip.summary.category.transports')],
+                    ['key' => 'accommodations',     'label' => $t('trip.summary.category.accommodations')],
+                    ['key' => 'activities',         'label' => $t('trip.summary.category.activities')],
+                    ['key' => 'various-expensive',  'label' => $t('trip.summary.category.various_expensive')],
+                ];
+
+                $budgetCategories = [];
+                foreach ($categoryMap as $cat) {
+                    $amount = round(
+                        ($budget['details']['reserved'][$cat['key']]['amount'] ?? 0)
+                        + ($budget['details']['nonReserved'][$cat['key']] ?? 0),
+                        2
+                    );
+                    if ($amount > 0) {
+                        $budgetCategories[] = [
+                            'label'   => $cat['label'],
+                            'amount'  => $amount,
+                            'planned' => $plannedByCategory[$cat['key']] ?? null,
+                        ];
+                    }
+                }
+                $onSite = $budget['details']['on-site'] ?? 0;
+                if ($onSite > 0) {
+                    $budgetCategories[] = [
+                        'label'   => $t('trip.summary.category.on_site'),
+                        'amount'  => round($onSite, 2),
+                        'planned' => $plannedByCategory['on-site'] ?? null,
+                    ];
+                }
+
+                $subject = $this->appName . $t('email.summary.subject');
+
                 $email = (new TemplatedEmail())
                     ->from($this->fromMail)
                     ->to($user->getEmail())
-                    ->subject($this->appName . ' : votre voyage est terminé, merci de nous avoir fait confiance !')
+                    ->subject($subject)
                     ->htmlTemplate('trip/summary-mail.html.twig')
                     ->context([
                         'trip' => $trip,
@@ -109,6 +117,7 @@ class TripSummaryCommand extends Command
                         'plannedTotal' => $plannedTotal > 0 ? $plannedTotal : null,
                         'domain' => $this->domain,
                         'app_name' => $this->appName,
+                        'locale' => $locale,
                     ]);
 
                 $this->mailer->send($email);

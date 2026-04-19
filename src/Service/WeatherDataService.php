@@ -9,6 +9,7 @@ use App\Repository\ClimateDataRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class WeatherDataService
 {
@@ -17,7 +18,8 @@ class WeatherDataService
         private readonly ClimateDataRepository $climateRepo,
         private readonly CityRepository        $cityRepo,
         private readonly HttpClientInterface   $httpClient,
-        private readonly LoggerInterface       $logger
+        private readonly LoggerInterface       $logger,
+        private readonly TranslatorInterface   $translator,
     )
     {
     }
@@ -70,7 +72,7 @@ class WeatherDataService
 
             if (!$coords) {
                 $this->logger->warning("Géocodage échoué", ['city' => $city, 'country' => $country]);
-                return ['error' => true, 'message' => 'Ville introuvable'];
+                return ['error' => true, 'message' => $this->translator->trans('weather.city_not_found')];
             }
 
             if (null === $needsUpdate) {
@@ -119,7 +121,7 @@ class WeatherDataService
                 'error' => $e->getMessage()
             ]);
 
-            return ['error' => true, 'message' => 'Données météo indisponibles'];
+            return ['error' => true, 'message' => $this->translator->trans('weather.data_unavailable')];
         }
     }
 
@@ -231,7 +233,7 @@ class WeatherDataService
             }
 
             if (empty($allTempsMin)) {
-                return ['error' => true, 'message' => 'Aucune donnée disponible'];
+                return ['error' => true, 'message' => $this->translator->trans('weather.no_data')];
             }
 
             // Calculer les moyennes
@@ -253,7 +255,7 @@ class WeatherDataService
 
         } catch (\Exception $e) {
             $this->logger->error("Erreur Open-Meteo API", ['error' => $e->getMessage()]);
-            return ['error' => true, 'message' => 'API indisponible'];
+            return ['error' => true, 'message' => $this->translator->trans('weather.api_unavailable')];
         }
     }
 

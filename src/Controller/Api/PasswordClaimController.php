@@ -32,20 +32,20 @@ class PasswordClaimController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         if (!isset($data['email'])) {
-            return new JsonResponse(['message' => 'Vous devez renseigner une adresse email valide.'], 400);
+            return new JsonResponse(['message' => $this->translator->trans('password.claim.email_required')], 400);
         }
 
         $user = $this->managerRegistry->getRepository(User::class)->findOneBy(['email' => $data['email']]);
 
         if (!$user) {
-            return new JsonResponse(['message' => "L'email que vous avez saisie n'est rattachée à aucun compte."], 409);
+            return new JsonResponse(['message' => $this->translator->trans('password.claim.email_not_found')], 409);
         }
 
         try {
             $this->tokenService->create($user);
-            return new JsonResponse(['message' => "Nous venons de t'envoyer un lien de confirmation par mail. Tu n'as rien reçu ? Vérifies tes spams et actualises ta messagerie."]);
+            return new JsonResponse(['message' => $this->translator->trans('password.claim.sent')]);
         } catch (\Exception) {
-            return new JsonResponse(['message' => "L'envoi du mail de réinitialisation a échoué. Veuillez réessayer."], 500);
+            return new JsonResponse(['message' => $this->translator->trans('password.claim.send_error')], 500);
         }
     }
 
@@ -55,13 +55,13 @@ class PasswordClaimController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         if (!isset($data['token'])) {
-            return new JsonResponse(['message' => 'Réinitialisation impossible : token non transmis.'], 403);
+            return new JsonResponse(['message' => $this->translator->trans('password.reset.token_required')], 403);
         }
 
         $resetToken = $this->tokenService->getUserByToken($data['token']);
 
         if (!$resetToken || ($resetToken->getTimestamp() < time())) {
-            return new JsonResponse(['message' => 'Ce lien a expiré. Merci de bien vouloir réitérer votre demande de changement de mot de passe.'], 403);
+            return new JsonResponse(['message' => $this->translator->trans('password.reset.token_expired')], 403);
         }
 
         return new JsonResponse([]);
@@ -75,11 +75,11 @@ class PasswordClaimController extends AbstractController
         $resetToken = $this->tokenService->getUserByToken($data['token']);
 
         if (!$resetToken || ($resetToken->getTimestamp() < time())) {
-            return new JsonResponse(['message' => 'Ce lien a expiré. Merci de bien vouloir réitérer votre demande de changement de mot de passe.'], 403);
+            return new JsonResponse(['message' => $this->translator->trans('password.reset.token_expired')], 403);
         }
 
         if (!isset($data['password'])) {
-            return new JsonResponse(['message' => 'Vous devez saisir un nouveau mot de passe.'], 400);
+            return new JsonResponse(['message' => $this->translator->trans('password.reset.password_required')], 400);
         }
 
         $resetToken->getUser()->setPassword(
@@ -93,6 +93,6 @@ class PasswordClaimController extends AbstractController
         $this->managerRegistry->getManager()->remove($resetToken);
         $this->managerRegistry->getManager()->flush();
 
-        return new JsonResponse(['message' => 'Votre mot de passe a été modifié avec succès. Vous pouvez désormais vous reconnecter !']);
+        return new JsonResponse(['message' => $this->translator->trans('password.reset.success')]);
     }
 }

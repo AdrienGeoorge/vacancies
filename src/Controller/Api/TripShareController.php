@@ -11,13 +11,15 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/api/share', name: 'api_public_trip_', requirements: ['trip' => '\\d+'])]
 class TripShareController extends AbstractController
 {
     public function __construct(
-        private readonly TripRepository $tripRepository,
-        private readonly TimeAgoService $timeAgoService
+        private readonly TripRepository      $tripRepository,
+        private readonly TimeAgoService      $timeAgoService,
+        private readonly TranslatorInterface $translator
     )
     {
     }
@@ -28,7 +30,7 @@ class TripShareController extends AbstractController
         $trip = $this->tripRepository->findOneBy(['shareToken' => $token]);
 
         if (!$trip) {
-            return $this->json(['message' => 'Partage introuvable.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => $this->translator->trans('share.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         date_default_timezone_set('Europe/Paris');

@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/api/plannings/{trip}', name: 'api_planning_', requirements: ['trip' => '\d+'])]
 class PlanningController extends AbstractController
@@ -22,7 +23,8 @@ class PlanningController extends AbstractController
     public function __construct(
         private readonly TripService     $tripService,
         private readonly ManagerRegistry $managerRegistry,
-        private readonly DTOService      $dtoService
+        private readonly DTOService      $dtoService,
+        private readonly TranslatorInterface $translator
     )
     {
     }
@@ -35,27 +37,27 @@ class PlanningController extends AbstractController
     }
 
     #[Route('/delete/{event}', name: 'delete', requirements: ['event' => '\d+'], methods: ['DELETE'])]
-    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
+    #[IsGranted('edit_elements', subject: 'trip', message: 'trip.access.edit_elements_denied', statusCode: 403)]
     public function delete(Trip $trip, ?PlanningEvent $event): JsonResponse
     {
         if (!$event) {
-            return $this->json(['message' => 'Evénement non existant.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => $this->translator->trans('planning.event.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         $this->managerRegistry->getManager()->remove($event);
         $this->managerRegistry->getManager()->flush();
 
-        return $this->json(['message' => 'Votre évènement a bien été supprimé du planning']);
+        return $this->json(['message' => $this->translator->trans('planning.event.deleted')]);
     }
 
     #[Route('/drop-event/{event}', name: 'drop_event', requirements: ['event' => '\d+'], methods: ['POST'])]
-    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
+    #[IsGranted('edit_elements', subject: 'trip', message: 'trip.access.edit_elements_denied', statusCode: 403)]
     public function dropEvent(Request $request, Trip $trip, ?PlanningEvent $event): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
         if (!$event) {
-            return $this->json(['message' => 'Evénement non existant.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => $this->translator->trans('planning.event.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         try {
@@ -76,18 +78,18 @@ class PlanningController extends AbstractController
             $this->managerRegistry->getManager()->persist($event);
             $this->managerRegistry->getManager()->flush();
         } catch (\Exception) {
-            return $this->json(['message' => 'Une erreur est survenue lors de la mise à jour de l\'évènement.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('planning.event.error.update')], Response::HTTP_BAD_REQUEST);
         }
 
         return $this->json([]);
     }
 
     #[Route('/get/{event}/form-data', name: 'getFormData', requirements: ['event' => '\d+'], methods: ['GET'])]
-    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
+    #[IsGranted('edit_elements', subject: 'trip', message: 'trip.access.edit_elements_denied', statusCode: 403)]
     public function get(?Trip $trip = null, ?PlanningEvent $event = null): JsonResponse
     {
         if (!$event) {
-            return $this->json(['message' => 'Edition impossible : évènement non trouvé.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => $this->translator->trans('planning.event.edit.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         return $this->json([
@@ -102,7 +104,7 @@ class PlanningController extends AbstractController
 
     #[Route('/create', name: 'create', methods: ['POST'])]
     #[Route('/edit/{event}', name: 'edit', requirements: ['event' => '\d+'], methods: ['POST'])]
-    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
+    #[IsGranted('edit_elements', subject: 'trip', message: 'trip.access.edit_elements_denied', statusCode: 403)]
     public function form(Request $request, Trip $trip, ?PlanningEvent $event): Response
     {
         $data = json_decode($request->getContent(), true);
@@ -143,15 +145,15 @@ class PlanningController extends AbstractController
                 $this->managerRegistry->getManager()->flush();
 
                 if ($request->get('_route') === 'api_planning_edit') {
-                    return $this->json(['message' => 'Les informations de ton évènement ont bien été modifiées.']);
+                    return $this->json(['message' => $this->translator->trans('planning.event.updated')]);
                 }
 
-                return $this->json(['message' => 'Cet évènement a bien été ajouté à votre voyage.']);
+                return $this->json(['message' => $this->translator->trans('planning.event.created')]);
             } else {
                 return $this->json(['message' => $errorOnCompare], Response::HTTP_BAD_REQUEST);
             }
         } catch (\Exception) {
-            return $this->json(['message' => 'Une erreur est survenue lors de la création de cet évènement.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('planning.event.error.create')], Response::HTTP_BAD_REQUEST);
         }
     }
 }

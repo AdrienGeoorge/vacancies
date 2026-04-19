@@ -8,21 +8,21 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class TripRequestDTO
 {
-    #[Assert\NotBlank(message: 'Le nom du voyage est obligatoire.')]
+    #[Assert\NotBlank(message: 'trip.name.not_blank')]
     #[Assert\Length(
         min: 5,
         max: 255,
-        minMessage: 'Le nom du voyage doit faire au minimum 5 caractères.',
-        maxMessage: 'Le nom du voyage doit faire au maximum 255 caractères.'
+        minMessage: 'trip.name.min_length',
+        maxMessage: 'trip.name.max_length'
     )]
     #[NoHtml]
     public string $name;
 
-    #[Assert\NotBlank(message: 'Vous devez sélectionner au moins une destination.')]
-    #[Assert\Type('array', message: 'Les destinations doivent être un tableau.')]
+    #[Assert\NotBlank(message: 'trip.destinations.not_blank')]
+    #[Assert\Type('array', message: 'trip.destinations.type')]
     #[Assert\Count(
         min: 1,
-        minMessage: 'Vous devez sélectionner au moins une destination.'
+        minMessage: 'trip.destinations.min_count'
     )]
     public array $destinations = [];
 

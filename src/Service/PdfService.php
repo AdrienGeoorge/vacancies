@@ -6,6 +6,7 @@ use App\Entity\Trip;
 use App\Entity\TripTraveler;
 use Dompdf\Dompdf;
 use Dompdf\Options;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -14,11 +15,13 @@ use Twig\Error\SyntaxError;
 class PdfService
 {
     public function __construct(
-        private readonly Environment $twig,
-        private readonly TripService $tripService,
-        private readonly string      $domain,
-        private readonly string      $apiUrl,
-        private readonly string      $projectDir
+        private readonly Environment         $twig,
+        private readonly TripService         $tripService,
+        private readonly TranslatorInterface $translator,
+        private readonly string              $domain,
+        private readonly string              $apiUrl,
+        private readonly string              $projectDir,
+        private readonly string              $appName,
     )
     {
     }
@@ -93,7 +96,9 @@ class PdfService
             'trip' => $trip,
             'logoPath' => $logoSrc,
             'coverImageSrc' => $coverImageSrc,
-            'generatedAt' => new \DateTime()
+            'generatedAt' => new \DateTime(),
+            'locale' => $this->translator->getLocale(),
+            'app_name' => $this->appName,
         ]);
 
         $options = new Options();

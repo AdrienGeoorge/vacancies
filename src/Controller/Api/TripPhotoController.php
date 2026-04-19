@@ -17,6 +17,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/api/trip-photos/{trip}', name: 'api_trip_photos_', requirements: ['trip' => '\\d+'])]
 class TripPhotoController extends AbstractController
@@ -25,12 +26,13 @@ class TripPhotoController extends AbstractController
         private readonly ManagerRegistry     $managerRegistry,
         private readonly FileUploaderService $uploaderService,
         private readonly string              $photosDirectory,
+        private readonly TranslatorInterface $translator,
     )
     {
     }
 
     #[Route('', name: 'list', methods: ['GET'])]
-    #[IsGranted('view', subject: 'trip', message: 'Vous ne pouvez pas accéder aux photos de ce voyage.', statusCode: 403)]
+    #[IsGranted('view', subject: 'trip', message: 'trip.access.photos_denied', statusCode: 403)]
     public function list(Trip $trip): JsonResponse
     {
         $photos = $trip->getPhotos()
@@ -42,7 +44,7 @@ class TripPhotoController extends AbstractController
     }
 
     #[Route('/stories', name: 'list_stories', methods: ['GET'])]
-    #[IsGranted('view', subject: 'trip', message: 'Vous ne pouvez pas accéder aux stories de ce voyage.', statusCode: 403)]
+    #[IsGranted('view', subject: 'trip', message: 'trip.access.stories_denied', statusCode: 403)]
     public function listStories(Trip $trip): JsonResponse
     {
         date_default_timezone_set('Europe/Paris');
@@ -56,7 +58,7 @@ class TripPhotoController extends AbstractController
     }
 
     #[Route('/upload', name: 'upload', methods: ['POST'])]
-    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
+    #[IsGranted('edit_elements', subject: 'trip', message: 'trip.access.edit_elements_denied', statusCode: 403)]
     public function upload(
         Request            $request,
         Trip               $trip,
@@ -67,7 +69,7 @@ class TripPhotoController extends AbstractController
     }
 
     #[Route('/upload-story', name: 'upload_story', methods: ['POST'])]
-    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
+    #[IsGranted('edit_elements', subject: 'trip', message: 'trip.access.edit_elements_denied', statusCode: 403)]
     public function uploadStory(
         Request            $request,
         Trip               $trip,
@@ -116,16 +118,16 @@ class TripPhotoController extends AbstractController
 
             return $this->json($this->serializePhoto($photo), Response::HTTP_CREATED);
         } catch (\Exception) {
-            return $this->json(['message' => 'Une erreur est survenue lors de l\'upload de la photo.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('photo.error.upload')], Response::HTTP_BAD_REQUEST);
         }
     }
 
     #[Route('/{photo}/edit', name: 'edit', requirements: ['photo' => '\\d+'], methods: ['POST'])]
-    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
+    #[IsGranted('edit_elements', subject: 'trip', message: 'trip.access.edit_elements_denied', statusCode: 403)]
     public function edit(Trip $trip, TripPhoto $photo, Request $request): JsonResponse
     {
         if ($photo->getTrip() !== $trip) {
-            return $this->json(['message' => 'Cette photo n\'est pas associée à ce voyage.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => $this->translator->trans('photo.not_in_trip')], Response::HTTP_FORBIDDEN);
         }
 
         $data = json_decode($request->getContent(), true);
@@ -138,11 +140,11 @@ class TripPhotoController extends AbstractController
     }
 
     #[Route('/{photo}', name: 'delete', requirements: ['photo' => '\\d+'], methods: ['DELETE'])]
-    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
+    #[IsGranted('edit_elements', subject: 'trip', message: 'trip.access.edit_elements_denied', statusCode: 403)]
     public function delete(Trip $trip, TripPhoto $photo): JsonResponse
     {
         if ($photo->getTrip() !== $trip) {
-            return $this->json(['message' => 'Cette photo n\'est pas associée à ce voyage.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => $this->translator->trans('photo.not_in_trip')], Response::HTTP_FORBIDDEN);
         }
 
         try {
@@ -155,9 +157,9 @@ class TripPhotoController extends AbstractController
             $em->remove($photo);
             $em->flush();
 
-            return $this->json(['message' => 'La photo a bien été supprimée.']);
+            return $this->json(['message' => $this->translator->trans('photo.deleted')]);
         } catch (\Exception) {
-            return $this->json(['message' => 'La suppression de la photo a échoué.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('photo.delete.error')], Response::HTTP_BAD_REQUEST);
         }
     }
 

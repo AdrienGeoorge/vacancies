@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/api/user', name: 'api_user_')]
 class UserController extends AbstractController
@@ -23,12 +24,14 @@ class UserController extends AbstractController
     private ManagerRegistry $managerRegistry;
     private TripService $tripService;
     private FileUploaderService $uploaderService;
+    private TranslatorInterface $translator;
 
-    public function __construct(ManagerRegistry $managerRegistry, TripService $tripService, FileUploaderService $uploaderService)
+    public function __construct(ManagerRegistry $managerRegistry, TripService $tripService, FileUploaderService $uploaderService, TranslatorInterface $translator)
     {
         $this->managerRegistry = $managerRegistry;
         $this->tripService = $tripService;
         $this->uploaderService = $uploaderService;
+        $this->translator = $translator;
     }
 
     #[Route('/visited-countries', name: 'visited_countries', options: ['expose' => true], methods: ['GET'])]
@@ -40,7 +43,7 @@ class UserController extends AbstractController
             $user = $this->managerRegistry->getRepository(User::class)->findOneBy(['username' => $username]);
 
             if (!$user) {
-                return new JsonResponse(['message' => 'Utilisateur introuvable.'], Response::HTTP_NOT_FOUND);
+                return new JsonResponse(['message' => $this->translator->trans('user.not_found')], Response::HTTP_NOT_FOUND);
             }
         } else {
             /** @var User $user */
@@ -80,7 +83,8 @@ class UserController extends AbstractController
                 'username' => $user->getUsername(),
                 'avatar' => $user->getAvatar(),
                 'biography' => $user->getBiography(),
-                'theme' => $user->getTheme()
+                'theme' => $user->getTheme(),
+                'language' => $user->getLanguage(),
             ]
         ], Response::HTTP_CREATED);
     }
@@ -164,15 +168,15 @@ class UserController extends AbstractController
 
         $avatar = $request->files->get('avatar');
         if (!$avatar) {
-            return new JsonResponse(['message' => 'Vous devez ajouter une photo de profil.'], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => $this->translator->trans('user.avatar.required')], Response::HTTP_BAD_REQUEST);
         }
 
         if ($avatar->getSize() > 3 * 1024 * 1024) {
-            return new JsonResponse(['message' => 'La photo de profil doit faire au maximum 3MB.'], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => $this->translator->trans('user.avatar.max_size')], Response::HTTP_BAD_REQUEST);
         }
 
         if (!in_array($avatar->getMimeType(), ['image/png', 'image/jpeg', 'image/gif'])) {
-            return new JsonResponse(['message' => 'La photo de profil doit être au format JPG, GIF ou PNG.'], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => $this->translator->trans('user.avatar.invalid_format')], Response::HTTP_BAD_REQUEST);
         }
 
         /** @var User $user */
@@ -190,19 +194,10 @@ class UserController extends AbstractController
 
             return new JsonResponse([
                 'token' => $token,
-                'user' => [
-                    'id' => $user->getId(),
-                    'email' => $user->getEmail(),
-                    'firstname' => $user->getFirstname(),
-                    'lastname' => $user->getLastname(),
-                    'completeName' => $user->getCompleteName(),
-                    'username' => $user->getUsername(),
-                    'avatar' => $user->getAvatar(),
-                    'biography' => $user->getBiography()
-                ]
+                'user' => $this->serializeUser($user),
             ], Response::HTTP_CREATED);
         } catch (\Exception $e) {
-            return $this->json(['message' => 'Une erreur est survenue lors du changement de la photo de profil.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('user.avatar.error')], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -213,15 +208,15 @@ class UserController extends AbstractController
 
         $banner = $request->files->get('banner');
         if (!$banner) {
-            return new JsonResponse(['message' => 'Vous devez ajouter une bannière.'], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => $this->translator->trans('user.banner.required')], Response::HTTP_BAD_REQUEST);
         }
 
         if ($banner->getSize() > 8 * 1024 * 1024) {
-            return new JsonResponse(['message' => 'La bannière doit faire au maximum 8MB.'], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => $this->translator->trans('user.banner.max_size')], Response::HTTP_BAD_REQUEST);
         }
 
         if (!in_array($banner->getMimeType(), ['image/png', 'image/jpeg', 'image/gif'])) {
-            return new JsonResponse(['message' => 'La bannière doit être au format JPG, GIF ou PNG.'], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => $this->translator->trans('user.banner.invalid_format')], Response::HTTP_BAD_REQUEST);
         }
 
         /** @var User $user */
@@ -239,19 +234,10 @@ class UserController extends AbstractController
 
             return new JsonResponse([
                 'token' => $token,
-                'user' => [
-                    'id' => $user->getId(),
-                    'email' => $user->getEmail(),
-                    'firstname' => $user->getFirstname(),
-                    'lastname' => $user->getLastname(),
-                    'completeName' => $user->getCompleteName(),
-                    'username' => $user->getUsername(),
-                    'avatar' => $user->getAvatar(),
-                    'biography' => $user->getBiography()
-                ]
+                'user' => $this->serializeUser($user),
             ], Response::HTTP_CREATED);
         } catch (\Exception $e) {
-            return $this->json(['message' => 'Une erreur est survenue lors du changement de la bannière.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('user.banner.error')], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -264,7 +250,7 @@ class UserController extends AbstractController
 
         if (!$data['theme'] && !in_array($data['theme'], ['light', 'dark', 'system'])) {
             return new JsonResponse([
-                'message' => 'Une erreur est survenue lors du changement de thème.'
+                'message' => $this->translator->trans('user.theme.error')
             ], Response::HTTP_BAD_REQUEST);
         }
 
@@ -278,17 +264,7 @@ class UserController extends AbstractController
 
         return new JsonResponse([
             'token' => $token,
-            'user' => [
-                'id' => $user->getId(),
-                'email' => $user->getEmail(),
-                'firstname' => $user->getFirstname(),
-                'lastname' => $user->getLastname(),
-                'completeName' => $user->getCompleteName(),
-                'username' => $user->getUsername(),
-                'avatar' => $user->getAvatar(),
-                'biography' => $user->getBiography(),
-                'theme' => $user->getTheme()
-            ]
+            'user' => $this->serializeUser($user),
         ], Response::HTTP_CREATED);
     }
 
@@ -304,7 +280,7 @@ class UserController extends AbstractController
 
         if (!isset($data['firstname']) || !isset($data['lastname']) || !isset($data['email'])) {
             return new JsonResponse([
-                'message' => 'Vous devez remplir les champs obligatoires.'
+                'message' => $this->translator->trans('user.settings.missing_fields')
             ], Response::HTTP_BAD_REQUEST);
         }
 
@@ -312,7 +288,7 @@ class UserController extends AbstractController
 
         if ($userEmail && $userEmail->getId() !== $user->getId()) {
             return new JsonResponse([
-                'message' => 'Cette adresse e-mail est déjà utilisée.'
+                'message' => $this->translator->trans('user.settings.email_taken')
             ], Response::HTTP_BAD_REQUEST);
         }
 
@@ -328,17 +304,7 @@ class UserController extends AbstractController
 
         return new JsonResponse([
             'token' => $token,
-            'user' => [
-                'id' => $user->getId(),
-                'email' => $user->getEmail(),
-                'firstname' => $user->getFirstname(),
-                'lastname' => $user->getLastname(),
-                'completeName' => $user->getCompleteName(),
-                'username' => $user->getUsername(),
-                'avatar' => $user->getAvatar(),
-                'biography' => $user->getBiography(),
-                'theme' => $user->getTheme()
-            ]
+            'user' => $this->serializeUser($user),
         ], Response::HTTP_CREATED);
     }
 
@@ -354,19 +320,19 @@ class UserController extends AbstractController
 
         if (!isset($data['current']) || !isset($data['password']) || !isset($data['passwordRepeat'])) {
             return new JsonResponse([
-                'message' => 'Vous devez remplir les champs obligatoires.'
+                'message' => $this->translator->trans('user.settings.missing_fields')
             ], Response::HTTP_BAD_REQUEST);
         }
 
         if (!$passwordHasher->isPasswordValid($user, $data['current'])) {
             return new JsonResponse([
-                'message' => 'Le mot de passe actuel est incorrect.'
+                'message' => $this->translator->trans('user.settings.current_password_wrong')
             ], Response::HTTP_BAD_REQUEST);
         }
 
         if ($data['password'] !== $data['passwordRepeat']) {
             return new JsonResponse([
-                'message' => 'Les mots de passe ne correspondent pas.'
+                'message' => $this->translator->trans('user.settings.passwords_dont_match')
             ], Response::HTTP_BAD_REQUEST);
         }
 
@@ -379,17 +345,7 @@ class UserController extends AbstractController
 
         return new JsonResponse([
             'token' => $token,
-            'user' => [
-                'id' => $user->getId(),
-                'email' => $user->getEmail(),
-                'firstname' => $user->getFirstname(),
-                'lastname' => $user->getLastname(),
-                'completeName' => $user->getCompleteName(),
-                'username' => $user->getUsername(),
-                'avatar' => $user->getAvatar(),
-                'biography' => $user->getBiography(),
-                'theme' => $user->getTheme()
-            ]
+            'user' => $this->serializeUser($user),
         ], Response::HTTP_CREATED);
     }
 
@@ -412,19 +368,10 @@ class UserController extends AbstractController
 
         return new JsonResponse([
             'token' => $token,
-            'user' => [
-                'id' => $user->getId(),
-                'email' => $user->getEmail(),
-                'firstname' => $user->getFirstname(),
-                'lastname' => $user->getLastname(),
-                'completeName' => $user->getCompleteName(),
-                'username' => $user->getUsername(),
-                'avatar' => $user->getAvatar(),
-                'biography' => $user->getBiography(),
-                'theme' => $user->getTheme(),
+            'user' => array_merge($this->serializeUser($user), [
                 'receiveReminderEmails' => $user->isReceiveReminderEmails(),
                 'receiveSummaryEmails' => $user->isReceiveSummaryEmails(),
-            ]
+            ]),
         ], Response::HTTP_CREATED);
     }
 
@@ -447,17 +394,7 @@ class UserController extends AbstractController
 
         return new JsonResponse([
             'token' => $token,
-            'user' => [
-                'id' => $user->getId(),
-                'email' => $user->getEmail(),
-                'firstname' => $user->getFirstname(),
-                'lastname' => $user->getLastname(),
-                'completeName' => $user->getCompleteName(),
-                'username' => $user->getUsername(),
-                'avatar' => $user->getAvatar(),
-                'biography' => $user->getBiography(),
-                'theme' => $user->getTheme()
-            ]
+            'user' => $this->serializeUser($user),
         ]);
     }
 
@@ -474,6 +411,36 @@ class UserController extends AbstractController
         $this->managerRegistry->getManager()->flush();
 
         return new JsonResponse([]);
+    }
+
+    #[Route('/settings/language', name: 'update_language', methods: ['POST'])]
+    public function updateLanguage(Request $request, JWTTokenManagerInterface $jwtManager): JsonResponse
+    {
+        if (!$this->getUser()) return new JsonResponse([], Response::HTTP_UNAUTHORIZED);
+
+        $data = json_decode($request->getContent(), true);
+        $language = $data['language'] ?? null;
+
+        if (!$language || !in_array($language, ['fr', 'en'], true)) {
+            return new JsonResponse([
+                'message' => $this->translator->trans('user.language.invalid')
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        /** @var User $user */
+        $user = $this->getUser();
+        $user->setLanguage($language);
+
+        $this->managerRegistry->getManager()->persist($user);
+        $this->managerRegistry->getManager()->flush();
+
+        $token = $jwtManager->create($user);
+
+        return new JsonResponse([
+            'token' => $token,
+            'user' => $this->serializeUser($user),
+            'message' => $this->translator->trans('user.language.updated'),
+        ]);
     }
 
     #[Route('/stats', name: 'stats', methods: ['GET'])]
@@ -496,15 +463,17 @@ class UserController extends AbstractController
         $longestTrip = null;
         $shortestTrip = null;
 
-        $tripSummary = function (Trip $trip, float|int $value): array {
+        $and = $this->translator->trans('stats.destinations.and');
+
+        $tripSummary = function (Trip $trip, float|int $value) use ($and): array {
             $names = array_values(array_filter(
                 $trip->getDestinations()->map(fn($d) => $d->getCountry()?->getName() ?? '')->toArray()
             ));
 
             if (count($names) === 0) $label = $trip->getName();
             elseif (count($names) === 1) $label = $names[0];
-            elseif (count($names) === 2) $label = $names[0] . ' et ' . $names[1];
-            else $label = implode(', ', array_slice($names, 0, -1)) . ' et ' . end($names);
+            elseif (count($names) === 2) $label = $names[0] . $and . $names[1];
+            else $label = implode(', ', array_slice($names, 0, -1)) . $and . end($names);
 
             return [
                 'id' => $trip->getId(),
@@ -547,7 +516,6 @@ class UserController extends AbstractController
                 $monthCounts[$month]++;
             }
 
-            // Voyage le plus / moins cher (coût par voyageur)
             if ($costPerTraveler > 0) {
                 if ($mostExpensiveTrip === null || $costPerTraveler > $mostExpensiveTrip['total']) {
                     $mostExpensiveTrip = $tripSummary($trip, $costPerTraveler);
@@ -557,7 +525,6 @@ class UserController extends AbstractController
                 }
             }
 
-            // Voyage le plus long / plus court
             if ($days > 0) {
                 if ($longestTrip === null || $days > $longestTrip['total']) {
                     $longestTrip = $tripSummary($trip, $days);
@@ -571,29 +538,33 @@ class UserController extends AbstractController
         $nbTrips = count($passedTrips);
         ksort($byYear);
 
-        // Mois préféré (le plus de départs)
         arsort($monthCounts);
         $preferredMonthNum = array_key_first($monthCounts);
-        $monthLabels = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
         $preferredMonth = $monthCounts[$preferredMonthNum] > 0
-            ? ['month' => $preferredMonthNum, 'label' => $monthLabels[$preferredMonthNum], 'count' => $monthCounts[$preferredMonthNum]]
+            ? [
+                'month' => $preferredMonthNum,
+                'label' => $this->translator->trans('stats.month.' . $preferredMonthNum),
+                'count' => $monthCounts[$preferredMonthNum],
+            ]
             : null;
 
-        // Saison préférée
         $seasonMap = [
-            'Hiver' => [12, 1, 2],
-            'Printemps' => [3, 4, 5],
-            'Été' => [6, 7, 8],
-            'Automne' => [9, 10, 11],
+            'winter' => [12, 1, 2],
+            'spring' => [3, 4, 5],
+            'summer' => [6, 7, 8],
+            'autumn' => [9, 10, 11],
         ];
         $seasonCounts = [];
         foreach ($seasonMap as $season => $months) {
             $seasonCounts[$season] = array_sum(array_map(fn($m) => $monthCounts[$m], $months));
         }
         arsort($seasonCounts);
-        $preferredSeasonName = array_key_first($seasonCounts);
-        $preferredSeason = $seasonCounts[$preferredSeasonName] > 0
-            ? ['season' => $preferredSeasonName, 'count' => $seasonCounts[$preferredSeasonName]]
+        $preferredSeasonKey = array_key_first($seasonCounts);
+        $preferredSeason = $seasonCounts[$preferredSeasonKey] > 0
+            ? [
+                'season' => $this->translator->trans('stats.season.' . $preferredSeasonKey),
+                'count' => $seasonCounts[$preferredSeasonKey],
+            ]
             : null;
 
         return $this->json([
@@ -611,5 +582,21 @@ class UserController extends AbstractController
             'preferredMonth' => $preferredMonth,
             'preferredSeason' => $preferredSeason,
         ]);
+    }
+
+    private function serializeUser(User $user): array
+    {
+        return [
+            'id' => $user->getId(),
+            'email' => $user->getEmail(),
+            'firstname' => $user->getFirstname(),
+            'lastname' => $user->getLastname(),
+            'completeName' => $user->getCompleteName(),
+            'username' => $user->getUsername(),
+            'avatar' => $user->getAvatar(),
+            'biography' => $user->getBiography(),
+            'theme' => $user->getTheme(),
+            'language' => $user->getLanguage(),
+        ];
     }
 }

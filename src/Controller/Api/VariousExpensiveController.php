@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/api/various-expensive/{trip}', name: 'api_various_expensive_', requirements: ['trip' => '\d+'])]
 class VariousExpensiveController extends AbstractController
@@ -27,7 +28,8 @@ class VariousExpensiveController extends AbstractController
         readonly TripService              $tripService,
         readonly DTOService               $dtoService,
         readonly CurrencyConverterService $converterService,
-        readonly BudgetAlertService       $budgetAlertService
+        readonly BudgetAlertService       $budgetAlertService,
+        readonly TranslatorInterface      $translator
     )
     {
     }
@@ -42,11 +44,11 @@ class VariousExpensiveController extends AbstractController
     }
 
     #[Route('/get/{expensive}/form-data', name: 'getFormData', requirements: ['expensive' => '\d+'], methods: ['GET'])]
-    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
+    #[IsGranted('edit_elements', subject: 'trip', message: 'trip.access.edit_elements_denied', statusCode: 403)]
     public function get(?Trip $trip = null, ?VariousExpensive $expensive = null): JsonResponse
     {
         if (!$expensive) {
-            return $this->json(['message' => 'Edition impossible : dépense non trouvée.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => $this->translator->trans('expense.edit.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         return $this->json([
@@ -63,7 +65,7 @@ class VariousExpensiveController extends AbstractController
      */
     #[Route('/create', name: 'create', methods: ['POST'])]
     #[Route('/edit/{expensive}', name: 'edit', requirements: ['expensive' => '\d+'], methods: ['POST'])]
-    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
+    #[IsGranted('edit_elements', subject: 'trip', message: 'trip.access.edit_elements_denied', statusCode: 403)]
     public function create(
         Request           $request,
         ?Trip             $trip = null,
@@ -102,17 +104,17 @@ class VariousExpensiveController extends AbstractController
 
             if ($request->get('_route') === 'api_various_expensive_edit') {
                 return $this->json([
-                    'message' => 'Les informations de ta dépense ont bien été modifiées.',
+                    'message' => $this->translator->trans('expense.updated'),
                     'warning' => $toastMessage
                 ]);
             }
 
             return $this->json([
-                'message' => 'Cette dépense a bien été ajoutée à votre voyage.',
+                'message' => $this->translator->trans('expense.created'),
                 'warning' => $toastMessage
             ]);
         } catch (\Exception $e) {
-            return $this->json(['message' => 'Une erreur est survenue lors de la création de cette dépense.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('expense.error.create')], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -121,13 +123,13 @@ class VariousExpensiveController extends AbstractController
     public function delete(?Trip $trip = null, ?VariousExpensive $expensive = null): JsonResponse
     {
         if (!$expensive) {
-            return $this->json(['message' => 'Suppression impossible : dépense non trouvée.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => $this->translator->trans('expense.delete.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         $this->managerRegistry->getManager()->remove($expensive);
         $this->managerRegistry->getManager()->flush();
 
-        return $this->json(['message' => 'Votre dépense a bien été dissociée de ce voyage et supprimée.']);
+        return $this->json(['message' => $this->translator->trans('expense.deleted')]);
     }
 
     #[Route('/update-reserved/{expensive}', name: 'update_reserved', requirements: ['expensive' => '\d+'], methods: ['PUT'])]
@@ -135,7 +137,7 @@ class VariousExpensiveController extends AbstractController
     public function updateReserved(Request $request, ?Trip $trip = null, ?VariousExpensive $expensive = null): JsonResponse
     {
         if (!$expensive) {
-            return $this->json(['message' => 'Modification impossible : dépense non trouvée.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => $this->translator->trans('expense.update.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         $data = json_decode($request->getContent(), true);
@@ -151,6 +153,6 @@ class VariousExpensiveController extends AbstractController
         $this->managerRegistry->getManager()->persist($expensive);
         $this->managerRegistry->getManager()->flush();
 
-        return $this->json(['message' => 'Dépense modifiée avec succès.']);
+        return $this->json(['message' => $this->translator->trans('expense.toggle_reserved')]);
     }
 }

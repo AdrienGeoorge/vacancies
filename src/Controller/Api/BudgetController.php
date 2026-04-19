@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/api/trips/{trip}/budget', name: 'api_budget_', requirements: ['trip' => '\d+'])]
 class BudgetController extends AbstractController
@@ -24,13 +25,14 @@ class BudgetController extends AbstractController
     ];
 
     public function __construct(
-        private readonly ManagerRegistry $managerRegistry,
+        private readonly ManagerRegistry     $managerRegistry,
+        private readonly TranslatorInterface $translator,
     )
     {
     }
 
     #[Route('', name: 'get', methods: ['GET'])]
-    #[IsGranted('view', subject: 'trip', message: 'Vous ne pouvez pas consulter ce voyage.', statusCode: 403)]
+    #[IsGranted('view', subject: 'trip', message: 'trip.access.view_denied', statusCode: 403)]
     public function get(?Trip $trip = null): JsonResponse
     {
         $budgets = $this->managerRegistry->getRepository(TripBudget::class)->findBy(['trip' => $trip]);
@@ -44,13 +46,13 @@ class BudgetController extends AbstractController
     }
 
     #[Route('', name: 'save', methods: ['POST'])]
-    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
+    #[IsGranted('edit_elements', subject: 'trip', message: 'trip.access.edit_elements_denied', statusCode: 403)]
     public function save(Request $request, ?Trip $trip = null): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
         if (!is_array($data)) {
-            return $this->json(['message' => 'Données invalides.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('budget.invalid_data')], Response::HTTP_BAD_REQUEST);
         }
 
         foreach ($data as $category => $amount) {

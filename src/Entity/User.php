@@ -112,6 +112,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Ignore]
     private Collection $wishlistItems;
 
+    #[ORM\Column(length: 2, nullable: true)]
+    private ?string $language = null;
+
     public function __construct()
     {
         $this->trips = new ArrayCollection();
@@ -592,6 +595,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $wishlistItem->setUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getLanguage(): ?string
+    {
+        return $this->language;
+    }
+
+    public function setLanguage(?string $language): static
+    {
+        $this->language = $language;
 
         return $this;
     }

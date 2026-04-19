@@ -15,7 +15,7 @@ class TransportRequestDTO
         $this->originalCurrency = $currency;
     }
 
-    #[Assert\NotBlank(message: 'Vous devez choisir un type de transport.')]
+    #[Assert\NotBlank(message: 'transport.type.not_blank')]
     public ?TransportType $type;
 
     #[NoHtml]
@@ -39,8 +39,8 @@ class TransportRequestDTO
     #[Assert\When(
         expression: 'this.isPublicTransport()',
         constraints: [
-            new Assert\NotBlank(message: 'Vous devez indiquer la durée de votre abonnement.'),
-            new Assert\GreaterThan(0, message: "Votre abonnement doit avoir une durée minimale de 1 jour.")
+            new Assert\NotBlank(message: 'transport.subscription.not_blank'),
+            new Assert\GreaterThan(0, message: 'transport.subscription.min')
         ],
     )]
     public ?int $subscriptionDuration = null;
@@ -48,8 +48,8 @@ class TransportRequestDTO
     #[Assert\When(
         expression: '!this.isCar()',
         constraints: [
-            new Assert\NotBlank(message: 'Vous devez indiquer le prix de votre moyen de transport.'),
-            new Assert\GreaterThan(0, message: 'Le prix doit être de minimum 1€.')
+            new Assert\NotBlank(message: 'transport.price.not_blank'),
+            new Assert\GreaterThan(0, message: 'transport.price.min')
         ],
     )]
     public ?float $originalPrice = 0;
@@ -57,7 +57,7 @@ class TransportRequestDTO
     #[Assert\When(
         expression: '!this.isCar()',
         constraints: [
-            new Assert\NotBlank(message: 'Vous devez choisir une devise.'),
+            new Assert\NotBlank(message: 'transport.currency.not_blank'),
         ],
     )]
     public ?Currency $originalCurrency = null;
@@ -69,8 +69,8 @@ class TransportRequestDTO
     #[Assert\When(
         expression: 'this.isCar()',
         constraints: [
-            new Assert\NotBlank(message: "Vous devez indiquer l'estimation du prix du péage aller/retour"),
-            new Assert\GreaterThanOrEqual(0, message: "L'estimation du péage doit être de minimum 0€.")
+            new Assert\NotBlank(message: 'transport.toll.not_blank'),
+            new Assert\GreaterThanOrEqual(0, message: 'transport.toll.min')
         ],
     )]
     public ?float $estimatedToll = null;
@@ -78,8 +78,8 @@ class TransportRequestDTO
     #[Assert\When(
         expression: 'this.isCar()',
         constraints: [
-            new Assert\NotBlank(message: "Vous devez indiquer l'estimation du prix du carburant aller/retour"),
-            new Assert\GreaterThanOrEqual(0, message: "L'estimation du prix du carburant doit être de minimum 0€.")
+            new Assert\NotBlank(message: 'transport.gasoline.not_blank'),
+            new Assert\GreaterThanOrEqual(0, message: 'transport.gasoline.min')
         ],
     )]
     public ?float $estimatedGasoline = null;

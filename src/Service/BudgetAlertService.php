@@ -6,15 +6,16 @@ use App\Entity\Trip;
 use App\Repository\TripBudgetRepository;
 use App\Repository\UserNotificationsRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class BudgetAlertService
 {
-    private const LABELS = [
-        'accommodations' => 'les hébergements',
-        'transports' => 'les transports',
-        'activities' => 'les activités',
-        'various-expensive' => 'les dépenses diverses',
-        'on-site' => 'les dépenses sur place',
+    private const CATEGORY_KEYS = [
+        'accommodations'   => 'budget.category.accommodations',
+        'transports'       => 'budget.category.transports',
+        'activities'       => 'budget.category.activities',
+        'various-expensive' => 'budget.category.various_expensive',
+        'on-site'          => 'budget.category.on_site',
     ];
 
     public function __construct(
@@ -22,6 +23,7 @@ class BudgetAlertService
         private readonly TripService                 $tripService,
         private readonly TripBudgetRepository        $budgetRepository,
         private readonly UserNotificationsRepository $notificationsRepository,
+        private readonly TranslatorInterface         $translator,
     )
     {
     }
@@ -65,17 +67,18 @@ class BudgetAlertService
         $oldPercent = ($oldTotal / $budgetAmount) * 100;
         $newPercent = ($newTotal / $budgetAmount) * 100;
 
-        $label = self::LABELS[$category] ?? $category;
+        $labelKey = self::CATEGORY_KEYS[$category] ?? $category;
+        $label = $this->translator->trans($labelKey);
         $messageNotif = null;
         $messageToast = null;
 
         if ($oldPercent < 100 && $newPercent >= 100) {
             $actualPct = (int)round($newPercent);
-            $messageNotif = "Le budget prévisionnel pour {$label} du voyage <span class='font-bold underline'>{$trip->getName()}</span> a été dépassé (<b>{$actualPct}%</b>)";
-            $messageToast = "Le budget prévisionnel a été dépassé ({$actualPct}%)";
+            $messageNotif = $this->translator->trans('budget.alert.exceeded', ['%label%' => $label, '%trip%' => $trip->getName(), '%pct%' => $actualPct]);
+            $messageToast = $this->translator->trans('budget.alert.exceeded_toast', ['%pct%' => $actualPct]);
         } elseif ($oldPercent < 80 && $newPercent >= 80) {
-            $messageNotif = "Le budget prévisionnel pour {$label} du voyage <span class='font-bold underline'>{$trip->getName()}</span> sera bientôt atteint (80%)";
-            $messageToast = "Le budget prévisionnel sera bientôt atteint (80%)";
+            $messageNotif = $this->translator->trans('budget.alert.warning', ['%label%' => $label, '%trip%' => $trip->getName()]);
+            $messageToast = $this->translator->trans('budget.alert.warning_toast');
         }
 
         if ($messageNotif === null) {

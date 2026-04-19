@@ -12,13 +12,15 @@ use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class AccommodationService
 {
     public function __construct(
-        readonly ManagerRegistry    $managerRegistry,
-        readonly ValidatorInterface $validator,
+        readonly ManagerRegistry         $managerRegistry,
+        readonly ValidatorInterface      $validator,
         readonly CurrencyConverterService $converterService,
+        readonly TranslatorInterface     $translator,
     )
     {
     }
@@ -34,7 +36,7 @@ class AccommodationService
                 try {
                     $dto->{$key} = $value ? new \DateTime($value) : null;
                 } catch (\Exception) {
-                    $errors->add(new ConstraintViolation('La date est invalide.', '', [], null, $key, null));
+                    $errors->add(new ConstraintViolation($this->translator->trans('dto.date.invalid'), '', [], null, $key, null));
                 }
             } elseif ($key === 'additionalExpensive') {
                 foreach ($value as $additionalExpensive) {

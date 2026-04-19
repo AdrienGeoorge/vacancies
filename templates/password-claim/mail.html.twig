@@ -134,7 +134,7 @@
                                 <td height="15"></td>
                             </tr>
                             <tr>
-                                <td class="mail-head-tagline">Prévois tes voyages</td>
+                                <td class="mail-head-tagline">{{ 'mail.tagline'|trans }}</td>
                             </tr>
                             </tbody>
                         </table>
@@ -149,14 +149,14 @@
                                     <table style="width: 100%;" cellpadding="0" cellspacing="0">
                                         <tbody>
                                         <tr>
-                                            <td class="mail-hello">Bonjour &#128075;</td>
+                                            <td class="mail-hello">{{ 'mail.password.title'|trans }}</td>
                                         </tr>
                                         <tr>
                                             <td height="20"></td>
                                         </tr>
                                         <tr>
                                             <td class="mail-text">
-                                                Vous avez demandé la réinitialisation de votre mot de passe.
+                                                {{ 'mail.password.intro'|trans }}
                                             </td>
                                         </tr>
                                         <tr>
@@ -164,7 +164,7 @@
                                         </tr>
                                         <tr>
                                             <td class="mail-text">
-                                                Si vous êtes à l'origine de cette action, cliquez sur le bouton ci-dessous pour continuer.
+                                                {{ 'mail.password.instruction'|trans }}
                                             </td>
                                         </tr>
                                         <tr>
@@ -172,9 +172,7 @@
                                         </tr>
                                         <tr>
                                             <td class="mail-warning">
-                                                Vous avez 15 minutes à compter de la réception de ce mail pour compléter la
-                                                procédure de réinitialisation. Au-delà du temps imparti, vous devrez refaire une
-                                                demande.
+                                                {{ 'mail.password.warning'|trans }}
                                             </td>
                                         </tr>
                                         <tr>
@@ -183,7 +181,7 @@
                                         <tr>
                                             <td class="mail-button-container">
                                                 <a href="{{ url }}" class="mail-button"
-                                                   target="_blank">Réinitialiser mon mot de passe</a>
+                                                   target="_blank">{{ 'mail.password.cta'|trans }}</a>
                                             </td>
                                         </tr>
                                         <tr>
@@ -199,8 +197,8 @@
                                         </tr>
                                         <tr>
                                             <td class="mail-signature">
-                                                Bon voyage ! &#127758;<br>
-                                                L'équipe <b>{{ app_name }}</b>
+                                                {{ 'mail.signature'|trans }}<br>
+                                                {{ 'mail.team'|trans }} <b>{{ app_name }}</b>
                                             </td>
                                         </tr>
                                         </tbody>
@@ -226,8 +224,7 @@
                             </tr>
                             <tr>
                                 <td class="mail-footer-text">
-                                    Si vous n'êtes pas familier avec {{ app_name }} ou la personne
-                                    qui vous a invité, veuillez ignorer ce message.
+                                    {{ 'mail.footer.unfamiliar'|trans({'%app_name%': app_name})|raw }}
                                 </td>
                             </tr>
                             </tbody>

@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/api/wishlist', name: 'api_wishlist_')]
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
@@ -23,6 +24,7 @@ class WishlistController extends AbstractController
     public function __construct(
         private readonly ManagerRegistry     $managerRegistry,
         private readonly FileUploaderService $uploaderService,
+        private readonly TranslatorInterface $translator,
     )
     {
     }
@@ -31,7 +33,7 @@ class WishlistController extends AbstractController
     public function get(WishlistItem $item): JsonResponse
     {
         if ($item->getUser() !== $this->getUser()) {
-            return $this->json(['message' => 'Vous ne pouvez pas voir la w d\'un autre utilisateur.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => $this->translator->trans('wishlist.forbidden')], Response::HTTP_FORBIDDEN);
         }
 
         return $this->json($this->serialize($item));
@@ -52,7 +54,7 @@ class WishlistController extends AbstractController
         $name = $request->request->get('name');
 
         if (!$name || trim($name) === '') {
-            return $this->json(['message' => 'Le nom est obligatoire.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('wishlist.name_required')], Response::HTTP_BAD_REQUEST);
         }
 
         try {
@@ -77,7 +79,7 @@ class WishlistController extends AbstractController
 
             return $this->json($this->serialize($item), Response::HTTP_CREATED);
         } catch (\Exception) {
-            return $this->json(['message' => 'Une erreur est survenue.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('wishlist.error')], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -85,13 +87,13 @@ class WishlistController extends AbstractController
     public function edit(Request $request, WishlistItem $item): JsonResponse
     {
         if ($item->getUser() !== $this->getUser()) {
-            return $this->json(['message' => 'Accès refusé.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => $this->translator->trans('wishlist.forbidden_action')], Response::HTTP_FORBIDDEN);
         }
 
         $name = $request->request->get('name');
 
         if (!$name || trim($name) === '') {
-            return $this->json(['message' => 'Le nom est obligatoire.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('wishlist.name_required')], Response::HTTP_BAD_REQUEST);
         }
 
         try {
@@ -128,7 +130,7 @@ class WishlistController extends AbstractController
 
             return $this->json($this->serialize($item));
         } catch (\Exception) {
-            return $this->json(['message' => 'Une erreur est survenue.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('wishlist.error')], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -136,7 +138,7 @@ class WishlistController extends AbstractController
     public function convertToTrip(WishlistItem $item, Trip $trip): JsonResponse
     {
         if ($item->getUser() !== $this->getUser() || $trip->getTraveler() !== $this->getUser()) {
-            return $this->json(['message' => 'Accès refusé.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => $this->translator->trans('wishlist.forbidden_action')], Response::HTTP_FORBIDDEN);
         }
 
         try {
@@ -170,7 +172,7 @@ class WishlistController extends AbstractController
 
             return $this->json(['transferred' => $transferred]);
         } catch (\Exception) {
-            return $this->json(['message' => 'Une erreur est survenue.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('wishlist.error')], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -178,7 +180,7 @@ class WishlistController extends AbstractController
     public function delete(WishlistItem $item): JsonResponse
     {
         if ($item->getUser() !== $this->getUser()) {
-            return $this->json(['message' => 'Accès refusé.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => $this->translator->trans('wishlist.forbidden_action')], Response::HTTP_FORBIDDEN);
         }
 
         try {
@@ -192,9 +194,9 @@ class WishlistController extends AbstractController
             $this->managerRegistry->getManager()->remove($item);
             $this->managerRegistry->getManager()->flush();
 
-            return $this->json(['message' => 'Destination supprimée de la wishlist.']);
+            return $this->json(['message' => $this->translator->trans('wishlist.deleted')]);
         } catch (\Exception) {
-            return $this->json(['message' => 'Une erreur est survenue.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('wishlist.error')], Response::HTTP_BAD_REQUEST);
         }
     }
 

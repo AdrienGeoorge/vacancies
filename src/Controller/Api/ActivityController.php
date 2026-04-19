@@ -20,6 +20,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/api/activities/{trip}', name: 'api_activities_', requirements: ['trip' => '\d+'])]
 class ActivityController extends AbstractController
@@ -29,7 +30,8 @@ class ActivityController extends AbstractController
         readonly TripService              $tripService,
         readonly DTOService               $dtoService,
         readonly CurrencyConverterService $converterService,
-        readonly BudgetAlertService       $budgetAlertService
+        readonly BudgetAlertService       $budgetAlertService,
+        readonly TranslatorInterface      $translator
     )
     {
     }
@@ -47,11 +49,11 @@ class ActivityController extends AbstractController
     }
 
     #[Route('/get/{activity}/form-data', name: 'getFormData', requirements: ['activity' => '\d+'], methods: ['GET'])]
-    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
+    #[IsGranted('edit_elements', subject: 'trip', message: 'trip.access.edit_elements_denied', statusCode: 403)]
     public function get(?Trip $trip = null, ?Activity $activity = null): JsonResponse
     {
         if (!$activity) {
-            return $this->json(['message' => 'Edition impossible : activité non trouvée.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => $this->translator->trans('activity.edit.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         return $this->json([
@@ -70,7 +72,7 @@ class ActivityController extends AbstractController
      */
     #[Route('/create', name: 'create', methods: ['POST'])]
     #[Route('/edit/{activity}', name: 'edit', requirements: ['activity' => '\d+'], methods: ['POST'])]
-    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
+    #[IsGranted('edit_elements', subject: 'trip', message: 'trip.access.edit_elements_denied', statusCode: 403)]
     public function create(
         Request   $request,
         ?Trip     $trip = null,
@@ -132,20 +134,20 @@ class ActivityController extends AbstractController
 
                 if ($request->get('_route') === 'api_activities_edit') {
                     return $this->json([
-                        'message' => 'Les informations de ton activité ont bien été modifiées.',
+                        'message' => $this->translator->trans('activity.updated'),
                         'warning' => $toastMessage
                     ]);
                 }
 
                 return $this->json([
-                    'message' => 'Cette activité a bien été ajoutée à votre voyage.',
+                    'message' => $this->translator->trans('activity.created'),
                     'warning' => $toastMessage
                 ]);
             } else {
                 return $this->json(['message' => $errorOnCompare], Response::HTTP_BAD_REQUEST);
             }
         } catch (\Exception $e) {
-            return $this->json(['message' => 'Une erreur est survenue lors de la création de cette activité.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('activity.error.create')], Response::HTTP_BAD_REQUEST);
         }
     }
 
@@ -154,7 +156,7 @@ class ActivityController extends AbstractController
     public function delete(?Trip $trip = null, ?Activity $activity = null): JsonResponse
     {
         if (!$activity) {
-            return $this->json(['message' => 'Suppression impossible : activité non trouvée.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => $this->translator->trans('activity.delete.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         $event = $this->managerRegistry->getRepository(PlanningEvent::class)->findOneBy(['activity' => $activity]);
@@ -163,7 +165,7 @@ class ActivityController extends AbstractController
         $this->managerRegistry->getManager()->remove($activity);
         $this->managerRegistry->getManager()->flush();
 
-        return $this->json(['message' => 'Votre activité a bien été dissociée de ce voyage et supprimée.']);
+        return $this->json(['message' => $this->translator->trans('activity.deleted')]);
     }
 
     #[Route('/update-reserved/{activity}', name: 'update_reserved', requirements: ['activity' => '\d+'], methods: ['PUT'])]
@@ -171,7 +173,7 @@ class ActivityController extends AbstractController
     public function updateReserved(Request $request, ?Trip $trip = null, ?Activity $activity = null): JsonResponse
     {
         if (!$activity) {
-            return $this->json(['message' => 'Modification impossible : activité non trouvée.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => $this->translator->trans('activity.update.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         $data = json_decode($request->getContent(), true);
@@ -187,6 +189,6 @@ class ActivityController extends AbstractController
         $this->managerRegistry->getManager()->persist($activity);
         $this->managerRegistry->getManager()->flush();
 
-        return $this->json(['message' => 'Activité modifiée avec succès.']);
+        return $this->json(['message' => $this->translator->trans('activity.toggle_reserved')]);
     }
 }

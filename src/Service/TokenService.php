@@ -8,6 +8,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class TokenService
 {
@@ -19,10 +20,12 @@ class TokenService
     protected string $domain;
     protected string $fromMail;
     protected string $appName;
+    protected TranslatorInterface $translator;
 
     public function __construct(
         ManagerRegistry $managerRegistry,
         MailerInterface $mailer,
+        TranslatorInterface $translator,
         string          $appSecret,
         string          $domain,
         string          $fromMail,
@@ -33,6 +36,7 @@ class TokenService
         $this->appSecret = $appSecret;
         $this->managerRegistry = $managerRegistry;
         $this->mailer = $mailer;
+        $this->translator = $translator;
         $this->domain = $domain;
         $this->fromMail = $fromMail;
         $this->appName = $appName;
@@ -65,9 +69,13 @@ class TokenService
         $email = (new TemplatedEmail())
             ->from($this->fromMail)
             ->to($user->getEmail())
-            ->subject($this->appName . ' : réinitialisation de votre mot de passe')
+            ->subject($this->appName . $this->translator->trans('mail.password.subject'))
             ->htmlTemplate('password-claim/mail.html.twig')
-            ->context(['url' => $this->domain . '/password/reset/' . $hash]);
+            ->context([
+                'url' => $this->domain . '/password/reset/' . $hash,
+                'domain' => $this->domain,
+                'app_name' => $this->appName,
+            ]);
 
         try {
             $this->mailer->send($email);

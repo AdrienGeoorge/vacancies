@@ -8,28 +8,28 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 class AccommodationRequestDTO
 {
-    #[Assert\NotBlank(message: 'Le nom de l\'hébergement est obligatoire.')]
+    #[Assert\NotBlank(message: 'accommodation.name.not_blank')]
     #[Assert\Length(
         min: 5,
         max: 255,
-        minMessage: 'Le nom de l\'hébergement doit faire au minimum 5 caractères.',
-        maxMessage: 'Le nom de l\'hébergement doit faire au maximum 255 caractères.'
+        minMessage: 'accommodation.name.min_length',
+        maxMessage: 'accommodation.name.max_length'
     )]
     #[NoHtml]
     public string $name;
 
-    #[Assert\NotBlank(message: 'L\'adresse postale est obligatoire.')]
+    #[Assert\NotBlank(message: 'accommodation.address.not_blank')]
     #[NoHtml]
     public string $address;
 
     #[NoHtml]
     public ?string $zipCode;
 
-    #[Assert\NotBlank(message: 'La ville est obligatoire.')]
+    #[Assert\NotBlank(message: 'accommodation.city.not_blank')]
     #[NoHtml]
     public string $city;
 
-    #[Assert\NotBlank(message: 'Le pays est obligatoire.')]
+    #[Assert\NotBlank(message: 'accommodation.country.not_blank')]
     #[NoHtml]
     public string $country;
 
@@ -42,11 +42,11 @@ class AccommodationRequestDTO
     #[NoHtml]
     public ?string $description;
 
-    #[Assert\NotBlank(message: 'Le prix de l\'hébergement est obligatoire.')]
-    #[Assert\GreaterThan(0, message: 'Le prix doit être de minimum 1€.')]
+    #[Assert\NotBlank(message: 'accommodation.price.not_blank')]
+    #[Assert\GreaterThan(0, message: 'accommodation.price.min')]
     public float $originalPrice;
 
-    #[Assert\NotBlank(message: 'Vous devez choisir une devise.')]
+    #[Assert\NotBlank(message: 'accommodation.currency.not_blank')]
     public ?Currency $originalCurrency = null;
 
     public ?float $originalDeposit;

@@ -1,0 +1,86 @@
+# ===== TRIP =====
+trip.name.not_blank: "Trip name is required."
+trip.name.min_length: "Trip name must be at least 5 characters."
+trip.name.max_length: "Trip name must be at most 255 characters."
+trip.destinations.not_blank: "You must select at least one destination."
+trip.destinations.type: "Destinations must be an array."
+trip.destinations.min_count: "You must select at least one destination."
+
+# ===== ACCOMMODATION =====
+accommodation.name.not_blank: "Accommodation name is required."
+accommodation.name.min_length: "Accommodation name must be at least 5 characters."
+accommodation.name.max_length: "Accommodation name must be at most 255 characters."
+accommodation.address.not_blank: "Address is required."
+accommodation.city.not_blank: "City is required."
+accommodation.country.not_blank: "Country is required."
+accommodation.price.not_blank: "Accommodation price is required."
+accommodation.price.min: "Price must be at least €1."
+accommodation.currency.not_blank: "Please select a currency."
+accommodation.additional.name.not_blank: "Additional expense type is required."
+accommodation.additional.price.not_blank: "Additional expense price is required."
+accommodation.additional.currency.not_blank: "Please select a currency for your additional expense."
+
+# ===== ACTIVITY =====
+activity.type.not_blank: "Please select an activity type."
+activity.name.not_blank: "Activity name is required."
+activity.name.min_length: "Activity name must be at least 5 characters."
+activity.name.max_length: "Activity name must be at most 255 characters."
+activity.price.not_blank: "Activity price is required."
+activity.price.min: "Price must be at least €1."
+activity.currency.not_blank: "Please select a currency."
+
+# ===== TRANSPORT =====
+transport.type.not_blank: "Please select a transport type."
+transport.subscription.not_blank: "Please specify your pass duration."
+transport.subscription.min: "Your pass must have a minimum duration of 1 day."
+transport.price.not_blank: "Please specify the price of your transport."
+transport.price.min: "Price must be at least €1."
+transport.currency.not_blank: "Please select a currency."
+transport.toll.not_blank: "Please specify the estimated toll cost (round trip)"
+transport.toll.min: "Estimated toll must be at least €0."
+transport.gasoline.not_blank: "Please specify the estimated fuel cost (round trip)"
+transport.gasoline.min: "Estimated fuel cost must be at least €0."
+
+# ===== EVENT =====
+event.type.not_blank: "Please select an activity type."
+event.title.not_blank: "Event name is required."
+event.title.min_length: "Event name must be at least 5 characters."
+event.title.max_length: "Event name must be at most 255 characters."
+event.start.not_null: "Start date is required."
+event.start.not_blank: "Start date is required."
+
+# ===== EXPENSE =====
+expense.name.not_blank: "Expense name is required."
+expense.name.min_length: "Expense name must be at least 5 characters."
+expense.name.max_length: "Expense name must be at most 255 characters."
+expense.date.not_null: "Date is required."
+expense.date.not_blank: "Date is required."
+expense.price.not_blank: "Expense price is required."
+expense.price.min: "Price must be at least €1."
+expense.currency.not_blank: "Please select a currency."
+expense.payed_by.not_null: "Please select the traveler who made the purchase."
+expense.payed_by.not_blank: "Please select the traveler who made the purchase."
+
+# ===== CONTACT =====
+contact.name.not_blank: "Name is required."
+contact.name.max_length: "Name must not exceed 100 characters."
+contact.email.not_blank: "Email address is required."
+contact.email.invalid: "Email address is invalid."
+contact.category.not_blank: "Category is required."
+contact.category.invalid: "Category is invalid."
+contact.subject.not_blank: "Subject is required."
+contact.subject.max_length: "Subject must not exceed 255 characters."
+contact.message.not_blank: "Message is required."
+contact.message.max_length: "Message must not exceed 5000 characters."
+
+# ===== DOCUMENT =====
+document.name.not_blank: "Document name is required."
+document.file.mime_type: "This file type is not accepted."
+
+# ===== PHOTO =====
+photo.file.not_null: "Image is required."
+photo.file.max_size: "Image must be at most 10 MB."
+photo.file.mime_type: "This file type is not accepted. Only JPEG, PNG or GIF images are allowed."
+
+# ===== VALIDATOR =====
+no_html.message: "HTML tags are not allowed."

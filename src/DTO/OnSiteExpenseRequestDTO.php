@@ -15,29 +15,29 @@ class OnSiteExpenseRequestDTO
         $this->originalCurrency = $currency;
     }
 
-    #[Assert\NotBlank(message: 'Le nom de la dépense est obligatoire.')]
+    #[Assert\NotBlank(message: 'expense.name.not_blank')]
     #[Assert\Length(
         min: 5,
         max: 255,
-        minMessage: 'Le nom de la dépense doit faire au minimum 5 caractères.',
-        maxMessage: 'Le nom de la dépense doit faire au maximum 255 caractères.'
+        minMessage: 'expense.name.min_length',
+        maxMessage: 'expense.name.max_length'
     )]
     #[NoHtml]
     public ?string $name;
 
-    #[Assert\NotNull(message: 'La date doit être renseignée.')]
-    #[Assert\NotBlank(message: 'La date doit être renseignée.')]
+    #[Assert\NotNull(message: 'expense.date.not_null')]
+    #[Assert\NotBlank(message: 'expense.date.not_blank')]
     #[Assert\Type(\DateTime::class)]
     public \DateTime $purchaseDate;
 
-    #[Assert\NotBlank(message: 'Le prix de la dépense est obligatoire.')]
-    #[Assert\GreaterThan(0, message: 'Le prix doit être de minimum 1€.')]
+    #[Assert\NotBlank(message: 'expense.price.not_blank')]
+    #[Assert\GreaterThan(0, message: 'expense.price.min')]
     public ?float $originalPrice;
 
-    #[Assert\NotBlank(message: 'Vous devez choisir une devise.')]
+    #[Assert\NotBlank(message: 'expense.currency.not_blank')]
     public ?Currency $originalCurrency = null;
 
-    #[Assert\NotNull(message: 'Vous devez choisir le voyageur à l\'origine de l\'achat.')]
-    #[Assert\NotBlank(message: 'Vous devez choisir le voyageur à l\'origine de l\'achat.')]
+    #[Assert\NotNull(message: 'expense.payed_by.not_null')]
+    #[Assert\NotBlank(message: 'expense.payed_by.not_blank')]
     public TripTraveler $payedBy;
 }

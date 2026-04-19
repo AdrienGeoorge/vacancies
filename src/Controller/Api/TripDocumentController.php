@@ -21,35 +21,37 @@ use Symfony\Component\Mime\MimeTypes;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/api/trip-documents/{trip}', name: 'api_trip_documents_', requirements: ['trip' => '\\d+'])]
 class TripDocumentController extends AbstractController
 {
     public function __construct(
-        private readonly ManagerRegistry $managerRegistry,
-        private readonly DTOService      $dtoService,
-        private readonly FileUploaderService $uploaderService
+        private readonly ManagerRegistry     $managerRegistry,
+        private readonly DTOService          $dtoService,
+        private readonly FileUploaderService $uploaderService,
+        private readonly TranslatorInterface $translator
     )
     {
     }
 
     #[Route('/show/{document}', name: 'show', requirements: ['document' => '\\d+'], methods: ['GET'])]
-    #[IsGranted('view', subject: 'trip', message: 'Vous ne pouvez pas accéder aux documents de ce voyage.', statusCode: 403)]
+    #[IsGranted('view', subject: 'trip', message: 'trip.access.documents_denied', statusCode: 403)]
     public function showOrDownload(?Trip $trip = null, ?TripDocument $document = null): Response
     {
         if (!$document) {
-            return $this->json(['message' => 'Document non trouvé.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => $this->translator->trans('document.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         if ($document->getTrip() !== $trip) {
-            return $this->json(['message' => 'Ce document n\'est pas associé à ce voyage.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => $this->translator->trans('document.not_in_trip')], Response::HTTP_FORBIDDEN);
         }
 
         $filePath = $document->getFile();
         $fileSystem = new Filesystem();
 
         if (!$fileSystem->exists($filePath)) {
-            return $this->json(['message' => 'Le fichier n\'a pas été trouvé.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => $this->translator->trans('document.file.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         $mimeTypes = new MimeTypes();
@@ -78,18 +80,18 @@ class TripDocumentController extends AbstractController
     public function delete(Trip $trip, TripDocument $document): Response
     {
         if (!$document) {
-            return $this->json(['message' => 'Document non trouvé.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => $this->translator->trans('document.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         if ($document->getTrip() !== $trip) {
-            return $this->json(['message' => 'Ce document n\'est pas associé à ce voyage.'], Response::HTTP_FORBIDDEN);
+            return $this->json(['message' => $this->translator->trans('document.not_in_trip')], Response::HTTP_FORBIDDEN);
         }
 
         $filePath = $document->getFile();
         $fileSystem = new Filesystem();
 
         if (!$fileSystem->exists($filePath)) {
-            return $this->json(['message' => 'Le fichier n\'a pas été trouvé.'], Response::HTTP_NOT_FOUND);
+            return $this->json(['message' => $this->translator->trans('document.file.not_found')], Response::HTTP_NOT_FOUND);
         }
 
         try {
@@ -98,14 +100,14 @@ class TripDocumentController extends AbstractController
             $this->managerRegistry->getManager()->remove($document);
             $this->managerRegistry->getManager()->flush();
 
-            return $this->json(['message' => 'Le document a bien été supprimé.']);
+            return $this->json(['message' => $this->translator->trans('document.deleted')]);
         } catch (\Exception $exception) {
-            return $this->json(['message' => 'La suppression du document a échoué.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('document.delete.error')], Response::HTTP_BAD_REQUEST);
         }
     }
 
     #[Route('/create', name: 'create', methods: ['POST'])]
-    #[IsGranted('edit_elements', subject: 'trip', message: 'Vous ne pouvez pas modifier les éléments de ce voyage.', statusCode: 403)]
+    #[IsGranted('edit_elements', subject: 'trip', message: 'trip.access.edit_elements_denied', statusCode: 403)]
     public function create(
         Request      $request,
         ValidatorInterface $validator,
@@ -141,11 +143,11 @@ class TripDocumentController extends AbstractController
             $this->managerRegistry->getManager()->flush();
 
             return $this->json([
-                'message' => 'Le document a bien été lié à votre voyage.',
+                'message' => $this->translator->trans('document.created'),
                 'files' => $trip->getDocuments()->toArray()
             ]);
         } catch (\Exception $e) {
-            return $this->json(['message' => 'Une erreur est survenue lors de l\'ajout du document.'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['message' => $this->translator->trans('document.error.create')], Response::HTTP_BAD_REQUEST);
         }
     }
 }

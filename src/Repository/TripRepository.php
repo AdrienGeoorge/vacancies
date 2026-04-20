@@ -168,7 +168,7 @@ class TripRepository extends ServiceEntityRepository
         $tripIds = array_column($trips, 'id');
 
         $countries = $this->createQueryBuilder('t2')
-            ->select('t2.id AS tripId, c.name AS countryName')
+            ->select('t2.id AS tripId, c.code AS countryCode')
             ->leftJoin('t2.destinations', 'td')
             ->leftJoin('td.country', 'c')
             ->where('t2.id IN (:tripIds)')
@@ -184,13 +184,11 @@ class TripRepository extends ServiceEntityRepository
             if (!isset($countriesByTrip[$tripId])) {
                 $countriesByTrip[$tripId] = [];
             }
-            $countriesByTrip[$tripId][] = $country['countryName'];
+            $countriesByTrip[$tripId][] = $country['countryCode'];
         }
 
         foreach ($trips as &$trip) {
-            $trip['countryName'] = isset($countriesByTrip[$trip['id']])
-                ? $this->textFormateService->formatList($countriesByTrip[$trip['id']])
-                : null;
+            $trip['countryCodes'] = $countriesByTrip[$trip['id']] ?? [];
         }
 
         return $trips;

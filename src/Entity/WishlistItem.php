@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\WishlistItemRepository;
+use App\Entity\Country;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Ignore;
@@ -23,8 +24,9 @@ class WishlistItem
     #[ORM\Column(length: 255)]
     private ?string $name = null;
 
-    #[ORM\Column(length: 100, nullable: true)]
-    private ?string $country = null;
+    #[ORM\ManyToOne(targetEntity: Country::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Country $country = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $image = null;
@@ -69,12 +71,12 @@ class WishlistItem
         return $this;
     }
 
-    public function getCountry(): ?string
+    public function getCountry(): ?Country
     {
         return $this->country;
     }
 
-    public function setCountry(?string $country): static
+    public function setCountry(?Country $country): static
     {
         $this->country = $country;
 

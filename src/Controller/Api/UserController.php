@@ -142,11 +142,11 @@ class UserController extends AbstractController
                 'percentCountries' => round(($countPassedCountries / $nbCountries) * 100, 2),
                 'badges' => $badges,
                 'lastTrip' => $lastTrip ? [
-                    'country' => $this->tripService->formateDestinationsForString($lastTrip['destinations']),
+                    'countryCodes' => array_values(array_unique(array_map(fn($d) => $d['country']['code'], $lastTrip['destinations']))),
                     'countDays' => $this->tripService->countDaysBeforeOrAfter($lastTrip['trip'])
                 ] : null,
                 'nextTrip' => $nextTrip ? [
-                    'country' => $this->tripService->formateDestinationsForString($nextTrip['destinations']),
+                    'countryCodes' => array_values(array_unique(array_map(fn($d) => $d['country']['code'], $nextTrip['destinations']))),
                     'countDays' => $this->tripService->countDaysBeforeOrAfter($nextTrip['trip'])
                 ] : null,
                 'countUniqueTravelers' => $countUniqueTravelers,

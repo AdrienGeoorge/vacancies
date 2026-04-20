@@ -51,7 +51,10 @@ class TripShareController extends AbstractController
 
         $destinations = $trip->getDestinations()
             ->map(fn($d) => [
-                'country' => ['name' => $d->getCountry()->getName()],
+                'country' => [
+                    'name' => $d->getCountry()->getName(),
+                    'code' => $d->getCountry()->getCode(),
+                ],
                 'displayOrder' => $d->getDisplayOrder(),
                 'departureDate' => $d->getDepartureDate()?->format('Y-m-d'),
                 'returnDate' => $d->getReturnDate()?->format('Y-m-d'),

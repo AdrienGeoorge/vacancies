@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller\Api;
 
+use App\Entity\Country;
 use App\Entity\Trip;
 use App\Entity\WishlistItem;
 use App\Repository\WishlistItemRepository;
@@ -58,9 +59,15 @@ class WishlistController extends AbstractController
         }
 
         try {
+            $country = null;
+            $countryId = $request->request->get('countryId');
+            if ($countryId) {
+                $country = $this->managerRegistry->getRepository(Country::class)->find((int) $countryId);
+            }
+
             $item = (new WishlistItem())
                 ->setName(trim($name))
-                ->setCountry($request->request->get('country') ?: null)
+                ->setCountry($country)
                 ->setNotes($request->request->get('notes') ?: null)
                 ->setUser($this->getUser());
 
@@ -97,8 +104,14 @@ class WishlistController extends AbstractController
         }
 
         try {
+            $country = null;
+            $countryId = $request->request->get('countryId');
+            if ($countryId) {
+                $country = $this->managerRegistry->getRepository(Country::class)->find((int) $countryId);
+            }
+
             $item->setName(trim($name))
-                ->setCountry($request->request->get('country') ?: null)
+                ->setCountry($country)
                 ->setNotes($request->request->get('notes') ?: null);
 
             $imageFile = $request->files->get('image');
@@ -202,10 +215,16 @@ class WishlistController extends AbstractController
 
     private function serialize(WishlistItem $item): array
     {
+        $country = $item->getCountry();
+
         return [
             'id' => $item->getId(),
             'name' => $item->getName(),
-            'country' => $item->getCountry(),
+            'country' => $country ? [
+                'id' => $country->getId(),
+                'code' => $country->getCode(),
+                'name' => $country->getName(),
+            ] : null,
             'image' => $item->getImage(),
             'notes' => $item->getNotes(),
             'createdAt' => $item->getCreatedAt()->format('Y-m-d H:i:s'),

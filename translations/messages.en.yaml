@@ -161,6 +161,62 @@ weather.city_not_found: "City not found"
 weather.api_unavailable: "Weather service temporarily unavailable"
 weather.no_data: "No data available"
 
+weather.temperature.greater_than_35.first: "extreme heat: regular hydration essential, sun protection required"
+weather.temperature.greater_than_35.second: "very light and loose clothing recommended"
+
+weather.temperature.greater_than_30.first: "very hot weather: sun protection necessary"
+weather.temperature.greater_than_30.second: "light clothing recommended"
+
+weather.temperature.greater_than_25.message: "warm and pleasant weather"
+weather.temperature.greater_than_25.evening: "bring an extra layer for the evening"
+
+weather.temperature.between_10_and_15.message: "mild and pleasant temperatures"
+weather.temperature.between_10_and_15.evening_8: "light clothing for daytime and an extra layer for cooler evenings"
+weather.temperature.between_10_and_15.evening_5: "a light jacket may be useful in the evening"
+
+weather.temperature.greater_than_0.first: "cool temperatures: warm clothing required"
+weather.temperature.greater_than_0.second: "bring a coat, scarf, and gloves"
+
+weather.temperature.less_than_0.first: "freezing temperatures: winter gear essential"
+weather.temperature.less_than_0.second: "thermal clothing, warm coat, scarf, hat, and gloves recommended"
+
+weather.forecast.snow.max: "heavy snowfall expected (≈%.0f cm): waterproof shoes essential"
+weather.forecast.snow.medium: "snow expected (≈%.0f cm): suitable footwear recommended"
+weather.forecast.snow.min: "light snow possible"
+
+weather.forecast.rain.more_15mm: "heavy rain expected (≈%.0f mm): waterproof clothing essential"
+weather.forecast.rain.more_5mm: "rain expected (≈%.0f mm): bring an umbrella"
+weather.forecast.rain.more_1mm: "occasional showers possible: an umbrella is recommended"
+weather.forecast.rain.more_0mm: "light precipitation possible"
+
+weather.climate.humidity_less_than_40: "dry weather: stay hydrated"
+weather.climate.rain_less_10mm_and_humidity_less_than_40: "very dry climate: regular hydration recommended"
+weather.climate.rain_less_30mm_and_humidity_less_than_50: "dry climate"
+weather.climate.rain_less_20mm_and_humidity_greater_than_70: "little precipitation expected"
+
+weather.rainy_days.more_15: "many rainy days expected (≈%s mm/month): waterproof clothing essential"
+weather.rainy_days.more_7: "several rainy days (≈%s mm/month): bring an umbrella"
+weather.rainy_days.more_2: "occasional showers possible (≈%s mm/month)"
+
+weather.wind.more_90kph: "very strong winds (%.0f km/h): caution when traveling"
+weather.wind.more_60kph: "strong winds (%.0f km/h): bring a windproof jacket"
+weather.wind.more_40kph: "moderate winds (%.0f km/h): a jacket may be useful"
+
+weather.visibility.less_than_200_meters: "very dense fog (visibility ≈%d m): extremely difficult travel, exercise extreme caution"
+weather.visibility.less_than_1000_meters: "very low visibility (≈%d m): caution when traveling"
+weather.visibility.less_than_3000_meters: "limited visibility possible (≈%.1f km)"
+
+weather.condition.fog: "fog expected: be cautious when traveling"
+weather.condition.storm: "risk of storms: avoid exposed areas"
+weather.condition.hail: "risk of hail"
+
+weather.aqi.very_bad: "very poor air quality: limit outdoor activities to a minimum, mask essential outdoors"
+weather.aqi.bad: "poor air quality: avoid outdoor physical activities, mask recommended"
+weather.aqi.moderate: "moderate air quality: sensitive individuals should limit prolonged outdoor activities"
+
+weather.no_advices: "Weather conditions are generally favorable for this period."
+weather.forecast: "(Averages over the past 10 years)"
+
 # ===== USER =====
 user.not_found: "User not found."
 user.avatar.required: "You must add a profile picture."

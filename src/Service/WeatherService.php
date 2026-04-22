@@ -453,119 +453,119 @@ class WeatherService
         $condLower = mb_strtolower($condition);
 
         if ($tempMax > 35) {
-            $advices[] = "chaleur intense : hydratation régulière indispensable, protection solaire indispensable";
-            $advices[] = "vêtements très légers et amples recommandés";
+            $advices[] = $this->translator->trans('weather.temperature.greater_than_35.first');
+            $advices[] = $this->translator->trans('weather.temperature.greater_than_35.second');
         } elseif ($tempMax > 30) {
-            $advices[] = "temps très chaud : protection solaire nécessaire";
-            $advices[] = "vêtements légers recommandés";
+            $advices[] = $this->translator->trans('weather.temperature.greater_than_30.first');
+            $advices[] = $this->translator->trans('weather.temperature.greater_than_30.second');
         } elseif ($tempMax > 25) {
-            $advices[] = "temps chaud et agréable";
+            $advices[] = $this->translator->trans('weather.temperature.greater_than_25.message');
             if (($tempMax - $tempMin) > 10) {
-                $advices[] = "prévoir une couche pour les soirées";
+                $advices[] = $this->translator->trans('weather.temperature.greater_than_25.evening');
             }
         } elseif ($tempMax >= 15 && $tempMin >= 10) {
-            $advices[] = "températures douces et agréables";
+            $advices[] = $this->translator->trans('weather.temperature.between_10_and_15.message');
             if (($tempMax - $tempMin) >= 8) {
-                $advices[] = "prévoir des vêtements légers pour la journée et une couche pour les soirées plus fraîches";
+                $advices[] = $this->translator->trans('weather.temperature.between_10_and_15.evening_8');
             } elseif (($tempMax - $tempMin) >= 5) {
-                $advices[] = "une veste légère peut être utile en soirée";
+                $advices[] = $this->translator->trans('weather.temperature.between_10_and_15.evening_5');
             }
         } elseif ($tempMin >= 0) {
-            $advices[] = "températures fraîches : vêtements chauds nécessaires";
-            $advices[] = "prévoir manteau, écharpe et gants";
+            $advices[] = $this->translator->trans('weather.temperature.greater_than_0.first');
+            $advices[] = $this->translator->trans('weather.temperature.greater_than_0.second');
         } else {
-            $advices[] = "températures négatives : équipement hivernal indispensable";
-            $advices[] = "vêtements thermiques, manteau chaud, écharpe, bonnet et gants recommandés";
+            $advices[] = $this->translator->trans('weather.temperature.less_than_0.first');
+            $advices[] = $this->translator->trans('weather.temperature.less_than_0.second');
         }
 
         if ($isForecast) {
             // Neige (prioritaire sur la pluie si les deux sont présents)
             if ($snowCm !== null && $snowCm >= 0.5) {
                 if ($snowCm >= 10) {
-                    $advices[] = sprintf("chutes de neige importantes prévues (≈%.0f cm) : chaussures imperméables indispensables", $snowCm);
+                    $advices[] = sprintf($this->translator->trans('weather.forecast.snow.max'), $snowCm);
                 } elseif ($snowCm >= 2) {
-                    $advices[] = sprintf("neige attendue (≈%.0f cm) : chaussures adaptées recommandées", $snowCm);
+                    $advices[] = sprintf($this->translator->trans('weather.forecast.snow.medium'), $snowCm);
                 } else {
-                    $advices[] = "quelques flocons possibles";
+                    $advices[] = $this->translator->trans('weather.forecast.snow.min');
                 }
             }
 
             // Pluie journalière
             if ($totalPrecipMm > 15) {
-                $advices[] = sprintf("fortes pluies prévues (≈%.0f mm) : imperméable indispensable", $totalPrecipMm);
+                $advices[] = sprintf($this->translator->trans('weather.forecast.rain.more_15mm'), $totalPrecipMm);
             } elseif ($totalPrecipMm > 5) {
-                $advices[] = sprintf("pluie prévue (≈%.0f mm) : prévoir un parapluie", $totalPrecipMm);
+                $advices[] = sprintf($this->translator->trans('weather.forecast.rain.more_5mm'), $totalPrecipMm);
             } elseif ($totalPrecipMm > 1) {
-                $advices[] = "quelques averses possibles : un parapluie est conseillé";
+                $advices[] = $this->translator->trans('weather.forecast.rain.more_1mm');
             } elseif ($totalPrecipMm > 0) {
-                $advices[] = "légères précipitations possibles";
+                $advices[] = $this->translator->trans('weather.forecast.rain.more_0mm');
             } elseif ($avgHumidity < 40) {
-                $advices[] = "temps sec : hydratation recommandée";
+                $advices[] = $this->translator->trans('weather.climate.humidity_less_than_40');
             }
         } else {
             // Mode historique : logique en jours/mois
             if ($rainyDays > 15) {
                 $advices[] = sprintf(
-                    "nombreux jours de pluie à prévoir (≈%s mm/mois) : imperméable indispensable",
+                    $this->translator->trans('weather.rainy_days.more_15'),
                     round($totalPrecipMm)
                 );
             } elseif ($rainyDays >= 7) {
                 $advices[] = sprintf(
-                    "plusieurs jours de pluie (≈%s mm/mois) : prévoir un parapluie",
+                    $this->translator->trans('weather.rainy_days.more_7'),
                     round($totalPrecipMm)
                 );
             } elseif ($rainyDays > 2) {
-                $advices[] = sprintf("quelques averses possibles (≈%s mm/mois)", round($totalPrecipMm));
+                $advices[] = sprintf($this->translator->trans('weather.rainy_days.more_2'), round($totalPrecipMm));
             } elseif ($totalPrecipMm < 10 && $avgHumidity < 40) {
-                $advices[] = "climat très sec : hydratation régulière recommandée";
+                $advices[] = $this->translator->trans('weather.climate.rain_less_10mm_and_humidity_less_than_40');
             } elseif ($totalPrecipMm < 30 && $avgHumidity < 50) {
-                $advices[] = "climat sec";
+                $advices[] = $this->translator->trans('weather.climate.rain_less_30mm_and_humidity_less_than_50');
             } elseif ($totalPrecipMm < 20 && $avgHumidity > 70) {
-                $advices[] = "peu de précipitations attendues";
+                $advices[] = $this->translator->trans('weather.climate.rain_less_20mm_and_humidity_greater_than_70');;
             }
         }
 
         if ($isForecast && $windKph !== null) {
             if ($windKph >= 90) {
-                $advices[] = sprintf("vents très forts (%.0f km/h) : prudence lors des déplacements", $windKph);
+                $advices[] = sprintf($this->translator->trans('weather.wind.more_90kph'), $windKph);
             } elseif ($windKph >= 60) {
-                $advices[] = sprintf("vent fort (%.0f km/h) : prévoir une veste coupe-vent", $windKph);
+                $advices[] = sprintf($this->translator->trans('weather.wind.more_60kph'), $windKph);
             } elseif ($windKph >= 40) {
-                $advices[] = sprintf("vent modéré (%.0f km/h) : une veste peut être appréciée", $windKph);
+                $advices[] = sprintf($this->translator->trans('weather.wind.more_40kph'), $windKph);
             }
         }
 
         if ($isForecast && $visibilityM !== null) {
             if ($visibilityM < 200) {
-                $advices[] = sprintf("brouillard très dense (visibilité ≈%d m) : déplacements très difficiles, extrême prudence", $visibilityM);
+                $advices[] = sprintf($this->translator->trans('weather.visibility.less_than_200_meters'), $visibilityM);
             } elseif ($visibilityM < 1000) {
-                $advices[] = sprintf("visibilité très réduite (≈%d m) : prudence lors des déplacements", $visibilityM);
+                $advices[] = sprintf($this->translator->trans('weather.visibility.less_than_1000_meters'), $visibilityM);
             } elseif ($visibilityM < 3000) {
-                $advices[] = sprintf("visibilité limitée possible (≈%.1f km)", $visibilityM / 1000);
+                $advices[] = sprintf($this->translator->trans('weather.visibility.less_than_3000_meters'), $visibilityM / 1000);
             }
         } elseif (str_contains($condLower, 'brouillard') || str_contains($condLower, 'brume')) {
             // Fallback si pas de donnée de visibilité
-            $advices[] = "brouillard prévu : vigilance lors des déplacements";
+            $advices[] = $this->translator->trans('weather.condition.fog');
         }
 
         if (str_contains($condLower, 'orage')) {
-            $advices[] = "risques d'orages : éviter les zones exposées";
+            $advices[] = $this->translator->trans('weather.condition.storm');
         } elseif (str_contains($condLower, 'grêle')) {
-            $advices[] = "risque de grêle";
+            $advices[] = $this->translator->trans('weather.condition.hail');
         }
 
         if ($isForecast && $aqi !== null && $aqi >= 3) {
             if ($aqi === 5) {
-                $advices[] = "qualité de l'air très mauvaise : limiter les sorties au strict minimum, masque indispensable en extérieur";
+                $advices[] = $this->translator->trans('weather.aqi.very_bad');
             } elseif ($aqi === 4) {
-                $advices[] = "qualité de l'air mauvaise : éviter les activités physiques en extérieur, masque conseillé";
+                $advices[] = $this->translator->trans('weather.aqi.bad');;
             } else {
-                $advices[] = "qualité de l'air modérée : les personnes sensibles doivent limiter les activités prolongées en extérieur";
+                $advices[] = $this->translator->trans('weather.aqi.moderate');
             }
         }
 
         if (empty($advices)) {
-            return "Conditions météo généralement favorables pour la période.";
+            return $this->translator->trans('weather.no_advices');
         }
 
         $sentences = array_map('ucfirst', $advices);
@@ -575,7 +575,7 @@ class WeatherService
         }
 
         if (!$isForecast) {
-            $result .= " (Moyennes sur les 10 dernières années)";
+            $result .= ' ' . $this->translator->trans('weather.forecast');
         }
 
         return $result;

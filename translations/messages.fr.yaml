@@ -161,6 +161,62 @@ weather.city_not_found: "Ville introuvable"
 weather.api_unavailable: "Service météo temporairement indisponible"
 weather.no_data: "Aucune donnée disponible"
 
+weather.temperature.greater_than_35.first: "chaleur intense : hydratation régulière indispensable, protection solaire indispensable"
+weather.temperature.greater_than_35.second: "vêtements très légers et amples recommandés"
+
+weather.temperature.greater_than_30.first: "temps très chaud : protection solaire nécessaire"
+weather.temperature.greater_than_30.second: "vêtements légers recommandés"
+
+weather.temperature.greater_than_25.message: "temps chaud et agréable"
+weather.temperature.greater_than_25.evening: "prévoir une couche pour les soirées"
+
+weather.temperature.between_10_and_15.message: "températures douces et agréables"
+weather.temperature.between_10_and_15.evening_8: "prévoir des vêtements légers pour la journée et une couche pour les soirées plus fraîches"
+weather.temperature.between_10_and_15.evening_5: "une veste légère peut être utile en soirée"
+
+weather.temperature.greater_than_0.first: "températures fraîches : vêtements chauds nécessaires"
+weather.temperature.greater_than_0.second: "prévoir manteau, écharpe et gants"
+
+weather.temperature.less_than_0.first: "températures négatives : équipement hivernal indispensable"
+weather.temperature.less_than_0.second: "vêtements thermiques, manteau chaud, écharpe, bonnet et gants recommandés"
+
+weather.forecast.snow.max: "chutes de neige importantes prévues (≈%.0f cm) : chaussures imperméables indispensables"
+weather.forecast.snow.medium: "neige attendue (≈%.0f cm) : chaussures adaptées recommandées"
+weather.forecast.snow.min: "quelques flocons possibles"
+
+weather.forecast.rain.more_15mm: "fortes pluies prévues (≈%.0f mm) : imperméable indispensable"
+weather.forecast.rain.more_5mm: "pluie prévue (≈%.0f mm) : prévoir un parapluie"
+weather.forecast.rain.more_1mm: "quelques averses possibles : un parapluie est conseillé"
+weather.forecast.rain.more_0mm: "légères précipitations possibles"
+
+weather.climate.humidity_less_than_40: "temps sec : hydratation recommandée"
+weather.climate.rain_less_10mm_and_humidity_less_than_40: "climat très sec : hydratation régulière recommandée"
+weather.climate.rain_less_30mm_and_humidity_less_than_50: "climat sec"
+weather.climate.rain_less_20mm_and_humidity_greater_than_70: "peu de précipitations attendues"
+
+weather.rainy_days.more_15: "nombreux jours de pluie à prévoir (≈%s mm/mois) : imperméable indispensable"
+weather.rainy_days.more_7: "plusieurs jours de pluie (≈%s mm/mois) : prévoir un parapluie"
+weather.rainy_days.more_2: "quelques averses possibles (≈%s mm/mois)"
+
+weather.wind.more_90kph: "vents très forts (%.0f km/h) : prudence lors des déplacements"
+weather.wind.more_60kph: "vent fort (%.0f km/h) : prévoir une veste coupe-vent"
+weather.wind.more_40kph: "vent modéré (%.0f km/h) : une veste peut être appréciée"
+
+weather.visibility.less_than_200_meters: "brouillard très dense (visibilité ≈%d m) : déplacements très difficiles, extrême prudence"
+weather.visibility.less_than_1000_meters: "visibilité très réduite (≈%d m) : prudence lors des déplacements"
+weather.visibility.less_than_3000_meters: "visibilité limitée possible (≈%.1f km)"
+
+weather.condition.fog: "brouillard prévu : vigilance lors des déplacements"
+weather.condition.storm: "risques d'orages : éviter les zones exposées"
+weather.condition.hail: "risque de grêle"
+
+weather.aqi.very_bad: "qualité de l'air très mauvaise : limiter les sorties au strict minimum, masque indispensable en extérieur"
+weather.aqi.bad: "qualité de l'air mauvaise : éviter les activités physiques en extérieur, masque conseillé"
+weather.aqi.moderate: "qualité de l'air modérée : les personnes sensibles doivent limiter les activités prolongées en extérieur"
+
+weather.no_advices: "Conditions météo généralement favorables pour la période."
+weather.forecast: "(Moyennes sur les 10 dernières année)"
+
 # ===== USER =====
 user.not_found: "Utilisateur introuvable."
 user.avatar.required: "Vous devez ajouter une photo de profil."

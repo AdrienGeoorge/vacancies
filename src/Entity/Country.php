@@ -44,7 +44,7 @@ class Country
     #[ORM\Column(length: 25, nullable: true)]
     private ?string $plugTypes = null;
 
-    #[ORM\Column(length: 50, nullable: true)]
+    #[ORM\Column(length: 100, nullable: true)]
     private ?string $timezone = null;
 
     #[ORM\Column(length: 100, nullable: true)]

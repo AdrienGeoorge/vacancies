@@ -40,8 +40,52 @@ class TransportController extends AbstractController
     #[IsGranted('view', subject: 'trip')]
     public function getAll(?Trip $trip = null): JsonResponse
     {
+        $transports = $this->managerRegistry->getRepository(Transport::class)->findAllByTrip($trip);
+
+        /** @var Transport $transport */
+        foreach ($transports as $transport) {
+            $eurCurrency = $this->managerRegistry->getRepository(Currency::class)->findOneBy(['code' => 'EUR']);
+
+            if ($transport->getType()->getName() === 'Voiture' && !$transport->isRental()) {
+                $estimatedGasoline = $transport->getEstimatedGasoline();
+                $estimatedToll = $transport->getEstimatedToll();
+
+                if ($trip->getCurrency() && $trip->getCurrency()->getCode() !== 'EUR') {
+                    $estimatedGasoline = $this->converterService->convert(
+                        $transport->getEstimatedGasoline(),
+                        $eurCurrency,
+                        $trip->getCurrency(),
+                        $transport->getConvertedAt() ?? $transport->getPurchaseDate()
+                    )['amount'];
+
+                    $estimatedToll = $this->converterService->convert(
+                        $transport->getEstimatedToll(),
+                        $eurCurrency,
+                        $trip->getCurrency(),
+                        $transport->getConvertedAt() ?? $transport->getPurchaseDate()
+                    )['amount'];
+                }
+
+                $transport->setFinalEstimatedGasoline($estimatedGasoline);
+                $transport->setFinalEstimatedToll($estimatedToll);
+            }
+
+            $finalPrice = $transport->getTotalPrice();
+
+            if ($trip->getCurrency() && $trip->getCurrency()->getCode() !== 'EUR') {
+                $finalPrice = $this->converterService->convert(
+                    $finalPrice,
+                    $eurCurrency,
+                    $trip->getCurrency(),
+                    $transport->getConvertedAt() ?? $transport->getPurchaseDate()
+                )['amount'];
+            }
+
+            $transport->setFinalPrice($finalPrice);
+        }
+
         return $this->json(
-            $this->managerRegistry->getRepository(Transport::class)->findAllByTrip($trip),
+            $transports,
             Response::HTTP_OK,
             [],
             ['datetime_format' => 'Y-m-d H:i']
@@ -108,6 +152,7 @@ class TransportController extends AbstractController
 
                 $oldTotal = $this->budgetAlertService->getCategoryTotal($trip, 'transports');
 
+                $transport->setPurchaseDate(new \DateTime());
                 $transport->setTrip($trip);
                 $transport->setPrice($dto->originalPrice);
                 $transport = $this->dtoService->mapToEntity($dto, $transport);

@@ -87,6 +87,13 @@ class Accommodation
     #[ORM\ManyToOne]
     private ?TripTraveler $payedBy = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTime $purchaseDate = null;
+
+    private float $finalLocationPrice;
+    private ?float $finalDepositPrice;
+    private float $finalPrice;
+
     public function __construct()
     {
         $this->additionalExpensive = new ArrayCollection();
@@ -337,20 +344,24 @@ class Accommodation
         return $this;
     }
 
-    public function getTotalPrice(): float
+    public function getTotalPrices(): array
     {
-        $total = 0;
+        $total = $deposit = 0;
 
         // Prix de l'hébergement
-        $total += $this->getOriginalCurrency()?->getCode() !== 'EUR'
+        $location = $this->getOriginalCurrency()?->getCode() !== 'EUR'
             ? $this->getConvertedPrice()
             : $this->getOriginalPrice();
 
+        $total += $location;
+
         // Caution
         if ($this->getOriginalDeposit()) {
-            $total += $this->getOriginalDepositCurrency()?->getCode() !== 'EUR'
+            $deposit = $this->getOriginalDepositCurrency()?->getCode() !== 'EUR'
                 ? $this->getConvertedDeposit()
                 : $this->getOriginalDeposit();
+
+            $total += $deposit;
         }
 
         // Dépenses additionnelles
@@ -360,7 +371,7 @@ class Accommodation
                 : $item->getOriginalPrice();
         }
 
-        return round($total, 2);
+        return [$location, $deposit, $total];
     }
 
     public function getArrivalDate(): ?\DateTimeInterface
@@ -395,6 +406,54 @@ class Accommodation
     public function setPayedBy(?TripTraveler $payedBy): static
     {
         $this->payedBy = $payedBy;
+
+        return $this;
+    }
+
+    public function getPurchaseDate(): ?\DateTime
+    {
+        return $this->purchaseDate;
+    }
+
+    public function setPurchaseDate(?\DateTime $purchaseDate): static
+    {
+        $this->purchaseDate = $purchaseDate;
+
+        return $this;
+    }
+
+    public function getFinalLocationPrice(): float
+    {
+        return $this->finalLocationPrice;
+    }
+
+    public function setFinalLocationPrice(float $finalLocationPrice): static
+    {
+        $this->finalLocationPrice = $finalLocationPrice;
+
+        return $this;
+    }
+
+    public function getFinalPrice(): float
+    {
+        return $this->finalPrice;
+    }
+
+    public function setFinalPrice(float $finalPrice): static
+    {
+        $this->finalPrice = $finalPrice;
+
+        return $this;
+    }
+
+    public function getFinalDepositPrice(): ?float
+    {
+        return $this->finalDepositPrice;
+    }
+
+    public function setFinalDepositPrice(?float $finalDepositPrice): static
+    {
+        $this->finalDepositPrice = $finalDepositPrice;
 
         return $this;
     }

@@ -3,10 +3,12 @@
 namespace App\Controller\Api;
 
 use App\Entity\Accommodation;
+use App\Entity\Currency;
 use App\Entity\Trip;
 use App\Entity\TripTraveler;
 use App\Service\AccommodationService;
 use App\Service\BudgetAlertService;
+use App\Service\CurrencyConverterService;
 use App\Service\TripService;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -26,7 +28,8 @@ class AccommodationController extends AbstractController
         readonly AccommodationService $accommodationService,
         readonly TripService          $tripService,
         readonly BudgetAlertService   $budgetAlertService,
-        readonly TranslatorInterface  $translator
+        readonly TranslatorInterface  $translator,
+        readonly CurrencyConverterService $converterService
     )
     {
     }
@@ -35,9 +38,63 @@ class AccommodationController extends AbstractController
     #[IsGranted('view', subject: 'trip')]
     public function getAll(?Trip $trip = null): JsonResponse
     {
-        return $this->json(
-            $this->managerRegistry->getRepository(Accommodation::class)->findAllByTrip($trip)
-        );
+        $eurCurrency = $this->managerRegistry->getRepository(Currency::class)->findOneBy(['code' => 'EUR']);
+        $accommodations = $this->managerRegistry->getRepository(Accommodation::class)->findAllByTrip($trip);
+
+        /** @var Accommodation $accommodation */
+        foreach ($accommodations as $accommodation) {
+            [$location, $deposit, $total] = $accommodation->getTotalPrices();
+
+            foreach ($accommodation->getAdditionalExpensive() as $additionalExpensive) {
+                $calculatedPrice = $additionalExpensive->getOriginalCurrency()?->getCode() !== 'EUR'
+                    ? $additionalExpensive->getConvertedPrice()
+                    : $additionalExpensive->getOriginalPrice();
+
+                $additionalExpensive->setFinalPrice($calculatedPrice);
+            }
+
+            if ($trip->getCurrency() && $trip->getCurrency()->getCode() !== 'EUR') {
+                $location = $this->converterService->convert(
+                    $location,
+                    $eurCurrency,
+                    $trip->getCurrency(),
+                    $accommodation->getConvertedAt() ?? $accommodation->getPurchaseDate()
+                )['amount'];
+
+                if ($deposit) {
+                    $deposit = $this->converterService->convert(
+                        $deposit,
+                        $eurCurrency,
+                        $trip->getCurrency(),
+                        $accommodation->getConvertedAt() ?? $accommodation->getPurchaseDate()
+                    )['amount'];
+                }
+
+                foreach ($accommodation->getAdditionalExpensive() as $additionalExpensive) {
+                    $additionalExpensive->setFinalPrice(
+                        $this->converterService->convert(
+                            $additionalExpensive->getFinalPrice(),
+                            $eurCurrency,
+                            $trip->getCurrency(),
+                            $accommodation->getConvertedAt() ?? $accommodation->getPurchaseDate()
+                        )['amount']
+                    );
+                }
+
+                $total = $this->converterService->convert(
+                    $total,
+                    $eurCurrency,
+                    $trip->getCurrency(),
+                    $accommodation->getConvertedAt() ?? $accommodation->getPurchaseDate()
+                )['amount'];
+            };
+
+            $accommodation->setFinalLocationPrice($location);
+            $accommodation->setFinalDepositPrice($deposit);
+            $accommodation->setFinalPrice($total);
+        }
+
+        return $this->json($accommodations);
     }
 
     #[Route('/get/{accommodation}/form-data', name: 'getFormData', requirements: ['accommodation' => '\d+'], methods: ['GET'])]

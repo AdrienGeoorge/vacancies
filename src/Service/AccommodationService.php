@@ -104,6 +104,7 @@ class AccommodationService
             ->setArrivalDate($dto->arrivalDate)
             ->setDepartureDate($dto->departureDate)
             ->setDescription($dto->description)
+            ->setPurchaseDate(new \DateTime())
             // TODO: à supprimer plus tard
             ->setPrice($dto->originalPrice)
             ->setOriginalPrice($dto->originalPrice)

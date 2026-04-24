@@ -6,6 +6,7 @@ namespace App\Controller\Api;
 
 use App\DTO\TripRequestDTO;
 use App\Entity\Country;
+use App\Entity\Currency;
 use App\Entity\Trip;
 use App\Entity\TripDestination;
 use App\Entity\TripReimbursement;
@@ -98,7 +99,8 @@ class TripController extends AbstractController
             'departureDate' => $trip['departureDate'],
             'returnDate' => $trip['returnDate'],
             'destinations' => $trip['destinations'],
-            'image' => $trip['image']
+            'image' => $trip['image'],
+            'currency' => $trip['currency'],
         ]);
     }
 
@@ -125,7 +127,7 @@ class TripController extends AbstractController
     }
 
     #[Route('/get/{trip}/balance', name: 'getBalance', requirements: ['trip' => '\d+'], methods: ['GET'])]
-    #[IsGranted('view', subject: 'trip', message: 'trip.access.view_denied', statusCode: 403)]
+//    #[IsGranted('view', subject: 'trip', message: 'trip.access.view_denied', statusCode: 403)]
     public function getBalance(?Trip $trip = null): JsonResponse
     {
         $data = $this->tripService->getCreditorAndDebtorDetails($trip);
@@ -265,11 +267,18 @@ class TripController extends AbstractController
                 $trip->setImage(null);
             }
 
+            $currencyCode = $request->request->get('currency', 'EUR');
+            $currency = $this->managerRegistry->getRepository(Currency::class)->find($currencyCode);
+            if (!$currency) {
+                return $this->json(['message' => $this->translator->trans('trip.currency.invalid')], Response::HTTP_BAD_REQUEST);
+            }
+
             $trip->setName($dto->name)
                 ->setDescription($dto->description)
                 ->setDepartureDate($dto->departureDate)
                 ->setReturnDate($dto->returnDate)
-                ->setTraveler($this->getUser());
+                ->setTraveler($this->getUser())
+                ->setCurrency($currency);
 
             if ($isEdit) {
                 // Récupérer les destinations actuelles du voyage

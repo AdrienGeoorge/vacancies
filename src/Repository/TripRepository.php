@@ -361,6 +361,7 @@ class TripRepository extends ServiceEntityRepository
             'departureDate' => $trip->getDepartureDate()?->format('Y-m-d'),
             'returnDate' => $trip->getReturnDate()?->format('Y-m-d'),
             'image' => $trip->getImage(),
+            'currency' => $trip->getCurrency(),
             'ownerId' => $trip->getTraveler()?->getId(),
             'destinations' => $this->tripService->getDestinations($trip),
         ];

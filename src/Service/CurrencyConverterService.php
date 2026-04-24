@@ -29,9 +29,9 @@ class CurrencyConverterService
             ];
         }
 
-        $exchangeRate = $date
-            ? $this->exchangeRateRepository->getClosestRates($date)
-            : $this->exchangeRateRepository->getLatestRates();
+        $exchangeRate = null;
+        if ($date) $exchangeRate = $this->exchangeRateRepository->getClosestRates($date);
+        if (!$exchangeRate) $exchangeRate = $this->exchangeRateRepository->getLatestRates();
 
         if (!$exchangeRate) {
             throw new \Exception($this->translator->trans('currency.exchange_rate_unavailable'));

@@ -82,6 +82,13 @@ class Transport
     #[ORM\Column(options: ['default' => false])]
     private bool $isRental = false;
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTime $purchaseDate = null;
+
+    private float $finalPrice;
+    private ?float $finalEstimatedToll;
+    private ?float $finalEstimatedGasoline;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -332,5 +339,58 @@ class Transport
         $this->isRental = $isRental;
 
         return $this;
+    }
+
+    public function getPurchaseDate(): ?\DateTime
+    {
+        return $this->purchaseDate;
+    }
+
+    public function setPurchaseDate(?\DateTime $purchaseDate): static
+    {
+        $this->purchaseDate = $purchaseDate;
+
+        return $this;
+    }
+
+    public function getFinalPrice(): float
+    {
+        return $this->finalPrice;
+    }
+
+    public function setFinalPrice(float $finalPrice): void
+    {
+        $this->finalPrice = $finalPrice;
+    }
+
+    public function getFinalEstimatedToll(): ?float
+    {
+        return $this->finalEstimatedToll;
+    }
+
+    public function setFinalEstimatedToll(?float $finalEstimatedToll): void
+    {
+        $this->finalEstimatedToll = $finalEstimatedToll;
+    }
+
+    public function getFinalEstimatedGasoline(): ?float
+    {
+        return $this->finalEstimatedGasoline;
+    }
+
+    public function setFinalEstimatedGasoline(?float $finalEstimatedGasoline): void
+    {
+        $this->finalEstimatedGasoline = $finalEstimatedGasoline;
+    }
+
+    public function getTotalPrice(): ?float
+    {
+        if ($this->getType()->getName() === 'Voiture' && !$this->isRental()) {
+            return $this->estimatedGasoline + $this->estimatedToll;
+        }
+
+        return $this->getOriginalCurrency()?->getCode() !== 'EUR'
+            ? $this->getConvertedPrice()
+            : $this->getOriginalPrice();
     }
 }

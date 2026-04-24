@@ -40,8 +40,29 @@ class ActivityController extends AbstractController
     #[IsGranted('view', subject: 'trip')]
     public function getAll(?Trip $trip = null): JsonResponse
     {
+        $eurCurrency = $this->managerRegistry->getRepository(Currency::class)->findOneBy(['code' => 'EUR']);
+        $activities = $this->managerRegistry->getRepository(Activity::class)->findAllByTrip($trip);
+
+        /** @var Activity $activity */
+        foreach ($activities as $activity) {
+            $calculatedPrice = $activity->getOriginalCurrency()?->getCode() !== 'EUR'
+                ? $activity->getConvertedPrice()
+                : $activity->getOriginalPrice();
+
+            if ($trip->getCurrency() && $trip->getCurrency()->getCode() !== 'EUR') {
+                $calculatedPrice = $this->converterService->convert(
+                    $calculatedPrice,
+                    $eurCurrency,
+                    $trip->getCurrency(),
+                    $activity->getConvertedAt() ?? $activity->getPurchaseDate()
+                )['amount'];
+            }
+
+            $activity->setFinalPrice($calculatedPrice);
+        }
+
         return $this->json(
-            $this->managerRegistry->getRepository(Activity::class)->findAllByTrip($trip),
+            $activities,
             Response::HTTP_OK,
             [],
             ['datetime_format' => 'Y-m-d H:i']
@@ -97,6 +118,7 @@ class ActivityController extends AbstractController
 
                 $oldTotal = $this->budgetAlertService->getCategoryTotal($trip, 'activities');
 
+                $activity->setPurchaseDate(new \DateTime());
                 $activity->setTrip($trip);
                 $activity->setPrice($dto->originalPrice);
                 $activity = $this->dtoService->mapToEntity($dto, $activity);

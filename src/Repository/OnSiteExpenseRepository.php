@@ -29,22 +29,25 @@ class OnSiteExpenseRepository extends ServiceEntityRepository
      * @param Trip $trip
      * @param TripTraveler $traveler
      * @return mixed
-     * @throws Exception
      */
     public function findByTraveler(Trip $trip, TripTraveler $traveler): mixed
     {
         return $this->createQueryBuilder('ose')
-            ->select("SUM (CASE
+            ->select("
+                (CASE
                     WHEN oc.code != 'EUR' THEN ose.convertedPrice
                     ELSE ose.originalPrice
-            END) as totalPrice")
+                END) as priceTotal,
+                ose.convertedAt as convertedAt,
+                ose.purchaseDate as purchaseDate
+            ")
             ->leftJoin('ose.originalCurrency', 'oc')
             ->andWhere('ose.trip = :trip')
             ->setParameter('trip', $trip)
             ->andWhere('ose.payedBy = :traveler')
             ->setParameter('traveler', $traveler)
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getResult();
     }
 
     public function findAllByTrip(Trip $trip)

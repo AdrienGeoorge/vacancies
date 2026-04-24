@@ -54,6 +54,11 @@ class VariousExpensive
     #[ORM\ManyToOne]
     private ?TripTraveler $payedBy = null;
 
+    private float $finalPrice;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTime $purchaseDate = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -194,6 +199,30 @@ class VariousExpensive
     public function setPayedBy(?TripTraveler $payedBy): static
     {
         $this->payedBy = $payedBy;
+
+        return $this;
+    }
+
+    public function getFinalPrice(): float
+    {
+        return $this->finalPrice;
+    }
+
+    public function setFinalPrice(float $finalPrice): static
+    {
+        $this->finalPrice = $finalPrice;
+
+        return $this;
+    }
+
+    public function getPurchaseDate(): ?\DateTime
+    {
+        return $this->purchaseDate;
+    }
+
+    public function setPurchaseDate(?\DateTime $purchaseDate): static
+    {
+        $this->purchaseDate = $purchaseDate;
 
         return $this;
     }

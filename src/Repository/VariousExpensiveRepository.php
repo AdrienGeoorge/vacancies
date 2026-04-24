@@ -32,12 +32,16 @@ class VariousExpensiveRepository extends ServiceEntityRepository
     public function findByTraveler(Trip $trip, TripTraveler $traveler): mixed
     {
         return $this->createQueryBuilder('ve')
-            ->select("SUM(CASE 
+            ->select("
+                (CASE 
                     WHEN ve.perPerson = true AND oc.code != 'EUR' THEN ve.convertedPrice * :nbTraveler
                     WHEN ve.perPerson = true AND oc.code = 'EUR' THEN ve.originalPrice * :nbTraveler
                     WHEN ve.perPerson = false AND oc.code != 'EUR' THEN ve.convertedPrice
                     ELSE ve.originalPrice
-                 END) as totalPrice")
+                 END) as priceTotal,
+                ve.convertedAt as convertedAt,
+                ve.purchaseDate as purchaseDate
+            ")
             ->leftJoin('ve.originalCurrency', 'oc')
             ->setParameter('nbTraveler', $trip->getTripTravelers()->count())
             ->andWhere('ve.trip = :trip')
@@ -46,7 +50,7 @@ class VariousExpensiveRepository extends ServiceEntityRepository
             ->setParameter('traveler', $traveler)
             ->andWhere('ve.paid = true')
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getResult();
     }
 
     public function findAllByTrip(Trip $trip)

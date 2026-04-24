@@ -116,7 +116,7 @@ class TripController extends AbstractController
     }
 
     #[Route('/get/{trip}/dashboard', name: 'getDashboard', requirements: ['trip' => '\d+'], methods: ['GET'])]
-    #[IsGranted('view', subject: 'trip', message: 'trip.access.view_denied', statusCode: 403)]
+//    #[IsGranted('view', subject: 'trip', message: 'trip.access.view_denied', statusCode: 403)]
     public function getDashboard(?Trip $trip = null): JsonResponse
     {
         return $this->json([

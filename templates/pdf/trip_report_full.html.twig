@@ -433,7 +433,7 @@
         {% if trip.budget.toPay > 0 %}
             <div class="budget-line">
                 <p class="budget-detail budget-to-pay">
-                    <strong>{{ 'pdf.budget.remaining'|trans({}, 'messages', locale) }}</strong> {{ trip.budget.toPay|number_format(2, ',', ' ') }} €
+                    <strong>{{ 'pdf.budget.remaining'|trans({}, 'messages', locale) }}</strong> {{ trip.budget.toPay|number_format(2, ',', ' ') }} {{ trip.currency ? trip.currency : '€' }}
                 </p>
             </div>
         {% endif %}
@@ -454,14 +454,14 @@
                             <br><small>{{ data.description }}</small>
                         {% endif %}
                     </td>
-                    <td>{{ data.amount|number_format(2, ',', ' ') }} €</td>
+                    <td>{{ data.amount|number_format(2, ',', ' ') }} {{ trip.currency ? trip.currency : '€' }}</td>
                 </tr>
             {% endfor %}
             </tbody>
             <tfoot>
             <tr>
                 <td><strong>{{ 'pdf.budget.total'|trans({}, 'messages', locale) }}</strong></td>
-                <td>{{ trip.budget.paid|number_format(2, ',', ' ') }} €</td>
+                <td>{{ trip.budget.paid|number_format(2, ',', ' ') }} {{ trip.currency ? trip.currency : '€' }}</td>
             </tr>
             </tfoot>
         </table>
@@ -588,14 +588,14 @@
             {% if trip.budget and trip.stats.days %}
                 <div class="stat-item">
                     <div class="stat-label">{{ 'pdf.stats.budget_per_day'|trans({}, 'messages', locale) }}</div>
-                    <div class="stat-value">{{ (trip.budget.total / trip.stats.days)|number_format(2, ',', ' ') }}€</div>
+                    <div class="stat-value">{{ (trip.budget.total / trip.stats.days)|number_format(2, ',', ' ') }} {{ trip.currency ? trip.currency : '€' }}</div>
                 </div>
             {% endif %}
 
             {% if trip.budget and trip.travelers %}
                 <div class="stat-item">
                     <div class="stat-label">{{ 'pdf.stats.budget_per_person'|trans({}, 'messages', locale) }}</div>
-                    <div class="stat-value">{{ (trip.budget.total / trip.travelers|length)|number_format(2, ',', ' ') }} €</div>
+                    <div class="stat-value">{{ (trip.budget.total / trip.travelers|length)|number_format(2, ',', ' ') }} {{ trip.currency ? trip.currency : '€' }}</div>
                 </div>
             {% endif %}
         </div>

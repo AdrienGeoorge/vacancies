@@ -40,6 +40,7 @@ class PdfService
             'duration' => $trip->getDepartureDate()->diff($trip->getReturnDate())->days + 1,
             'description' => $trip->getDescription(),
             'coverImage' => $trip->getImage() ?: null,
+            'currency' => $trip->getCurrency()?->getSymbol(),
 
             // Travelers
             'travelers' => array_map(function (TripTraveler $traveler) {

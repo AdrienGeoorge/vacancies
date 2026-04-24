@@ -116,7 +116,7 @@ class TripController extends AbstractController
     }
 
     #[Route('/get/{trip}/dashboard', name: 'getDashboard', requirements: ['trip' => '\d+'], methods: ['GET'])]
-//    #[IsGranted('view', subject: 'trip', message: 'trip.access.view_denied', statusCode: 403)]
+    #[IsGranted('view', subject: 'trip', message: 'trip.access.view_denied', statusCode: 403)]
     public function getDashboard(?Trip $trip = null): JsonResponse
     {
         return $this->json([
@@ -127,7 +127,7 @@ class TripController extends AbstractController
     }
 
     #[Route('/get/{trip}/balance', name: 'getBalance', requirements: ['trip' => '\d+'], methods: ['GET'])]
-//    #[IsGranted('view', subject: 'trip', message: 'trip.access.view_denied', statusCode: 403)]
+    #[IsGranted('view', subject: 'trip', message: 'trip.access.view_denied', statusCode: 403)]
     public function getBalance(?Trip $trip = null): JsonResponse
     {
         $data = $this->tripService->getCreditorAndDebtorDetails($trip);
@@ -220,6 +220,7 @@ class TripController extends AbstractController
         $dto->destinations = $request->request->all()['destinations'] ?? [];
         $dto->description = $request->request->get('description');
         $dto->image = $request->files->get('image');
+        $dto->currency = $request->request->get('currency') ?: null;
 
         try {
             $departureDateStr = $request->request->get('departureDate');
@@ -265,16 +266,13 @@ class TripController extends AbstractController
                 $trip->setImage(null);
             }
 
-            /** @var \App\Entity\User $currentUser */
-            $currentUser = $this->getUser();
             $isEdit = $request->get('_route') === 'api_trip_edit';
-            $currencyCode = $request->request->get('currency');
-            if (!$currencyCode && !$isEdit) {
-                $currencyCode = $currentUser->getPreferredCurrency()?->getCode() ?? 'EUR';
-            }
+            $currencyCode = $dto->currency;
+
             $currency = $currencyCode
                 ? $this->managerRegistry->getRepository(Currency::class)->find($currencyCode)
                 : $trip->getCurrency();
+
             if (!$currency) {
                 return $this->json(['message' => $this->translator->trans('trip.currency.invalid')], Response::HTTP_BAD_REQUEST);
             }

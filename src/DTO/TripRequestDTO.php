@@ -37,4 +37,9 @@ class TripRequestDTO
 
     #[Assert\File(mimeTypes: ['image/jpeg', 'image/png'])]
     public ?UploadedFile $image;
+
+    #[Assert\NotBlank(message: 'trip.currency.not_blank', allowNull: true)]
+    #[Assert\Length(exactly: 3, exactMessage: 'trip.currency.invalid')]
+    #[Assert\Regex(pattern: '/^[A-Z]{3}$/', message: 'trip.currency.invalid')]
+    public ?string $currency = null;
 }

@@ -329,7 +329,7 @@
                                                                         {{ 'mail.summary.budget_total'|trans({}, 'messages', locale) }}
                                                                     </td>
                                                                     <td style="text-align:right; font-size:13px; font-weight:bold; color:{{ labelColor }}; padding-bottom:8px;">
-                                                                        {{ budgetTotal }} / {{ plannedTotal }} € ({{ pct }}%)
+                                                                        {{ budgetTotal }} / {{ plannedTotal }} {{ trip.currency.symbol|default('€') }} ({{ pct }}%)
                                                                     </td>
                                                                 </tr>
                                                                 <tr>
@@ -368,9 +368,9 @@
                                                                 <tbody><tr>
                                                                     <td style="font-size:13px; color:#6b7280;">{{ cat.label }}</td>
                                                                     <td style="text-align:right; font-size:14px; font-weight:bold; color:#2d2d44;">
-                                                                        {{ cat.amount }} €
+                                                                        {{ cat.amount }} {{ trip.currency.symbol|default('€') }}
                                                                         {% if cat.planned is not null %}
-                                                                            <span style="font-size:11px; font-weight:normal; color:#9ca3af;">/ {{ cat.planned }} €</span>
+                                                                            <span style="font-size:11px; font-weight:normal; color:#9ca3af;">/ {{ cat.planned }} {{ trip.currency.symbol|default('€') }}</span>
                                                                         {% endif %}
                                                                     </td>
                                                                 </tr></tbody>
@@ -402,7 +402,7 @@
                                                                         {% endif %}
                                                                     </td>
                                                                     <td style="text-align:right; white-space:nowrap;">
-                                                                        <span style="font-size:20px; font-weight:bold; color:#0f9b8e;">{{ totalPerPerson }} €</span>
+                                                                        <span style="font-size:20px; font-weight:bold; color:#0f9b8e;">{{ totalPerPerson }} {{ trip.currency.symbol|default('€') }}</span>
                                                                         <span style="display:block; font-size:11px; color:#6b7280;">{{ 'mail.summary.per_person'|trans({}, 'messages', locale) }}</span>
                                                                     </td>
                                                                 </tr></tbody>

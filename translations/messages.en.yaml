@@ -237,6 +237,8 @@ user.language.updated: "Language updated successfully."
 user.language.invalid: "Invalid language."
 user.timezone.updated: "Timezone updated."
 user.timezone.invalid: "Invalid timezone."
+user.currency.updated: "Preferred currency updated."
+user.currency.invalid: "Invalid currency."
 
 # ===== PASSWORD =====
 password.claim.email_required: "Please enter a valid email address."

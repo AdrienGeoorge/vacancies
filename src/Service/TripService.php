@@ -90,10 +90,11 @@ class TripService
     /**
      * Retourne le montant total des logement réservés
      * @param Trip $trip
+     * @param Currency|null $userCurrency
      * @return float
      * @throws Exception
      */
-    public function getReservedAccommodationsPrice(Trip $trip): float
+    public function getReservedAccommodationsPrice(Trip $trip, ?Currency $userCurrency = null): float
     {
         $eurCurrency = $this->managerRegistry->getRepository(Currency::class)->findOneBy(['code' => 'EUR']);
         $price = 0;
@@ -102,11 +103,11 @@ class TripService
             if ($accommodation->isBooked()) {
                 [$location, $deposit, $totalPrice] = $accommodation->getTotalPrices();
 
-                if ($trip->getCurrency() && $trip->getCurrency()->getCode() !== 'EUR') {
+                if (($trip->getCurrency() && $trip->getCurrency()->getCode() !== 'EUR') || ($userCurrency && $userCurrency->getCode() !== 'EUR')) {
                     $totalPrice = $this->currencyConverterService->convert(
                         $totalPrice,
                         $eurCurrency,
-                        $trip->getCurrency(),
+                        $userCurrency ?? $trip->getCurrency(),
                         $accommodation->getConvertedAt() ?? $accommodation->getPurchaseDate()
                     )['amount'];
                 }
@@ -152,10 +153,11 @@ class TripService
     /**
      * Retourne le montant total des transports réservés
      * @param Trip $trip
+     * @param Currency|null $userCurrency
      * @return float
      * @throws Exception
      */
-    public function getReservedTransportsPrice(Trip $trip): float
+    public function getReservedTransportsPrice(Trip $trip, ?Currency $userCurrency = null): float
     {
         $eurCurrency = $this->managerRegistry->getRepository(Currency::class)->findOneBy(['code' => 'EUR']);
         $price = 0;
@@ -165,11 +167,11 @@ class TripService
 
             $finalPrice = $transport->isPerPerson() ? $transport->getTotalPrice() * $trip->getTripTravelers()->count() : $transport->getTotalPrice();
 
-            if ($trip->getCurrency() && $trip->getCurrency()->getCode() !== 'EUR') {
+            if (($trip->getCurrency() && $trip->getCurrency()->getCode() !== 'EUR') || ($userCurrency && $userCurrency->getCode() !== 'EUR')) {
                 $finalPrice = $this->currencyConverterService->convert(
                     $finalPrice,
                     $eurCurrency,
-                    $trip->getCurrency(),
+                    $userCurrency ?? $trip->getCurrency(),
                     $transport->getConvertedAt() ?? $transport->getPurchaseDate()
                 )['amount'];
             }
@@ -214,10 +216,11 @@ class TripService
     /**
      * Retourne le montant total des activités réservées
      * @param Trip $trip
+     * @param Currency|null $userCurrency
      * @return float
      * @throws Exception
      */
-    public function getReservedActivitiesPrice(Trip $trip): float
+    public function getReservedActivitiesPrice(Trip $trip, ?Currency $userCurrency = null): float
     {
         $eurCurrency = $this->managerRegistry->getRepository(Currency::class)->findOneBy(['code' => 'EUR']);
         $price = 0;
@@ -232,11 +235,11 @@ class TripService
                     $calculatedPrice = $calculatedPrice * $trip->getTripTravelers()->count();
                 }
 
-                if ($trip->getCurrency() && $trip->getCurrency()->getCode() !== 'EUR') {
+                if (($trip->getCurrency() && $trip->getCurrency()->getCode() !== 'EUR') || ($userCurrency && $userCurrency->getCode() !== 'EUR')) {
                     $calculatedPrice = $this->currencyConverterService->convert(
                         $calculatedPrice,
                         $eurCurrency,
-                        $trip->getCurrency(),
+                        $userCurrency ?? $trip->getCurrency(),
                         $activity->getConvertedAt() ?? $activity->getPurchaseDate()
                     )['amount'];
                 }
@@ -288,10 +291,11 @@ class TripService
     /**
      * Retourne le montant total des dépenses supplémentaires achetées
      * @param Trip $trip
+     * @param Currency|null $userCurrency
      * @return float
      * @throws Exception
      */
-    public function getReservedVariousExpensivePrice(Trip $trip): float
+    public function getReservedVariousExpensivePrice(Trip $trip, ?Currency $userCurrency = null): float
     {
         $eurCurrency = $this->managerRegistry->getRepository(Currency::class)->findOneBy(['code' => 'EUR']);
         $price = 0;
@@ -306,11 +310,11 @@ class TripService
                     $calculatedPrice = $calculatedPrice * $trip->getTripTravelers()->count();
                 }
 
-                if ($trip->getCurrency() && $trip->getCurrency()->getCode() !== 'EUR') {
+                if (($trip->getCurrency() && $trip->getCurrency()->getCode() !== 'EUR') || ($userCurrency && $userCurrency->getCode() !== 'EUR')) {
                     $calculatedPrice = $this->currencyConverterService->convert(
                         $calculatedPrice,
                         $eurCurrency,
-                        $trip->getCurrency(),
+                        $userCurrency ?? $trip->getCurrency(),
                         $expensive->getConvertedAt() ?? $expensive->getPurchaseDate()
                     )['amount'];
                 }
@@ -362,10 +366,11 @@ class TripService
     /**
      * Retourne le montant total des dépenses effectuées sur place
      * @param Trip $trip
+     * @param Currency|null $userCurrency
      * @return float
      * @throws Exception
      */
-    public function getOnSiteExpensePrice(Trip $trip): float
+    public function getOnSiteExpensePrice(Trip $trip, ?Currency $userCurrency = null): float
     {
         $eurCurrency = $this->managerRegistry->getRepository(Currency::class)->findOneBy(['code' => 'EUR']);
         $price = 0;
@@ -375,13 +380,15 @@ class TripService
                 ? $expense->getConvertedPrice()
                 : $expense->getOriginalPrice();
 
-            if ($trip->getCurrency() && $trip->getCurrency()->getCode() !== 'EUR') {
-                $price += $this->currencyConverterService->convert(
+            if (($trip->getCurrency() && $trip->getCurrency()->getCode() !== 'EUR') || ($userCurrency && $userCurrency->getCode() !== 'EUR')) {
+                $calculatedPrice = $this->currencyConverterService->convert(
                     $calculatedPrice,
                     $eurCurrency,
-                    $trip->getCurrency()
+                    $userCurrency ?? $trip->getCurrency()
                 )['amount'];
             }
+
+            $price += $calculatedPrice;
         }
 
 
@@ -394,30 +401,30 @@ class TripService
      * @return array
      * @throws Exception
      */
-    public function getBudget(Trip $trip): array
+    public function getBudget(Trip $trip, ?Currency $userCurrency = null): array
     {
-        $onSite = $this->getOnSiteExpensePrice($trip);
+        $onSite = $this->getOnSiteExpensePrice($trip, $userCurrency);
 
         $reservedPrices = [
             'accommodations' => [
                 'title' => $this->translator->trans('trip.budget.accommodation'),
                 'description' => $this->translator->trans('trip.budget.accommodation.desc'),
-                'amount' => $this->getReservedAccommodationsPrice($trip)
+                'amount' => $this->getReservedAccommodationsPrice($trip, $userCurrency)
             ],
             'transports' => [
                 'title' => $this->translator->trans('trip.budget.transport'),
                 'description' => $this->translator->trans('trip.budget.transport.desc'),
-                'amount' => $this->getReservedTransportsPrice($trip)
+                'amount' => $this->getReservedTransportsPrice($trip, $userCurrency)
             ],
             'activities' => [
                 'title' => $this->translator->trans('trip.budget.activity'),
                 'description' => $this->translator->trans('trip.budget.activity.desc'),
-                'amount' => $this->getReservedActivitiesPrice($trip)
+                'amount' => $this->getReservedActivitiesPrice($trip, $userCurrency)
             ],
             'various-expensive' => [
                 'title' => $this->translator->trans('trip.budget.various'),
                 'description' => $this->translator->trans('trip.budget.various.desc'),
-                'amount' => $this->getReservedVariousExpensivePrice($trip)
+                'amount' => $this->getReservedVariousExpensivePrice($trip, $userCurrency)
             ],
             'on-site' => [
                 'title' => $this->translator->trans('trip.budget.on_site'),

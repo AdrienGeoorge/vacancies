@@ -2,16 +2,20 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\UserRepository;
+use App\Entity\Currency;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\JoinColumn;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Ignore;
+use Symfony\Component\Serializer\Attribute\MaxDepth;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -117,6 +121,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $homeTimezone = null;
+
+    #[ORM\ManyToOne]
+    #[JoinColumn(name: 'preferred_currency', referencedColumnName: 'code', nullable: true)]
+    #[ApiProperty(readableLink: true)]
+    #[MaxDepth(1)]
+    private ?Currency $preferredCurrency = null;
 
     public function __construct()
     {
@@ -622,6 +632,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setHomeTimezone(?string $homeTimezone): static
     {
         $this->homeTimezone = $homeTimezone;
+
+        return $this;
+    }
+
+    public function getPreferredCurrency(): ?Currency
+    {
+        return $this->preferredCurrency;
+    }
+
+    public function setPreferredCurrency(?Currency $preferredCurrency): static
+    {
+        $this->preferredCurrency = $preferredCurrency;
 
         return $this;
     }

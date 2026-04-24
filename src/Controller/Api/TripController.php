@@ -248,8 +248,6 @@ class TripController extends AbstractController
         }
 
         try {
-            $isEdit = $request->get('_route') === 'api_trip_edit';
-
             if ($dto->image) {
                 if ($trip->getImage()) {
                     $oldPath = $this->getParameter('kernel.project_dir') . '/public' . $trip->getImage();
@@ -267,8 +265,16 @@ class TripController extends AbstractController
                 $trip->setImage(null);
             }
 
-            $currencyCode = $request->request->get('currency', 'EUR');
-            $currency = $this->managerRegistry->getRepository(Currency::class)->find($currencyCode);
+            /** @var \App\Entity\User $currentUser */
+            $currentUser = $this->getUser();
+            $isEdit = $request->get('_route') === 'api_trip_edit';
+            $currencyCode = $request->request->get('currency');
+            if (!$currencyCode && !$isEdit) {
+                $currencyCode = $currentUser->getPreferredCurrency()?->getCode() ?? 'EUR';
+            }
+            $currency = $currencyCode
+                ? $this->managerRegistry->getRepository(Currency::class)->find($currencyCode)
+                : $trip->getCurrency();
             if (!$currency) {
                 return $this->json(['message' => $this->translator->trans('trip.currency.invalid')], Response::HTTP_BAD_REQUEST);
             }

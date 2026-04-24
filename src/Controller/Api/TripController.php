@@ -6,6 +6,7 @@ namespace App\Controller\Api;
 
 use App\DTO\TripRequestDTO;
 use App\Entity\Country;
+use App\Entity\Currency;
 use App\Entity\Trip;
 use App\Entity\TripDestination;
 use App\Entity\TripReimbursement;
@@ -98,7 +99,8 @@ class TripController extends AbstractController
             'departureDate' => $trip['departureDate'],
             'returnDate' => $trip['returnDate'],
             'destinations' => $trip['destinations'],
-            'image' => $trip['image']
+            'image' => $trip['image'],
+            'currency' => $trip['currency'],
         ]);
     }
 
@@ -218,6 +220,7 @@ class TripController extends AbstractController
         $dto->destinations = $request->request->all()['destinations'] ?? [];
         $dto->description = $request->request->get('description');
         $dto->image = $request->files->get('image');
+        $dto->currency = $request->request->get('currency') ?: null;
 
         try {
             $departureDateStr = $request->request->get('departureDate');
@@ -246,8 +249,6 @@ class TripController extends AbstractController
         }
 
         try {
-            $isEdit = $request->get('_route') === 'api_trip_edit';
-
             if ($dto->image) {
                 if ($trip->getImage()) {
                     $oldPath = $this->getParameter('kernel.project_dir') . '/public' . $trip->getImage();
@@ -265,11 +266,23 @@ class TripController extends AbstractController
                 $trip->setImage(null);
             }
 
+            $isEdit = $request->get('_route') === 'api_trip_edit';
+            $currencyCode = $dto->currency;
+
+            $currency = $currencyCode
+                ? $this->managerRegistry->getRepository(Currency::class)->find($currencyCode)
+                : $trip->getCurrency();
+
+            if (!$currency) {
+                return $this->json(['message' => $this->translator->trans('trip.currency.invalid')], Response::HTTP_BAD_REQUEST);
+            }
+
             $trip->setName($dto->name)
                 ->setDescription($dto->description)
                 ->setDepartureDate($dto->departureDate)
                 ->setReturnDate($dto->returnDate)
-                ->setTraveler($this->getUser());
+                ->setTraveler($this->getUser())
+                ->setCurrency($currency);
 
             if ($isEdit) {
                 // Récupérer les destinations actuelles du voyage

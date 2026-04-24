@@ -243,7 +243,7 @@
                                                                         <span style="font-size:12px; color:#6b7280; display:block; margin-top:2px;">{{ 'mail.reminder.onsite_budget_hint'|trans({}, 'messages', locale) }}</span>
                                                                     </td>
                                                                     <td style="text-align:right; white-space:nowrap;">
-                                                                        <span style="font-size:18px; font-weight:bold; color:#0f9b8e;">{{ onSiteBudgetPerPerson }} €</span>
+                                                                        <span style="font-size:18px; font-weight:bold; color:#0f9b8e;">{{ onSiteBudgetPerPerson }} {{ trip.currency.symbol|default('€') }}</span>
                                                                         <span style="display:block; font-size:11px; color:#6b7280;">{{ 'mail.reminder.per_person'|trans({}, 'messages', locale) }}</span>
                                                                     </td>
                                                                 </tr></tbody>
@@ -294,7 +294,7 @@
                                                                 {% endif %}
                                                                 {% if transport.estimatedToll or transport.estimatedGasoline %}
                                                                 <p style="margin:4px 0 0; font-size:12px; color:#9ca3af;">
-                                                                    {{ 'transport.type.toll_fuel'|trans({'%toll%': transport.estimatedToll ?? 0, '%fuel%': transport.estimatedGasoline ?? 0}, 'messages', locale) }}
+                                                                    {{ 'transport.type.toll_fuel'|trans({'%toll%': transport.estimatedToll ?? 0, '%fuel%': transport.estimatedGasoline ?? 0, '%currency%': trip.currency.symbol|default('€')}, 'messages', locale) }}
                                                                 </p>
                                                                 {% endif %}
 

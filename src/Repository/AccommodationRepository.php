@@ -44,43 +44,51 @@ class AccommodationRepository extends ServiceEntityRepository
      * @return mixed
      * @throws Exception
      */
-    public function findByTraveler(Trip $trip, TripTraveler $traveler): mixed
+    public function findByTraveler(Trip $trip, TripTraveler $traveler): array
     {
-        $result = $this->getEntityManager()->getConnection()->executeQuery(
-            "SELECT (
-                        SELECT SUM(
-                            CASE 
-                                WHEN oc1.code != 'EUR' THEN a.converted_price
-                                ELSE a.original_price
-                            END
-                        ) +
-                        SUM(
-                            CASE 
-                                WHEN original_deposit AND oc2.code != 'EUR' THEN a.converted_deposit
-                                WHEN original_deposit AND oc2.code = 'EUR' THEN a.original_deposit
-                                ELSE 0
-                            END
-                        )
-                        FROM accommodation a 
-                        LEFT JOIN currency oc1 ON a.original_currency_id = oc1.code
-                        LEFT JOIN currency oc2 ON a.original_deposit_currency_id = oc2.code
-                        WHERE a.trip_id = :trip AND a.payed_by_id = :traveler AND a.booked = true) as hotelTotal,
-                    (
-                        SELECT SUM(
-                            CASE 
-                                WHEN oc3.code != 'EUR' THEN ad.converted_price
-                                ELSE ad.original_price
-                            END
-                        ) 
-                        FROM accommodation_additional ad
-                        JOIN accommodation a ON ad.accommodation_id = a.id
-                        LEFT JOIN currency oc3 ON ad.original_currency_id = oc3.code
-                        WHERE a.trip_id = :trip AND a.payed_by_id = :traveler AND a.booked = true) as additionalTotal",
+        $results = $this->getEntityManager()->getConnection()->executeQuery(
+            "SELECT 
+            a.id,
+            a.converted_at as convertedAt,
+            a.purchase_date as purchaseDate,
+            (
+                CASE 
+                    WHEN oc1.code != 'EUR' THEN a.converted_price
+                    ELSE a.original_price
+                END
+            ) +
+            (
+                CASE 
+                    WHEN original_deposit AND oc2.code != 'EUR' THEN a.converted_deposit
+                    WHEN original_deposit AND oc2.code = 'EUR' THEN a.original_deposit
+                    ELSE 0
+                END
+            ) +
+            COALESCE((
+                SELECT SUM(
+                    CASE 
+                        WHEN oc3.code != 'EUR' THEN ad.converted_price
+                        ELSE ad.original_price
+                    END
+                )
+                FROM accommodation_additional ad
+                LEFT JOIN currency oc3 ON ad.original_currency_id = oc3.code
+                WHERE ad.accommodation_id = a.id
+            ), 0) as priceTotal
+        FROM accommodation a
+        LEFT JOIN currency oc1 ON a.original_currency_id = oc1.code
+        LEFT JOIN currency oc2 ON a.original_deposit_currency_id = oc2.code
+        WHERE a.trip_id = :trip AND a.payed_by_id = :traveler AND a.booked = true",
             [
                 'trip' => $trip->getId(),
                 'traveler' => $traveler->getId()
-            ])->fetchAssociative();
+            ]
+        )->fetchAllAssociative();
 
-        return $result['hotelTotal'] + $result['additionalTotal'];
+        return array_map(fn($row) => [
+            'priceTotal'   => $row['priceTotal'],
+            'convertedAt'  => $row['convertedAt'],
+            'purchaseDate' => $row['purchaseDate'],
+        ], $results);
     }
 }

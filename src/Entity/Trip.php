@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\JoinColumn;
 use Symfony\Component\Serializer\Attribute\MaxDepth;
 
 #[ORM\Entity(repositoryClass: TripRepository::class)]
@@ -86,6 +87,12 @@ class Trip
 
     #[ORM\OneToMany(targetEntity: ChecklistItem::class, mappedBy: 'trip', orphanRemoval: true)]
     private Collection $checklistItems;
+
+    #[ORM\ManyToOne]
+    #[JoinColumn(name: 'currency', referencedColumnName: 'code', nullable: true)]
+    #[ApiProperty(readableLink: true)]
+    #[MaxDepth(1)]
+    private ?Currency $currency = null;
 
     public function __construct()
     {
@@ -570,6 +577,18 @@ class Trip
                 $checklistItem->setTrip(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getCurrency(): ?Currency
+    {
+        return $this->currency;
+    }
+
+    public function setCurrency(?Currency $currency): static
+    {
+        $this->currency = $currency;
 
         return $this;
     }

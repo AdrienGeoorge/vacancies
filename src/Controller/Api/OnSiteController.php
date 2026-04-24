@@ -38,6 +38,27 @@ class OnSiteController extends AbstractController
     #[IsGranted('view', subject: 'trip')]
     public function getAll(?Trip $trip = null): JsonResponse
     {
+        $expenses = $this->managerRegistry->getRepository(OnSiteExpense::class)->findAllByTrip($trip);
+        $eurCurrency = $this->managerRegistry->getRepository(Currency::class)->findOneBy(['code' => 'EUR']);
+
+        /** @var OnSiteExpense $expense */
+        foreach ($expenses as $expense) {
+            $calculatedPrice = $expense->getOriginalCurrency()?->getCode() !== 'EUR'
+                ? $expense->getConvertedPrice()
+                : $expense->getOriginalPrice();
+
+            if ($trip->getCurrency() && $trip->getCurrency()->getCode() !== 'EUR') {
+                $calculatedPrice = $this->converterService->convert(
+                    $calculatedPrice,
+                    $eurCurrency,
+                    $trip->getCurrency(),
+                    $expense->getConvertedAt() ?? $expense->getPurchaseDate()
+                )['amount'];
+            }
+
+            $expense->setFinalPrice($calculatedPrice);
+        }
+
         return $this->json(
             $this->managerRegistry->getRepository(OnSiteExpense::class)->findAllByTrip($trip),
             Response::HTTP_OK,

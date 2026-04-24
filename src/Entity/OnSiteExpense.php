@@ -49,6 +49,8 @@ class OnSiteExpense
     #[ORM\JoinColumn(nullable: false)]
     private ?TripTraveler $payedBy = null;
 
+    private float $finalPrice;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -165,6 +167,18 @@ class OnSiteExpense
     public function setPayedBy(?TripTraveler $payedBy): static
     {
         $this->payedBy = $payedBy;
+
+        return $this;
+    }
+
+    public function getFinalPrice(): float
+    {
+        return $this->finalPrice;
+    }
+
+    public function setFinalPrice(float $finalPrice): static
+    {
+        $this->finalPrice = $finalPrice;
 
         return $this;
     }

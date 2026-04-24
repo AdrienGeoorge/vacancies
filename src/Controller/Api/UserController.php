@@ -3,6 +3,7 @@
 namespace App\Controller\Api;
 
 use App\Entity\Country;
+use App\Entity\Currency;
 use App\Entity\Trip;
 use App\Entity\User;
 use App\Entity\UserBadges;
@@ -86,6 +87,11 @@ class UserController extends AbstractController
                 'theme' => $user->getTheme(),
                 'language' => $user->getLanguage(),
                 'homeTimezone' => $user->getHomeTimezone(),
+                'preferredCurrency' => $user->getPreferredCurrency() ? [
+                    'code' => $user->getPreferredCurrency()->getCode(),
+                    'name' => $user->getPreferredCurrency()->getName(),
+                    'symbol' => $user->getPreferredCurrency()->getSymbol(),
+                ] : null,
             ]
         ], Response::HTTP_CREATED);
     }
@@ -495,13 +501,13 @@ class UserController extends AbstractController
                 $totalDays += $days;
             }
 
-            $budget = $this->tripService->getBudget($trip);
+            $budget = $this->tripService->getBudget($trip, $user->getPreferredCurrency());
             $tripTotal = $budget['total'];
             $totalSpent += $tripTotal / $nbTravelers;
 
             $costPerTraveler = round($tripTotal / $nbTravelers, 2);
 
-            $onSite = $this->tripService->getOnSiteExpensePrice($trip);
+            $onSite = $this->tripService->getOnSiteExpensePrice($trip, $user->getPreferredCurrency());
             $totalOnSite += round($onSite / $nbTravelers, 2);
 
             $year = $trip->getDepartureDate()?->format('Y');
@@ -582,6 +588,42 @@ class UserController extends AbstractController
             'shortestTrip' => $shortestTrip,
             'preferredMonth' => $preferredMonth,
             'preferredSeason' => $preferredSeason,
+            'userCurrency' => $user->getPreferredCurrency()?->getSymbol(),
+        ]);
+    }
+
+    #[Route('/settings/currency', name: 'update_currency', methods: ['POST'])]
+    public function updateCurrency(Request $request, JWTTokenManagerInterface $jwtManager): JsonResponse
+    {
+        if (!$this->getUser()) return new JsonResponse([], Response::HTTP_UNAUTHORIZED);
+
+        $data = json_decode($request->getContent(), true);
+        $code = $data['currencyCode'] ?? null;
+
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if ($code === null) {
+            $user->setPreferredCurrency(null);
+        } else {
+            $currency = $this->managerRegistry->getRepository(Currency::class)->find($code);
+            if (!$currency) {
+                return new JsonResponse([
+                    'message' => $this->translator->trans('user.currency.invalid')
+                ], Response::HTTP_BAD_REQUEST);
+            }
+            $user->setPreferredCurrency($currency);
+        }
+
+        $this->managerRegistry->getManager()->persist($user);
+        $this->managerRegistry->getManager()->flush();
+
+        $token = $jwtManager->create($user);
+
+        return new JsonResponse([
+            'token' => $token,
+            'user' => $this->serializeUser($user),
+            'message' => $this->translator->trans('user.currency.updated'),
         ]);
     }
 
@@ -633,6 +675,11 @@ class UserController extends AbstractController
             'theme' => $user->getTheme(),
             'language' => $user->getLanguage(),
             'homeTimezone' => $user->getHomeTimezone(),
+            'preferredCurrency' => $user->getPreferredCurrency() ? [
+                'code' => $user->getPreferredCurrency()->getCode(),
+                'name' => $user->getPreferredCurrency()->getName(),
+                'symbol' => $user->getPreferredCurrency()->getSymbol(),
+            ] : null,
         ];
     }
 }

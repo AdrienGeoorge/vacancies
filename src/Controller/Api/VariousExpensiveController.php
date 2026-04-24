@@ -38,9 +38,28 @@ class VariousExpensiveController extends AbstractController
     #[IsGranted('view', subject: 'trip')]
     public function getAll(?Trip $trip = null): JsonResponse
     {
-        return $this->json(
-            $this->managerRegistry->getRepository(VariousExpensive::class)->findAllByTrip($trip)
-        );
+        $expenses = $this->managerRegistry->getRepository(VariousExpensive::class)->findAllByTrip($trip);
+        $eurCurrency = $this->managerRegistry->getRepository(Currency::class)->findOneBy(['code' => 'EUR']);
+
+        /** @var VariousExpensive $expense */
+        foreach ($expenses as $expense) {
+            $calculatedPrice = $expense->getOriginalCurrency()?->getCode() !== 'EUR'
+                ? $expense->getConvertedPrice()
+                : $expense->getOriginalPrice();
+
+            if ($trip->getCurrency() && $trip->getCurrency()->getCode() !== 'EUR') {
+                $calculatedPrice = $this->converterService->convert(
+                    $calculatedPrice,
+                    $eurCurrency,
+                    $trip->getCurrency(),
+                    $expense->getConvertedAt() ?? $expense->getPurchaseDate()
+                )['amount'];
+            }
+
+            $expense->setFinalPrice($calculatedPrice);
+        }
+
+        return $this->json($expenses);
     }
 
     #[Route('/get/{expensive}/form-data', name: 'getFormData', requirements: ['expensive' => '\d+'], methods: ['GET'])]
@@ -86,6 +105,7 @@ class VariousExpensiveController extends AbstractController
 
             $oldTotal = $this->budgetAlertService->getCategoryTotal($trip, 'various-expensive');
 
+            $expensive->setPurchaseDate(new \DateTime());
             $expensive->setTrip($trip);
             $expensive->setPrice($dto->originalPrice);
             $expensive = $this->dtoService->mapToEntity($dto, $expensive);

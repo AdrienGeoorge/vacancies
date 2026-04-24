@@ -41,6 +41,8 @@ class AccommodationAdditional
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $convertedAt = null;
 
+    private float $finalPrice;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -134,6 +136,18 @@ class AccommodationAdditional
     public function setConvertedAt(?\DateTimeImmutable $convertedAt): self
     {
         $this->convertedAt = $convertedAt;
+        return $this;
+    }
+
+    public function getFinalPrice(): float
+    {
+        return $this->finalPrice;
+    }
+
+    public function setFinalPrice(float $finalPrice): self
+    {
+        $this->finalPrice = $finalPrice;
+
         return $this;
     }
 }

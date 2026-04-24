@@ -234,6 +234,8 @@ user.settings.current_password_wrong: "Current password is incorrect."
 user.settings.passwords_dont_match: "Passwords do not match."
 user.language.updated: "Language updated successfully."
 user.language.invalid: "Invalid language."
+user.timezone.updated: "Timezone updated."
+user.timezone.invalid: "Invalid timezone."
 
 # ===== PASSWORD =====
 password.claim.email_required: "Please enter a valid email address."

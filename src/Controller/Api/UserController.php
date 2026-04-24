@@ -85,6 +85,7 @@ class UserController extends AbstractController
                 'biography' => $user->getBiography(),
                 'theme' => $user->getTheme(),
                 'language' => $user->getLanguage(),
+                'homeTimezone' => $user->getHomeTimezone(),
             ]
         ], Response::HTTP_CREATED);
     }
@@ -584,6 +585,40 @@ class UserController extends AbstractController
         ]);
     }
 
+    #[Route('/settings/timezone', name: 'update_timezone', methods: ['POST'])]
+    public function updateTimezone(Request $request, JWTTokenManagerInterface $jwtManager): JsonResponse
+    {
+        if (!$this->getUser()) return new JsonResponse([], Response::HTTP_UNAUTHORIZED);
+
+        $data = json_decode($request->getContent(), true);
+        $timezone = $data['homeTimezone'] ?? null;
+
+        if ($timezone !== null) {
+            try {
+                new \DateTimeZone($timezone);
+            } catch (\Exception) {
+                return new JsonResponse([
+                    'message' => $this->translator->trans('user.timezone.invalid')
+                ], Response::HTTP_BAD_REQUEST);
+            }
+        }
+
+        /** @var User $user */
+        $user = $this->getUser();
+        $user->setHomeTimezone($timezone);
+
+        $this->managerRegistry->getManager()->persist($user);
+        $this->managerRegistry->getManager()->flush();
+
+        $token = $jwtManager->create($user);
+
+        return new JsonResponse([
+            'token' => $token,
+            'user' => $this->serializeUser($user),
+            'message' => $this->translator->trans('user.timezone.updated'),
+        ]);
+    }
+
     private function serializeUser(User $user): array
     {
         return [
@@ -597,6 +632,7 @@ class UserController extends AbstractController
             'biography' => $user->getBiography(),
             'theme' => $user->getTheme(),
             'language' => $user->getLanguage(),
+            'homeTimezone' => $user->getHomeTimezone(),
         ];
     }
 }

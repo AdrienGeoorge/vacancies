@@ -115,6 +115,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 2, nullable: true)]
     private ?string $language = null;
 
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $homeTimezone = null;
+
     public function __construct()
     {
         $this->trips = new ArrayCollection();
@@ -607,6 +610,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLanguage(?string $language): static
     {
         $this->language = $language;
+
+        return $this;
+    }
+
+    public function getHomeTimezone(): ?string
+    {
+        return $this->homeTimezone;
+    }
+
+    public function setHomeTimezone(?string $homeTimezone): static
+    {
+        $this->homeTimezone = $homeTimezone;
 
         return $this;
     }

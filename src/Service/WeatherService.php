@@ -101,7 +101,7 @@ class WeatherService
                 $tripIsActive = $returnDate >= $today;
                 $departureSoonEnough = $departureDate <= (clone $today)->modify('+5 days');
 
-                if ($tripIsActive && $departureSoonEnough) {
+                if ($tripIsActive || $departureSoonEnough) {
                     // Prévisions réelles, avec fallback sur les moyennes historiques
                     try {
                         $forecast = $this->getRealForecast($cityName, $country, $departureDate, $returnDate);

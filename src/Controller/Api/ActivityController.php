@@ -136,14 +136,13 @@ class ActivityController extends AbstractController
                     $event = $this->managerRegistry->getRepository(PlanningEvent::class)->findOneBy(['activity' => $activity]);
 
                     if (!$event) {
-                        $eventType = $this->managerRegistry->getRepository(EventType::class)->findOneBy(['name' => 'Autre']);
                         $event = (new PlanningEvent())
                             ->setTrip($trip)
-                            ->setActivity($activity)
-                            ->setDescription($activity->getDescription())
-                            ->setType($eventType);
+                            ->setActivity($activity);
                     }
 
+                    $event->setType($activity->getType());
+                    $event->setDescription($activity->getDescription());
                     $event->setTitle($activity->getName());
                     $event->setStart($activity->getDate());
 

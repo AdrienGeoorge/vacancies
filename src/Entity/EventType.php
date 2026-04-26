@@ -14,7 +14,8 @@ use Doctrine\ORM\Mapping as ORM;
     operations: [
         new Get(),
         new GetCollection(paginationEnabled: false)
-    ]
+    ],
+    order: ['position' => 'ASC']
 )]
 #[ORM\Entity(repositoryClass: EventTypeRepository::class)]
 class EventType
@@ -29,6 +30,9 @@ class EventType
 
     #[ORM\Column(length: 20)]
     private ?string $color = null;
+
+    #[ORM\Column(options: ['default' => 0])]
+    private ?int $position = 0;
 
     public function getId(): ?int
     {
@@ -55,6 +59,18 @@ class EventType
     public function setColor(string $color): static
     {
         $this->color = $color;
+
+        return $this;
+    }
+
+    public function getPosition(): ?int
+    {
+        return $this->position;
+    }
+
+    public function setPosition(int $position): static
+    {
+        $this->position = $position;
 
         return $this;
     }

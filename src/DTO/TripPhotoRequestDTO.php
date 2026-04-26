@@ -12,6 +12,7 @@ class TripPhotoRequestDTO
     public ?string $title = null;
 
     #[NoHtml]
+    #[Assert\Length(max: 400, maxMessage: 'photo.caption.max_length')]
     public ?string $caption = null;
 
     #[Assert\NotNull(message: 'photo.file.not_null')]

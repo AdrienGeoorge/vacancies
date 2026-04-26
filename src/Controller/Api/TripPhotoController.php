@@ -131,8 +131,14 @@ class TripPhotoController extends AbstractController
         }
 
         $data = json_decode($request->getContent(), true);
+        $caption = $data['caption'] ?? null;
+
+        if ($caption !== null && strlen($caption) > 400) {
+            return $this->json(['message' => $this->translator->trans('photo.caption.max_length')], Response::HTTP_BAD_REQUEST);
+        }
+
         $photo->setTitle($data['title'] ?? null);
-        $photo->setCaption($data['caption'] ?? null);
+        $photo->setCaption($caption);
 
         $this->managerRegistry->getManager()->flush();
 

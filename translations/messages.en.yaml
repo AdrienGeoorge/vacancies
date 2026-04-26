@@ -99,6 +99,7 @@ photo.not_in_trip: "This photo is not associated with this trip."
 photo.deleted: "The photo has been deleted."
 photo.delete.error: "Failed to delete the photo."
 photo.error.upload: "An error occurred while uploading the photo."
+photo.caption.max_length: "The description cannot exceed 400 characters."
 
 # ===== DESTINATIONS =====
 destination.deleted: "Destination removed from the trip."

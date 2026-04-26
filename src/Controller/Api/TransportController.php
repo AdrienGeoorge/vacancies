@@ -4,6 +4,7 @@ namespace App\Controller\Api;
 
 use App\DTO\TransportRequestDTO;
 use App\Entity\Currency;
+use App\Entity\EventType;
 use App\Entity\PlanningEvent;
 use App\Entity\Transport;
 use App\Entity\TransportType;
@@ -171,6 +172,35 @@ class TransportController extends AbstractController
 
                 $this->managerRegistry->getManager()->persist($transport);
                 $this->managerRegistry->getManager()->flush();
+
+                if ($transport->getDepartureDate() &&
+                    (
+                        $transport->getType()?->getName() === 'Avion'
+                        || $transport->getType()?->getName() === 'Train'
+                        || $transport->getType()?->getName() === 'Bus'
+                    )
+                ) {
+                    $eventType = $this->managerRegistry->getRepository(EventType::class)->findOneBy(['name' => 'Transport']);
+                    $hasEvent = $this->managerRegistry->getRepository(PlanningEvent::class)->findOneBy(['transport' => $transport]);
+                    if (!$hasEvent) $hasEvent = new PlanningEvent();
+
+                    $title = $transport->getType()->getName();
+                    if ($transport->getCompany()) $title .= ' (' . $transport->getCompany() . ')';
+                    if ($transport->getDeparture()) $title .= ' : ' . $transport->getDeparture();
+                    if ($transport->getDestination()) $title .= ' / ' . $transport->getDestination();
+                    if (strlen($title) > 255) $title = substr($title, 0, 252) . '...';
+
+                    $hasEvent->setTrip($trip)
+                    ->setTransport($transport)
+                    ->setTitle($title)
+                    ->setStart($transport->getDepartureDate())
+                    ->setEnd($transport->getArrivalDate() ?? null)
+                    ->setDescription($transport->getDescription())
+                    ->setType($eventType);
+
+                    $this->managerRegistry->getManager()->persist($hasEvent);
+                    $this->managerRegistry->getManager()->flush();
+                }
 
                 $toastMessage = $this->budgetAlertService->checkAndNotify($trip, 'transports', $oldTotal);
 

@@ -35,6 +35,8 @@ security:
       form_login: ~
       logout: ~
 
-#  access_control:
-#    - { path: ^/api/login, roles: PUBLIC_ACCESS }
-#    - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
+  access_control:
+    - { path: ^/api/login, roles: PUBLIC_ACCESS }
+    - { path: ^/api/register, roles: PUBLIC_ACCESS }
+    - { path: ^/api/connect/google, roles: PUBLIC_ACCESS }
+    - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }

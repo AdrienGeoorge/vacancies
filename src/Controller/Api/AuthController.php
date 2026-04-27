@@ -16,13 +16,20 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 #[Route('/api', name: 'api_')]
 class AuthController extends AbstractController
 {
-    public function __construct(private TranslatorInterface $translator)
-    {
+    public function __construct(
+        private readonly TranslatorInterface                                    $translator,
+        #[Autowire(env: 'GOOGLE_IOS_CLIENT_ID')] private readonly string        $googleIosClientId,
+        #[Autowire(env: 'GOOGLE_IOS_REDIRECT_URI')] private readonly string     $googleIosRedirectUri,
+        #[Autowire(env: 'GOOGLE_ANDROID_CLIENT_ID')] private readonly string    $googleAndroidClientId,
+        #[Autowire(env: 'GOOGLE_ANDROID_REDIRECT_URI')] private readonly string $googleAndroidRedirectUri,
+    ) {
     }
 
     #[Route('/login', name: 'login', methods: ['POST'])]
@@ -113,6 +120,119 @@ class AuthController extends AbstractController
         ]);
 
         return new JsonResponse(['authUrl' => $authorizationUrl]);
+    }
+
+    #[Route('/connect/google/mobile', name: 'connect_google_mobile_start')]
+    public function connectGoogleMobile(Request $request): Response
+    {
+        $isAndroid = $request->headers->get('X-Platform') === 'android';
+        $clientId = $isAndroid ? $this->googleAndroidClientId : $this->googleIosClientId;
+        $redirectUri = $isAndroid ? $this->googleAndroidRedirectUri : $this->googleIosRedirectUri;
+
+        $codeVerifier = rtrim(strtr(base64_encode(random_bytes(64)), '+/', '-_'), '=');
+        $codeChallenge = rtrim(strtr(base64_encode(hash('sha256', $codeVerifier, true)), '+/', '-_'), '=');
+
+        $authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query([
+            'client_id' => $clientId,
+            'redirect_uri' => $redirectUri,
+            'response_type' => 'code',
+            'scope' => 'openid email profile',
+            'code_challenge' => $codeChallenge,
+            'code_challenge_method' => 'S256',
+        ]);
+
+        return new JsonResponse([
+            'authUrl' => $authUrl,
+            'redirectUri' => $redirectUri,
+            'codeVerifier' => $codeVerifier,
+        ]);
+    }
+
+    #[Route('/connect/google/mobile-check', name: 'connect_google_mobile_check')]
+    public function connectGoogleMobileCheck(
+        Request $request,
+        HttpClientInterface $httpClient,
+        UserRepository $userRepository,
+        EntityManagerInterface $entityManager,
+        JWTTokenManagerInterface $jwtManager,
+        UserPasswordHasherInterface $passwordHasher
+    ): JsonResponse
+    {
+        $isAndroid = $request->headers->get('X-Platform') === 'android';
+        $clientId = $isAndroid ? $this->googleAndroidClientId : $this->googleIosClientId;
+        $redirectUri = $isAndroid ? $this->googleAndroidRedirectUri : $this->googleIosRedirectUri;
+
+        try {
+            $tokenResponse = $httpClient->request('POST', 'https://oauth2.googleapis.com/token', [
+                'body' => [
+                    'code' => $request->query->get('code'),
+                    'client_id' => $clientId,
+                    'redirect_uri' => $redirectUri,
+                    'grant_type' => 'authorization_code',
+                    'code_verifier' => $request->query->get('codeVerifier'),
+                ],
+            ]);
+
+            $tokenData = $tokenResponse->toArray();
+            $accessToken = $tokenData['access_token'];
+
+            $userInfoResponse = $httpClient->request('GET', 'https://www.googleapis.com/oauth2/v3/userinfo', [
+                'headers' => ['Authorization' => 'Bearer ' . $accessToken],
+            ]);
+            $googleUser = $userInfoResponse->toArray();
+
+            $email = $googleUser['email'];
+            $googleId = $googleUser['sub'];
+
+            $user = $userRepository->findOneBy(['email' => $email]);
+
+            if (!$user) {
+                $user = new User();
+                $user->setEmail($email);
+                $user->setFirstname($googleUser['given_name'] ?? '');
+                $user->setLastname($googleUser['family_name'] ?? '');
+                $user->setGoogleId($googleId);
+                $user->setRoles(['ROLE_USER']);
+
+                $locale = $request->headers->get('X-Locale');
+                if (!$locale || !in_array($locale, ['fr', 'en'], true)) {
+                    $locale = $request->getPreferredLanguage(['fr', 'en']) ?? 'fr';
+                }
+                $user->setLanguage($locale);
+
+                $randomPassword = bin2hex(random_bytes(32));
+                $user->setPassword($passwordHasher->hashPassword($user, $randomPassword));
+                $user->setUsername(strtr(mb_convert_encoding(strtolower($user->getFirstname() . $user->getLastname() . substr(bin2hex(random_bytes(3)), 0, 5)), 'ISO-8859-1', 'UTF-8'), mb_convert_encoding('àáâãäçèéêëìíîïñòóôõöùúûüýÿÀÁÂÃÄÇÈÉÊËÌÍÎÏÑÒÓÔÕÖÙÚÛÜÝ', 'ISO-8859-1', 'UTF-8'), 'aaaaaceeeeiiiinooooouuuuyyAAAAACEEEEIIIINOOOOOUUUUY'));
+            } else {
+                if (!$user->getGoogleId()) {
+                    $user->setGoogleId($googleId);
+                }
+            }
+
+            $entityManager->persist($user);
+            $entityManager->flush();
+
+            $token = $jwtManager->create($user);
+
+            return new JsonResponse([
+                'token' => $token,
+                'user' => [
+                    'id' => $user->getId(),
+                    'email' => $user->getEmail(),
+                    'firstname' => $user->getFirstname(),
+                    'lastname' => $user->getLastname(),
+                    'completeName' => $user->getCompleteName(),
+                    'username' => $user->getUsername(),
+                    'avatar' => $user->getAvatar(),
+                    'biography' => $user->getBiography(),
+                    'language' => $user->getLanguage(),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'message' => $this->translator->trans('auth.google.error'),
+            ], Response::HTTP_BAD_REQUEST);
+        }
     }
 
     #[Route('/connect/google/check', name: 'connect_google_check')]

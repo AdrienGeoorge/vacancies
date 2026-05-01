@@ -156,14 +156,30 @@ class TripRepository extends ServiceEntityRepository
             ->setParameter('today', $today)
             ->groupBy('t.id, t.name, t.description, t.departureDate, t.returnDate, t.image')
             ->orderBy('state', 'ASC')
-            ->addOrderBy('t.departureDate', 'DESC')
-            ->addOrderBy('t.returnDate', 'DESC')
             ->getQuery()
             ->getResult();
 
         if (empty($trips)) {
             return [];
         }
+
+        $toTs = static fn($d) => $d instanceof \DateTimeInterface ? $d->getTimestamp() : ($d ? strtotime((string)$d) : 0);
+
+        usort($trips, static function (array $aItem, array $bItem) use ($toTs): int {
+            if ($aItem['state'] !== $bItem['state']) {
+                return $aItem['state'] <=> $bItem['state'];
+            }
+
+            if ($aItem['state'] <= 2) {
+                // En cours / à venir : ASC
+                $cmp = $toTs($aItem['departureDate']) <=> $toTs($bItem['departureDate']);
+                return $cmp !== 0 ? $cmp : ($toTs($aItem['returnDate']) <=> $toTs($bItem['returnDate']));
+            }
+
+            // Non planifié / passé : DESC
+            $cmp = $toTs($bItem['departureDate']) <=> $toTs($aItem['departureDate']);
+            return $cmp !== 0 ? $cmp : ($toTs($bItem['returnDate']) <=> $toTs($aItem['returnDate']));
+        });
 
         $tripIds = array_column($trips, 'id');
 

@@ -39,4 +39,6 @@ security:
     - { path: ^/api/login, roles: PUBLIC_ACCESS }
     - { path: ^/api/register, roles: PUBLIC_ACCESS }
     - { path: ^/api/connect/google, roles: PUBLIC_ACCESS }
+    - { path: ^/api/password, roles: PUBLIC_ACCESS }
+    - { path: ^/api/share, roles: PUBLIC_ACCESS }
     - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }

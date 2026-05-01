@@ -4,7 +4,7 @@ nelmio_cors:
       - '%env(CORS_ALLOW_ORIGIN)%'
       - capacitor://localhost
     allow_credentials: false
-    allow_headers: ['Content-Type', 'Authorization', 'Accept', 'X-Locale']
+    allow_headers: ['Content-Type', 'Authorization', 'Accept', 'X-Locale', 'X-Platform']
     expose_headers: ['Authorization', 'Content-Disposition', 'Content-Type', 'Content-Length']
     allow_methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
     max_age: 3600

@@ -95,13 +95,12 @@ class WeatherService
 
             if (false === $forExport) {
                 $today = (new \DateTime())->setTime(0, 0, 0);
+                $forecastEnd = (clone $today)->modify('+5 days');
 
-                // Utiliser le forecast réel si le voyage chevauche la fenêtre des 5 prochains jours
-                // (voyage en cours OU départ imminent)
-                $tripIsActive = $returnDate >= $today;
-                $departureSoonEnough = $departureDate <= (clone $today)->modify('+5 days');
+                // Utiliser le forecast réel uniquement si le voyage chevauche la fenêtre J → J+5
+                $tripOverlapsForecast = $departureDate <= $forecastEnd && $returnDate >= $today;
 
-                if ($tripIsActive || $departureSoonEnough) {
+                if ($tripOverlapsForecast) {
                     // Prévisions réelles, avec fallback sur les moyennes historiques
                     try {
                         $forecast = $this->getRealForecast($cityName, $country, $departureDate, $returnDate);
@@ -138,8 +137,22 @@ class WeatherService
         \DateTime $returnDate
     ): array
     {
-        $daysToFetch = min(5, (new \DateTime())->diff($returnDate)->days + 1);
-        $cnt = $daysToFetch * 8; // 8 créneaux de 3h par jour
+        $today = (new \DateTime())->setTime(0, 0, 0);
+
+        // Jours entre aujourd'hui et le départ (0 si départ passé ou aujourd'hui)
+        $daysUntilDeparture = $departureDate > $today ? (int)$today->diff($departureDate)->days : 0;
+        // Jours entre aujourd'hui et la fin du voyage
+        $daysUntilReturn = (int)$today->diff($returnDate)->days + 1;
+
+        // Jours de prévisions utiles dans la fenêtre OWM (J → J+4) qui chevauchent le voyage
+        $daysToFetch = min(5, $daysUntilReturn) - $daysUntilDeparture;
+
+        if ($daysToFetch <= 0) {
+            return ['forecast' => true, 'days' => []];
+        }
+
+        // Fetcher suffisamment de créneaux pour inclure les jours du voyage (offset + jours utiles)
+        $cnt = ($daysUntilDeparture + $daysToFetch) * 8; // 8 créneaux de 3h par jour
 
         $coords = $this->weatherDataService->getCoordsForCity($cityName, $country);
 
